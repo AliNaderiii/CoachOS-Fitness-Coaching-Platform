@@ -96,7 +96,7 @@
 - **Privacy Sensitivity:** Private personal fitness telemetry.
 - **Loading State:** Immediate rendering from active memory/cache.
 - **Error State:** Inline validation for negative numbers or missing load fields.
-- **Offline / Network Loss (Phase 07):** Preserves entered form values in local component memory; displays non-intrusive offline toast; allows continuous workout execution.
+- **Offline / Network Loss (Phase 07 — temporary only):** Preserves entered form values temporarily in local component memory (in-memory only, not durable); displays non-intrusive offline toast *"Offline — unsaved input retained temporarily; retry required after reconnection"*; allows continuous workout execution without durable queue (durable IndexedDB queue in Phase 12).
 - **Accessibility:** High-contrast set completion indicators (green background + checkmark icon); accessible timer announcements for screen readers via `aria-live="polite"`.
 - **Related User Stories:** `US-ATH-002`, `US-ATH-003`, `US-ATH-004`.
 

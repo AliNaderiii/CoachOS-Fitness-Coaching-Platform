@@ -84,4 +84,4 @@
 | `pwa.install.banner_desc` | Add to your Home Screen for instant access and fast gym-floor logging. | برای دسترسی سریع و ثبت آسان تمرین در باشگاه، برنامه را به صفحه اصلی اضافه کنید. | Install Description |
 | `pwa.install.ios_instructions` | Tap Share icon below and select 'Add to Home Screen'. | دکمه اشتراک‌گذاری (Share) در پایین مرورگر را بزنید و گزینه 'Add to Home Screen' را انتخاب کنید. | iOS Safari Guide |
 | `pwa.install.cta` | Install Now | نصب برنامه | Android Chrome CTA |
-| `pwa.offline.banner` | Offline — your entered sets are safely preserved on this device. | آفلاین — اطلاعات ست‌های واردشده در گوشی شما محفوظ است. | Offline Banner |
+| `pwa.offline.banner` | Offline — unsaved input retained temporarily; retry required after reconnection. | آفلاین — ورودی‌های ذخیره‌نشده به‌صورت موقت در حافظه نگه داشته می‌شود؛ پس از اتصال مجدد تلاش مجدد لازم است. | Offline Banner (temporary, not durable; Phase 12 provides durable queue) |

@@ -131,7 +131,7 @@ flowchart TD
     
     TapCheck --> CheckNetwork{Network Online?}
     CheckNetwork -->|Yes| SaveSetServer[Sync Set Log to Server]
-    CheckNetwork -->|No / Gym Drop| CacheSetLocal[Preserve in Component State & Show Banner]
+    CheckNetwork -->|No / Gym Drop| CacheSetLocal[Preserve in Component State (Temporary) & Show Banner: "Unsaved input retained temporarily; retry required after reconnection" — no durable queue until Phase 12]
     
     SaveSetServer --> StartTimer[Start 90s Rest Countdown Timer]
     CacheSetLocal --> StartTimer
