@@ -21,7 +21,7 @@ Phase 02 UX and Design System complete: role-based IA, navigation model, 34-scre
 | Area | Post-Merge State | Evidence / Artifact Link |
 |------|------------------|--------------------------|
 | Main Base Commit | `392108372450dc8a40fe79c6201144733955b7c0` | PR #4 merged into `main` |
-| Working Branch | `arena/019febfc-coachos-fitness-coaching-platf` | Active session working branch |
+| Working Branch | `arena/019febfc-coachos-fitness-coaching-platf` | Active session working branch (PR #5 open) |
 | Application Source (Frontend/Backend) | None (by design) | Verified empty via `find` / `git status` |
 | Dependencies / Lockfiles | None (by design) | Verified |
 | Database Migrations | None (by design) | Verified |

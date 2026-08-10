@@ -261,8 +261,8 @@ Recorded 6 new UX ADRs in `docs/DECISIONS.md`:
 - **Repository:** `https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform`
 - **Session Working Branch:** `arena/019febfc-coachos-fitness-coaching-platf`
 - **Base Commit on `main`:** `392108372450dc8a40fe79c6201144733955b7c0` (PR #4 merged)
-- **Phase 01 PR #4:** Successfully merged into `main`.
-- **Phase 02 PR:** Ready to open from `arena/019febfc-coachos-fitness-coaching-platf` to `main`.
+- **Phase 01 PR #4:** Successfully merged into `main` (`392108372450dc8a40fe79c6201144733955b7c0`).
+- **Phase 02 PR:** [PR #5: docs(phase-02): ux, information architecture, and design system specification](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/5) opened from branch `arena/019febfc-coachos-fitness-coaching-platf` to `main` (awaiting review; not merged automatically).
 
 ---
 
