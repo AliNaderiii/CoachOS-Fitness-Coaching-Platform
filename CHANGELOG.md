@@ -33,8 +33,9 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 
 - Updated `PROJECT_STATUS.md` to reflect post-merge state (PR #3 merged into `main` via commit `f52c413`) and Phase 01 completion.
 - Updated `PROJECT_CHECKLIST.md` marking all Phase 01 deliverables complete.
-- Updated `docs/PROMPT_LOG.md` logging PR #3 merge record and Prompt 002.
+- Updated `docs/PROMPT_LOG.md` logging PR #3 merge record, full text of Prompt 002, and Prompt 003 preflight initiation.
 - Updated `docs/reports/PHASE-00-DISCOVERY-REPORT.md` with `Post-Phase-00 Merge Addendum`.
+- Calibrated `docs/COMPETITIVE_LANDSCAPE.md`, `docs/PRD.md`, `docs/SECURITY_AND_PRIVACY.md`, `docs/DATA_MODEL.md`, `docs/API_CONTRACT.md`, and `docs/USER_JOURNEYS.md` during Phase 01 preflight consistency audit (calibrated competitor language qualifiers, labeled performance/workload targets as hypotheses, clarified owner vs coach privacy boundaries, and verified PWA phasing across Phase 04/07/12).
 
 ### Notes
 

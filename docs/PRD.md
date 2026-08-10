@@ -33,8 +33,8 @@ Personal trainers, strength coaches, and gym owners lose 5–15 hours every week
 
 ### 1.5 Product Positioning & Value Proposition
 - **For Gym Owners:** Institutional client data retention, team management, and professional brand presentation without per-client penalty pricing.
-- **For Coaches:** 70% reduction in weekly programming time via fluid template builders and instant contextual feedback on athlete actuals.
-- **For Athletes:** Fast, distraction-free "Today's Workout" mobile execution that works seamlessly even when gym cellular signals drop.
+- **For Coaches (Proposed Hypothesis):** Target reduction in weekly programming hours via fluid template builders and instant contextual feedback on athlete actuals (to be validated in pilot).
+- **For Athletes:** Fast, distraction-free "Today's Workout" mobile execution designed to operate reliably across variable mobile connectivity.
 
 ### 1.6 Business Model
 - **B2B2C Multi-Tenant SaaS:** Organizations and independent coaches subscribe to monthly/annual tiers (e.g., Solo Coach, Studio, Multi-Coach Gym).
@@ -42,12 +42,12 @@ Personal trainers, strength coaches, and gym owners lose 5–15 hours every week
 - **Future Monetization (P1/P2):** Add-on nutrition seats, branded custom domains, and marketplace program sales (deferred).
 
 ### 1.7 Strategic Differentiation Hypotheses
-1. **First-Class Persian RTL & English LTR Parity:** Engineered from day one with CSS logical properties, native Persian typography (`Vazirmatn`), and zero compromise in either language.
+1. **Bilingual Persian (`fa-IR`) & English (`en-US`) Parity:** Engineered from day one with CSS logical properties, native Persian typography (`Vazirmatn`), and full feature availability across both languages.
 2. **Intelligent Persian Search Normalization:** Instant fuzzy and character-folded search across canonical and colloquial Persian exercise names.
-3. **PWA-First Gym Floor Resilience:** Sub-second loading on 3G-class mobile networks with offline-resilient workout logging.
-4. **Strict IP & Media Rights Provenance:** 100% verified copyright metadata on all catalog demonstration assets.
+3. **PWA-First Gym Floor Usability:** Mobile-first responsive delivery designed for fast loading on variable mobile networks, with progressive offline capabilities sequenced across phases (foundation shell in Phase 04, mobile session validation in Phase 07, advanced offline queue in Phase 12).
+4. **Strict IP & Media Rights Provenance:** Verified copyright metadata and licensing provenance on all catalog demonstration assets.
 5. **Consent-Governed Multi-Professional Architecture (P1 Ready):** Clean separation of strength and nutrition coaching around a unified athlete profile.
-6. **Privacy, Security & Auditability:** Immutable audit logging, zero cross-tenant leakage, and automated data portability.
+6. **Privacy, Security & Auditability:** Immutable audit logging, tenant isolation, and machine-readable data export/erasure workflows (engineered with GDPR-adjacent privacy principles; subject to legal review before commercial launch).
 
 ### 1.8 Product Principles
 1. **Smallest Valuable Increment:** Ship solid, testable foundations before adding edge-case complexity.
@@ -672,22 +672,23 @@ Scenario: Athlete substitutes exercise due to busy equipment
 US-ATH-004: Pain, Fatigue & Session Feedback Reporting
 ===============================================================================
 - Persona: P-ATH
-- Business Value: Early injury prevention and objective readiness tracking for coaches.
+- Business Value: Contextual readiness and discomfort signals for coach review (not a medical diagnosis or injury prevention guarantee).
 - Priority: P0 (Core MVP)
 - Planned Phase: Phase 07 (Athlete App & Progress)
 - Traceability Link: FR-ATH-02 -> REQ-ATH-004
 
 User Story:
 As an athlete completing a workout,
-I want to report my overall session exertion, fatigue score, and any joint pain flags,
-So that my coach can adjust my volume before injuries occur.
+I want to report my overall session exertion, fatigue score, and any joint discomfort flags,
+So that my coach can adjust my prescribed volume and offer form feedback.
 
 Acceptance Criteria (Gherkin):
 Scenario: Pain flag alerts coach immediately
-  Given an athlete completes a workout and flags "Mild Shoulder Pain (4/10)" on Bench Press
+  Given an athlete completes a workout and flags "Mild Shoulder Discomfort (4/10)" on Bench Press
   When the athlete submits the workout
   Then the workout status transitions to "Completed"
-  And the coach receives a high-priority in-app alert: "Athlete Neda reported shoulder pain on Bench Press"
+  And the coach receives a notification: "Athlete Neda reported shoulder discomfort on Bench Press"
+  And the flag is presented as subjective athlete feedback, not clinical advice
 ```
 
 ```
@@ -902,8 +903,8 @@ The following matrix defines the authoritative server-side authorization boundar
 | | Read Workout Logs | All (Audited) | Own Org Athletes | **Assigned Athletes Only** | **Own Logs Only** | Permitted Athlete Logs | Read Org Logs |
 | | Comment / Feedback | System Notes | Own Org Athletes | Assigned Athletes | Own Sessions | Collaborative Note | None |
 | **Sensitive Health & Photos** | Upload Progress Photo | None | None | None | **Own Photos (Consent)** | None | None |
-| | View Progress Photo | Strictly Audited Escalation | Assigned Athletes (If Permitted) | **Assigned Athletes Only** | **Own Photos Only** | Explicit Consent Only | **DENIED (Zero Access)** |
-| | View Pain / Injury Flags | All (Audited) | Own Org Athletes | **Assigned Athletes Only** | **Own Flags Only** | Permitted Athletes | Read Flags |
+| | View Progress Photo | Strictly Audited Escalation | Assigned Athletes (If Explicit Consent Granted) | **Assigned Athletes Only (With Consent)** | **Own Photos Only** | Explicit Consent Only | **DENIED (Zero Access)** |
+| | View Pain / Injury Flags | All (Audited) | Own Org Athletes (Aggregate/Audit) | **Assigned Athletes Only** | **Own Flags Only** | Permitted Athletes | Read Flags |
 | **Messages & Threads** | Send 1:1 Message | System Broadcast | Own Org Staff/Athletes | Assigned Athletes & Org Owner | Assigned Coach & Org Owner | Assigned Athletes | None |
 | | Read Private Threads | Audited Escalation Only | Org Admin Escalation | Assigned Threads Only | Own Threads Only | Assigned Threads Only | **DENIED** |
 | **Audit Logs** | Read Audit Trail | **Global Audit Trail** | **Own Org Audit Trail** | None | None | None | Org Audit (Read) |
@@ -954,7 +955,7 @@ The following matrix defines the authoritative server-side authorization boundar
 ### 8.3 Privacy & Data Governance
 - **NFR-PRV-01 (Data Minimization):** Zero collection of extraneous PII; health metrics limited strictly to coaching-relevant physiological variables.
 - **NFR-PRV-02 (Immutable Audit Logging):** All authentication events, role escalations, member suspensions, and sensitive health reads produce append-only audit events stored with actor ID, timestamp, and IP hash.
-- **NFR-PRV-03 (Data Portability & Deletion):** Self-service endpoints for full JSON/CSV data export and account anonymization/erasure pipeline (GDPR Article 17/20 compliant).
+- **NFR-PRV-03 (Data Portability & Deletion):** Self-service endpoints for full JSON/CSV data export and account anonymization/erasure pipeline (engineered with GDPR Article 17/20-adjacent principles; formal legal review required before commercial launch).
 - **NFR-PRV-04 (No Real PII in Development):** Test fixtures, seed data, and documentation must exclusively use synthetic, fictionalized data.
 
 ### 8.4 Accessibility (WCAG 2.2 AA)
@@ -963,14 +964,14 @@ The following matrix defines the authoritative server-side authorization boundar
 - **NFR-A11Y-03 (Touch Target Sizing):** Mobile interactive targets (e.g., set checkmark buttons, number keypad inputs) possess a minimum touch dimension of 44x44 CSS pixels.
 
 ### 8.5 Performance & Low-Bandwidth Usability
-- **NFR-PERF-01 (Today's Workout Loading):** Athlete "Today's Workout" dashboard loads and renders interactive content in < 1.5 seconds on a simulated 3G mobile network (750kbps / 100ms RTT).
-- **NFR-PERF-02 (API Latency):** 95th percentile (p95) API response time < 200ms for read endpoints; < 400ms for complex builder save operations under standard load.
-- **NFR-PERF-03 (Frontend Bundle Size):** Initial mobile JavaScript payload < 150KB compressed (Gzip/Brotli) to guarantee fast gym parsing on budget smartphones.
+- **NFR-PERF-01 (Today's Workout Loading):** Athlete "Today's Workout" dashboard engineering target: loads and renders interactive content in < 1.5 seconds on simulated 3G mobile networks (750kbps / 100ms RTT) to be benchmarked in Phase 13.
+- **NFR-PERF-02 (API Latency):** 95th percentile (p95) API response time engineering target < 200ms for read endpoints; < 400ms for complex builder save operations under standard load.
+- **NFR-PERF-03 (Frontend Bundle Size):** Initial mobile JavaScript payload target < 150KB compressed (Gzip/Brotli) to facilitate rapid parsing on mobile devices.
 
 ### 8.6 Reliability & Data Integrity
 - **NFR-REL-01 (Transactional Integrity):** Multi-entity mutations (program assignments, workout completions, member suspensions) execute within atomic database transactions.
 - **NFR-REL-02 (Automated Backups & Restore Testing):** Daily automated PostgreSQL snapshots with Point-in-Time Recovery (PITR); documented and tested restore runbook before pilot release.
-- **NFR-REL-03 (Workout Offline Resilience):** Set actuals logged during temporary gym network loss are persisted in browser IndexedDB/localStorage and automatically synced upon reconnection.
+- **NFR-REL-03 (Workout Mobile & Offline Resilience):** In Phase 07, client-side session state preserves unsaved set logs during temporary network dropouts with clear network feedback; full IndexedDB offline queuing and background synchronization are delivered in Phase 12.
 
 ### 8.7 Localization (`fa-IR` & `en-US`)
 - **NFR-I18N-01 (Zero Hardcoded Strings):** 100% of user-facing UI text sourced from externalized localization resource bundles (`fa-IR.json`, `en-US.json`).

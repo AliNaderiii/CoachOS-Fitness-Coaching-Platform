@@ -1,8 +1,9 @@
 # Conceptual Data Model & Entity Specifications — CoachOS
 
-**Document version:** 1.0.0 (Phase 01 Baseline)  
+**Document version:** 1.1.0 (Phase 01 Preflight Calibrated)  
 **Last updated:** 2026-08-10  
-**Phase alignment:** Phase 01 Conceptual & Logical Specification (Physical PostgreSQL DDL & ERD Diagrams scheduled for Phase 03)  
+**Phase alignment:** Phase 01 Conceptual & Logical Specification.  
+**Architectural Notice:** The entity sketches, column definitions, and identifier strategies (e.g., UUIDv7) below represent provisional requirements-level domain models. Physical PostgreSQL DDL, index tuning, foreign-key cascade behaviors, and formal C4/ERD diagrams will be finalized in **Phase 03 — Architecture, Data, Security, and Privacy**.  
 **Language constraints:** Bilingual metadata fields supporting `fa-IR` and `en-US`. **No Arabic tables, columns, or seed catalogs.**
 
 ---

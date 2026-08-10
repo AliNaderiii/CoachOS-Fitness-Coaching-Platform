@@ -151,7 +151,7 @@ This document details the end-to-end user journeys for the CoachOS platform. Eve
 - **Skip Workout with Reason:** Athlete is ill or traveling, opens scheduled workout, taps "Skip Workout", and selects reason "Illness / Travel". System updates calendar status to `Skipped` and notifies coach.
 
 ### 3.5 Error States & Handling
-- **Temporary Network Loss (Gym Dead Zone):** If cellular data drops during workout execution, the mobile PWA caches logged set actuals locally in client storage and displays an offline indicator ("Offline - changes saved locally"). Upon network restoration, the queue automatically syncs to the server with zero data loss.
+- **Temporary Network Loss (Gym Connectivity Drops):** If cellular data drops during workout execution, the mobile PWA preserves unsaved set inputs in local form memory and displays a clear offline indicator banner. When connectivity returns, the athlete can submit sets with zero loss of entered values. (Full IndexedDB background queuing and multi-device sync are delivered in Phase 12).
 - **Invalid Number Inputs:** Negative numbers or unrealistic values (e.g., 9999 kg) trigger immediate inline validation warnings.
 
 ### 3.6 Server-Side Permission Checks

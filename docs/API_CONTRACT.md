@@ -1,9 +1,10 @@
 # API Contract & Endpoint Specification — CoachOS
 
-**Document version:** 1.0.0 (Phase 01 Baseline)  
+**Document version:** 1.1.0 (Phase 01 Preflight Calibrated)  
 **Last updated:** 2026-08-10  
-**Base URL:** `/api/v1`  
+**Base URL:** `/api/v1` (Provisional)  
 **Content-Type:** `application/json` (unless multipart for media uploads)  
+**Architectural Notice:** The endpoint paths, JSON payloads, and error envelopes below represent requirements-level interface contracts designed to guide UX and authorization modeling. Definitive OpenAPI 3.1 specifications, serialization schemas, and transport details will be formally finalized in **Phase 03 — Architecture, Data, Security, and Privacy**.  
 **Supported Locales:** `fa-IR` (Persian), `en-US` (English)  
 **Strict constraint:** Arabic is explicitly out of scope.
 
