@@ -25,7 +25,7 @@
 | **SCR-ORG-06** | Organization Audit Trail Viewer | `/org/audit` | `P-OWNER` | Desktop Console | `US-AUD-001` |
 | **SCR-COACH-01** | Coach Home Dashboard | `/coach/dashboard` | `P-COACH` | Desktop & Mobile | `US-PRG-003`, `US-ATH-004` |
 | **SCR-COACH-02** | Assigned Athlete Roster | `/coach/athletes` | `P-COACH` | Desktop & Tablet | `US-ORG-004` |
-| **SCR-COACH-03** | Athlete Training Profile & History | `/coach/athletes/:id` | `P-COACH` | Desktop & Tablet | `US-ATH-006` |
+| **SCR-COACH-03** | Athlete Training Profile & History | `/coach/athletes/:id` | `P-COACH` | Desktop & Tablet | `US-ATH-005` |
 | **SCR-COACH-04** | Workout Log Review & Feedback Form | `/coach/athletes/:id/logs/:sid` | `P-COACH` | Desktop & Tablet | `US-MSG-001`, `US-ATH-004` |
 | **SCR-COACH-05** | Program Library & Template List | `/coach/programs` | `P-COACH` | Desktop & Tablet | `US-PRG-002` |
 | **SCR-COACH-06** | Hierarchical Program Builder | `/coach/programs/:id/builder` | `P-COACH` | Desktop (Primary) | `US-PRG-001` |
@@ -39,12 +39,12 @@
 | **SCR-ATH-04** | Pain / Discomfort Flag Modal | `/app/workouts/:id/pain-flag` | `P-ATH` | Mobile PWA (Primary) | `US-ATH-004` |
 | **SCR-ATH-05** | Workout Summary & Session Feedback | `/app/workouts/:id/summary` | `P-ATH` | Mobile PWA (Primary) | `US-ATH-004` |
 | **SCR-ATH-06** | Athlete Training Calendar | `/app/calendar` | `P-ATH` | Mobile PWA (Primary) | `US-ATH-001` |
-| **SCR-ATH-07** | Progress, Metrics & Photos | `/app/progress` | `P-ATH` | Mobile PWA (Primary) | `US-ATH-005`, `US-ATH-006` |
+| **SCR-ATH-07** | Progress, Metrics & Photos | `/app/progress` | `P-ATH` | Mobile PWA (Primary) | `US-ATH-005` |
 | **SCR-ATH-08** | Contextual 1:1 Messaging Inbox | `/app/messages` | `P-ATH`, `P-COACH` | Mobile & Desktop | `US-MSG-001` |
 | **SCR-ATH-09** | Profile, Locale & Privacy Settings | `/app/profile` | `P-ATH`, `P-COACH` | Mobile & Desktop | `US-I18N-001`, `US-PRI-001` |
-| **SCR-ADMIN-01** | Platform Admin Telemetry Console | `/admin/dashboard` | `P-ADMIN` | Desktop Console | `US-ADM-001` |
-| **SCR-ADMIN-02** | Exercise Moderation & Rights Queue | `/admin/exercises/moderation` | `P-ADMIN` | Desktop Console | `US-EX-003`, `US-ADM-001` |
-| **SCR-ADMIN-03** | Global Organization & User Directory | `/admin/organizations` | `P-ADMIN` | Desktop Console | `US-ADM-001` |
+| **SCR-ADMIN-01** | Platform Admin Telemetry Console | `/admin/dashboard` | `P-ADMIN` | Desktop Console | `US-AUD-001` |
+| **SCR-ADMIN-02** | Exercise Moderation & Rights Queue | `/admin/exercises/moderation` | `P-ADMIN` | Desktop Console | `US-EX-003`, `US-AUD-001` |
+| **SCR-ADMIN-03** | Global Organization & User Directory | `/admin/organizations` | `P-ADMIN` | Desktop Console | `US-AUD-001` |
 | **SCR-ADMIN-04** | Global Security Audit Log Viewer | `/admin/audit-logs` | `P-ADMIN` | Desktop Console | `US-AUD-001` |
 
 ---
@@ -71,7 +71,7 @@
 - **Empty State (Rest Day):** Illustrative rest day card: *"Rest & Recovery Day — Next session scheduled for tomorrow"*.
 - **Error State:** Localized error banner with "Retry Loading" button.
 - **Offline / Network Loss (Phase 04/07):** Displays cached workout shell if previously loaded; presents offline indicator banner; prevents navigation disruption.
-- **Accessibility:** Semantic `<h1>Today's Workout</h1>`; `aria-labelledby` linking exercise cards; 48x48px touch targets.
+- **Accessibility:** Semantic `<h1>Today's Workout</h1>`; `aria-labelledby` linking exercise cards; touch targets: minimum **44×44px**, **48×48px preferred design target** for primary CTA (requires implementation testing).
 - **Related User Stories:** `US-ATH-001`, `US-I18N-001`, `US-PWA-001`.
 
 ---
@@ -147,7 +147,7 @@
 - **Loading State:** Table skeleton rows (5 rows shimmer).
 - **Empty State:** Illustrated empty card: *"No coaches invited yet — invite your first personal trainer"*.
 - **Accessibility:** `<caption>` on data tables; sortable column headers with `aria-sort`; accessible action dropdown menus.
-- **Related User Stories:** `US-ORG-004`, `US-ORG-005`, `US-AUTHZ-001`.
+- **Related User Stories:** `US-ORG-004`, `US-ORG-005`, `US-AUD-001`.
 
 ---
 
@@ -169,4 +169,4 @@
 - **Localization:** Bilingual curation UI allowing side-by-side editing of `fa-IR` and `en-US` translation strings.
 - **Privacy Sensitivity:** Platform catalog administration.
 - **Accessibility:** Keyboard shortcuts (Shift+A to approve, Shift+R to reject); video player with accessible controls.
-- **Related User Stories:** `US-EX-003`, `US-ADM-001`, `US-AUD-001`.
+- **Related User Stories:** `US-EX-003`, `US-AUD-001`.

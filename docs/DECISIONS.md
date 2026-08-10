@@ -314,8 +314,8 @@
 
 ---
 
-### ADR-028 — Dark-Neutral Visual Theme for Mobile Gym-Floor Glare Reduction
-- **Status:** **Accepted** (Phase 02 UX)
-- **Context:** Gyms frequently have intense overhead lighting and athletes operate devices with sweaty hands and variable screen brightness.
-- **Decision:** Implement a **Dark Obsidian Neutral Canvas** (`#0B0F17`) as the default visual theme for the Athlete PWA, using high-contrast Emerald/Teal status accents and crisp typography meeting WCAG 2.2 AAA contrast standards.
-- **Consequences:** Eliminates screen glare and reduces battery consumption on OLED mobile devices during 60+ minute training sessions.
+### ADR-028 — Dark-Neutral Visual Theme for Mobile Gym-Floor Glare Reduction (Design Target)
+- **Status:** **Accepted** (Phase 02 UX — design target; requires implementation validation and user testing)
+- **Context:** Gyms frequently have intense overhead lighting and athletes operate devices with sweaty hands and variable screen brightness. Whether a dark theme measurably reduces perceived glare is a *hypothesis* requiring pilot validation, not an established proven benefit.
+- **Decision:** Implement a **Dark Obsidian Neutral Canvas** (`#0B0F17`) as the default *proposed* visual theme for the Athlete PWA, using high-contrast Emerald/Teal status accents and crisp typography with design-target contrast ratios intended to meet WCAG 2.2 AAA (requires implementation contrast testing).
+- **Consequences:** *Proposed* to reduce perceived screen glare and reduce battery consumption on OLED mobile devices during 60+ minute training sessions; actual effectiveness requires user testing and device validation. Light-theme tokens remain specified for desktop administration.

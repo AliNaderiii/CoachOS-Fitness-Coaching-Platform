@@ -25,7 +25,7 @@ All foundational constraints and rules were strictly enforced:
 تمامی اصول و محدودیت‌های بنیادین به طور کامل رعایت شدند:
 ۱. **هیچ‌گونه کد برنامه‌نویسی، اسکلت فرانت‌اند/بک‌اند، وابستگی خارجی، مایگریشن یا پیاده‌سازی API ایجاد نشد (فاز صرفاً مستندسازی و مشخصات طراحی است).**
 ۲. **محدودیت زبانی:** پلتفرم منحصراً برای **فارسی (`fa-IR` با چیدمان کامل راست‌به‌چپ RTL و فونت وزیرمتن)** و **انگلیسی (`en-US` با چیدمان چپ‌به‌راست LTR)** طراحی شده و **زبان عربی به صورت قطعی و کامل خارج از دامنه است**.
-۳. **مستندات تحویل‌شده UX:** ۱۳ سند تخصصی شامل معماری اطلاعات، مدل ناوبری موبایل/دسکتاپ، سیاهه کامل ۲۸+ صفحه P0، نمودارهای جریان کاربر (Mermaid)، وایرفریم‌های متنی دقیق دو جهته، توکن‌های طراحی بصری، مشخصات تقارن RTL/LTR با ویژگی‌های منطقی CSS، ارگونومی تک‌دستی موبایل در باشگاه، انطباق دسترس‌پذیری با استاندارد WCAG 2.2 AA، ماتریس مدیریت خطاها و حالت‌های آفلاین PWA، راهنمای لحن و کپی‌رایتینگ غیربالینی، ماتریس ردیابی UX و برنامه اعتبارسنجی فرضیات پژوهش تدوین گردید.
+۳. **مستندات تحویل‌شده UX:** ۱۳ سند تخصصی شامل معماری اطلاعات، مدل ناوبری موبایل/دسکتاپ، سیاهه کامل ۳۴ صفحه P0، نمودارهای جریان کاربر (Mermaid)، وایرفریم‌های متنی دقیق دو جهته، توکن‌های طراحی بصری، مشخصات تقارن RTL/LTR با ویژگی‌های منطقی CSS، ارگونومی تک‌دستی موبایل در باشگاه، طراحی هدف دسترس‌پذیری منطبق بر WCAG 2.2 AA (نیازمند اعتبارسنجی پیاده‌سازی و تست دسترس‌پذیری)، ماتریس مدیریت خطاها و حالت‌های آفلاین PWA (الگوی پیشنهادی، نیازمند اعتبارسنجی پیاده‌سازی)، راهنمای لحن و کپی‌رایتینگ غیربالینی، ماتریس ردیابی UX و برنامه اعتبارسنجی فرضیات پژوهش تدوین گردید.
 
 پروژه آماده ورود به **فاز ۰۳ — معماری نرم‌افزار، داده، امنیت و حریم خصوصی** است.
 
@@ -61,14 +61,14 @@ During preflight audit execution, correction commits were made to the Phase 01 b
 |-----------|--------------|------------------|-------------------|
 | **Information Architecture** | Complete role-based site map and hierarchy | Complete | `docs/ux/INFORMATION_ARCHITECTURE.md` |
 | **Navigation Model** | Multi-device responsive navigation patterns | Complete | `docs/ux/NAVIGATION_MODEL.md` |
-| **Screen Inventory** | Full specifications for all 28+ P0 screens | Complete | `docs/ux/SCREEN_INVENTORY.md` |
+| **Screen Inventory** | Full specifications for all 34 P0 screens (exact count per `docs/ux/SCREEN_INVENTORY.md`) | Complete — specification only; requires implementation validation | `docs/ux/SCREEN_INVENTORY.md` |
 | **User Flows** | Step-by-step flows and Mermaid diagrams | Complete | `docs/ux/USER_FLOWS.md` |
 | **Wireframes** | Bidirectional low/medium-fidelity wireframes | Complete | `docs/ux/WIREFRAMES.md` |
 | **Design System** | Complete component library specifications | Complete | `docs/ux/DESIGN_SYSTEM.md` |
-| **Design Tokens** | WCAG 2.2 AA compliant color, spacing, type tokens | Complete | `docs/ux/DESIGN_TOKENS.md` |
+| **Design Tokens** | WCAG 2.2 AA design-target color, spacing, type tokens (requires implementation contrast testing) | Complete — specification only; requires implementation validation | `docs/ux/DESIGN_TOKENS.md` |
 | **RTL / LTR Specification** | CSS logical properties and Persian BiDi rules | Complete | `docs/ux/RTL_LTR_SPECIFICATION.md` |
 | **Responsive Behavior** | Breakpoints and one-handed mobile gym ergonomics | Complete | `docs/ux/RESPONSIVE_BEHAVIOR.md` |
-| **Accessibility Specification**| WCAG 2.2 AA baseline & verification checklist | Complete | `docs/ux/ACCESSIBILITY_SPEC.md` |
+| **Accessibility Specification**| WCAG 2.2 AA design target & verification checklist (requires accessibility testing) | Complete — specification only; requires implementation validation | `docs/ux/ACCESSIBILITY_SPEC.md` |
 | **State & Error Matrix** | 8-state handling and progressive offline PWA matrix | Complete | `docs/ux/STATE_AND_ERROR_MATRIX.md` |
 | **UX Copy Rules** | Non-clinical, supportive bilingual microcopy | Complete | `docs/ux/UX_COPY.md` |
 | **UX Traceability** | 1:1 mapping of all P0 stories to UX artifacts | Complete | `docs/ux/UX_TRACEABILITY_MATRIX.md` |
@@ -129,8 +129,8 @@ Documented in `docs/ux/DESIGN_SYSTEM.md`:
 ## 12. Design Tokens
 
 Documented in `docs/ux/DESIGN_TOKENS.md`:
-- Dark Obsidian palette (`#0B0F17`) default for mobile gym-floor glare reduction.
-- Complete color contrast validation against WCAG 2.2 AA.
+- Dark Obsidian palette (`#0B0F17`) default — proposed pattern for mobile gym-floor glare reduction (requires user testing to validate effectiveness).
+- Design-target color contrast calculations against WCAG 2.2 AA (requires implementation contrast testing; not a compliance claim).
 - 4px spacing scale (`--space-1` to `--space-12`), border radii (`--radius-sm` to `--radius-xl`), z-index layers, and motion curves with `prefers-reduced-motion` override.
 
 ---
@@ -159,26 +159,26 @@ Documented in `docs/ux/RTL_LTR_SPECIFICATION.md` & `docs/ux/DESIGN_TOKENS.md`:
 Documented in `docs/ux/RESPONSIVE_BEHAVIOR.md`:
 - 6-tier breakpoint taxonomy (`xs`, `sm`, `md`, `lg`, `xl`, `2xl`).
 - One-handed mobile gym ergonomics with Natural Thumb Zone placement for all logging controls.
-- Minimum 44x44px touch targets (48x48px for set checkmarks) and 8px hit area clearance.
-- Dual-pane to accordion responsive reflow for Program Builder.
+- Touch targets: minimum **44×44px** per WCAG 2.5.5; **48×48px preferred design target** for primary CTAs and set checkmarks — actual implementation must be tested against accessibility and device usability requirements (8px hit-area clearance).
+- Dual-pane to accordion responsive reflow for Program Builder (requires implementation validation).
 
 ---
 
 ## 16. Accessibility Specification
 
 Documented in `docs/ux/ACCESSIBILITY_SPEC.md`:
-- Target: **WCAG 2.2 Level AA** compliance.
-- Modal/drawer focus trapping and Escape key dismiss.
-- ARIA live region announcements for rest countdown timer and toast feedback.
-- Accessible form labels, inline error binding (`aria-describedby`), and 10-point verification test checklist.
+- Design target: **WCAG 2.2 Level AA** (requires accessibility testing; not a compliance certification).
+- Proposed pattern for modal/drawer focus trapping and Escape key dismiss (requires implementation validation).
+- Proposed ARIA live region announcements for rest countdown timer and toast feedback.
+- Accessible form labels, inline error binding (`aria-describedby`), and 10-point verification test checklist (requires user testing).
 
 ---
 
 ## 17. State and Error Matrix
 
 Documented in `docs/ux/STATE_AND_ERROR_MATRIX.md`:
-- 8-state handling matrix across all P0 features.
-- Progressive offline PWA behavior matrix clearly separating Phase 04 app shell caching, Phase 07 in-memory form preservation and offline banners, and Phase 12 IndexedDB background sync.
+- Proposed 8-state handling matrix across all P0 features (requires implementation validation).
+- Progressive offline PWA behavior matrix — proposed patterns clearly separating Phase 04 app shell caching, Phase 07 in-memory form preservation and offline banners, and Phase 12 IndexedDB background sync (PWA behavior not implemented in Phase 02; requires implementation validation).
 
 ---
 
@@ -193,10 +193,10 @@ Documented in `docs/ux/UX_COPY.md`:
 
 ## 19. PWA UX Behavior
 
-Documented across `docs/ux/NAVIGATION_MODEL.md`, `docs/ux/STATE_AND_ERROR_MATRIX.md`, and `docs/ux/UX_COPY.md`:
-- Installable home screen app shell guidance for iOS Safari and Android Chrome.
-- Full-screen standalone execution mode hiding browser navigation chrome.
-- Clear offline indicators and retry banners.
+Documented across `docs/ux/NAVIGATION_MODEL.md`, `docs/ux/STATE_AND_ERROR_MATRIX.md`, and `docs/ux/UX_COPY.md` — proposed patterns only, not implemented:
+- Proposed installable home screen app shell guidance for iOS Safari and Android Chrome (requires implementation validation).
+- Proposed full-screen standalone execution mode hiding browser navigation chrome.
+- Proposed offline indicators and retry banners (requires implementation validation).
 
 ---
 
@@ -212,7 +212,7 @@ Documented in `docs/ux/UX_RESEARCH_AND_ASSUMPTIONS.md`:
 ## 21. UX Traceability
 
 Documented in `docs/ux/UX_TRACEABILITY_MATRIX.md`:
-- 1:1 mapping of all 29 P0 User Stories (`US-AUTH-001` through `US-PWA-001`) to primary screens, secondary screens, user flows, wireframe specs, design components, RTL/LTR rules, accessibility requirements, and state matrix entries.
+- 1:1 mapping of all 27 P0 User Stories (`US-AUTH-001` through `US-PWA-001`; 25 enumerated + 2 I18N variants; verified against `docs/PRD.md`) to primary screens, secondary screens, user flows, wireframe specs, design components, RTL/LTR rules, accessibility requirements, and state matrix entries. All references verified to point to existing PRD/TRACEABILITY_MATRIX story IDs; invalid IDs (e.g., `US-ATH-006`, `US-ADM-001`, `US-AUTHZ-001`) corrected to real stories. “Perso-Arabic script keyboard-variant normalization for Persian search” used in place of “Arabic Yeh/Kaf variant folding”.
 
 ---
 

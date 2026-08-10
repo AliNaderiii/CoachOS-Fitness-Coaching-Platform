@@ -32,7 +32,7 @@
 | **FR-AUTHZ-03** | E1 | `US-ORG-005` | `AC-AUTHZ-003` | All | `docs/SECURITY_AND_PRIVACY.md` §2 | Multi-Tenancy | `GET /api/v1/programs/{id}` | Phase 05 | **Negative AuthZ Test (Cross-Tenant Query Returns 404)** | planned |
 | **FR-I18N-01** | E2 | `US-I18N-001` | `AC-I18N-001` | All | `docs/PRD.md` §5 | Localization | `GET /api/v1/auth/me` | Phase 04–07 | Visual E2E (Playwright RTL & LTR layout) | planned |
 | **FR-I18N-02** | E2 | `US-I18N-001` | `AC-I18N-002` | All | `docs/DECISIONS.md` ADR-003 | Localization Policy | CI Lint Rules | All Phases | CI Policy Check (Zero Arabic locale files) | **accepted constraint** |
-| **FR-I18N-03** | E2 | `US-I18N-002` | `AC-I18N-003` | `P-COACH` | `docs/DECISIONS.md` ADR-018 | Search & Indexing | `GET /api/v1/exercises?q=...` | Phase 06 | Unit Test (Arabic Yeh/Kaf variant normalization) | planned |
+| **FR-I18N-03** | E2 | `US-I18N-002` | `AC-I18N-003` | `P-COACH` | `docs/DECISIONS.md` ADR-018 | Search & Indexing | `GET /api/v1/exercises?q=...` | Phase 06 | Unit Test (Perso-Arabic script keyboard-variant normalization for Persian search) | planned |
 | **FR-EX-01** | E3 | `US-EX-001` | `AC-EX-001` | `P-COACH` | `docs/DATA_MODEL.md` §3.2 | Exercise Library | `GET /api/v1/exercises` | Phase 06 | Integration (Filtering by muscle/equipment) | planned |
 | **FR-EX-02** | E3 | `US-EX-002` | `AC-EX-002` | `P-COACH` | `docs/DECISIONS.md` ADR-008 | Exercise Library | `POST /api/v1/exercises` | Phase 06 | Validation Test (Mandatory rights metadata) | planned |
 | **FR-EX-03** | E3 | `US-EX-003` | `AC-EX-003` | `P-ADMIN` | `docs/PRD.md` §5 | Moderation | `POST /api/v1/admin/moderation/exercises/{id}/approve` | Phase 06 | Admin Security & Workflow Test | planned |

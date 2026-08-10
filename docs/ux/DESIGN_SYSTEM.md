@@ -10,7 +10,7 @@
 
 ## 1. Core Design Principles
 
-1. **Athlete-First Mobile Clarity:** Mobile workout execution prioritizes high-contrast visibility, large hit targets (>= 44x44px), and minimal tap friction on busy gym floors.
+1. **Athlete-First Mobile Clarity:** Mobile workout execution prioritizes high-contrast visibility, large hit targets (minimum **44×44px** per WCAG 2.5.5; **48×48px preferred design target** for primary CTAs — actual implementation must be tested against accessibility and device usability requirements), and minimal tap friction on busy gym floors.
 2. **Coach Programming Velocity:** Desktop interfaces emphasize dense, keyboard-friendly data entry and rapid drag-and-drop structural manipulation.
 3. **True Bilingual Parity:** Persian (`fa-IR`, RTL) and English (`en-US`, LTR) receive identical functional depth, typography care (`Vazirmatn` vs `Inter`), and layout symmetry.
 4. **Progressive Disclosure:** Complex periodization settings and physiological metrics unfold contextually without cluttering the primary workout loop.

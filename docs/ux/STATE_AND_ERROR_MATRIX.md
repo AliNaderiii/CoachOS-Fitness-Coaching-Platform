@@ -8,9 +8,9 @@
 
 ---
 
-## 1. Global UI State Paradigms
+## 1. Global UI State Paradigms (Proposed Patterns — Requires Implementation Validation)
 
-Every screen and data-fetching component in CoachOS must gracefully handle 8 standard system states:
+Every screen and data-fetching component in CoachOS is *designed* to gracefully handle 8 standard system states (proposed patterns; requires implementation validation and user testing):
 
 1. **Initial / Loading (Shimmer Skeleton):** Renders animated structural skeleton placeholders matching exact layout dimensions to eliminate Cumulative Layout Shift (CLS).
 2. **Empty State:** Illustrated, localized empty view explaining why no content is present and offering a primary corrective CTA.
@@ -23,7 +23,7 @@ Every screen and data-fetching component in CoachOS must gracefully handle 8 sta
 
 ---
 
-## 2. Progressive PWA & Offline State Behavior Across Phases
+## 2. Progressive PWA & Offline State Behavior Across Phases (Proposed Sequencing — Not Implemented in Phase 02)
 
 | Feature Area | Phase 04 Baseline Behavior | Phase 07 Athlete Validation Behavior | Phase 12 Advanced Capabilities |
 |---|---|---|---|

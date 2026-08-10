@@ -45,9 +45,9 @@ During active workout execution, athletes typically operate smartphones with **o
 ```
 
 ### Key Mobile Ergonomic Rules:
-1. **Minimum Touch Target Dimensions:** Every interactive button, input field, and navigation tab possesses a minimum touch dimension of **44x44 CSS pixels** (target **48x48px** for set checkmarks).
-2. **Hit Area Margin Isolation:** Minimum 8px touch clearance between adjacent clickable elements to eliminate accidental taps with sweaty gym fingers.
-3. **No Double-Tap Gestures:** All interactions execute on single tap. Swipe gestures are optional progressive enhancements with visible button alternatives.
+1. **Minimum Touch Target Dimensions:** Every interactive button, input field, and navigation tab possesses a minimum touch dimension of **44×44 CSS pixels** per WCAG 2.5.5; **48×48px is the preferred design target** for primary CTAs and set checkmarks. Actual implementation must be tested against accessibility and device usability requirements.
+2. **Hit Area Margin Isolation:** Minimum 8px touch clearance between adjacent clickable elements to eliminate accidental taps with sweaty gym fingers (requires implementation validation).
+3. **No Double-Tap Gestures:** All interactions are designed to execute on single tap. Swipe gestures are optional progressive enhancements with visible button alternatives.
 
 ---
 

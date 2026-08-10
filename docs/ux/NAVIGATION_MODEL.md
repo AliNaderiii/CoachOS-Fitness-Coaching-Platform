@@ -22,7 +22,7 @@ CoachOS employs responsive navigation patterns tailored to the physical context 
 │ │                        Main Content Canvas                              │ │
 │ │                                                                         │ │
 │ ├─────────────────────────────────────────────────────────────────────────┤ │
-│ │ [Bottom Navigation Bar] (4–5 primary role-specific tabs with active pill) │ │
+│ │ [Bottom Navigation Bar] (5 primary role-specific tabs with active pill: Today / Calendar / Progress / Messages / Profile) │ │
 │ └─────────────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -47,7 +47,7 @@ CoachOS employs responsive navigation patterns tailored to the physical context 
 ## 2. Athlete Mobile Navigation Model (PWA-First)
 
 ### 2.1 Persistent Bottom Navigation Bar
-The athlete mobile interface features a fixed bottom navigation bar (height: 64px) with large touch targets (minimum 48x48px hit areas), active tab indicators, and unread notification badges.
+The athlete mobile interface features a fixed bottom navigation bar (height: 64px) with large touch targets (minimum **44×44px** per WCAG 2.5.5; **48×48px preferred design target** — actual implementation must be tested), active tab indicators, and unread notification badges. Five primary tabs are specified (see table below) — `Today`, `Calendar`, `Progress`, `Messages`, `Profile`.
 
 | Tab Index | Tab Title (English) | Tab Title (Persian) | Icon Semantic | Target Route | Behavioral Purpose |
 |---|---|---|---|---|---|

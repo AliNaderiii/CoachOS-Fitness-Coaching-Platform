@@ -8,9 +8,9 @@
 
 ---
 
-## 1. Categorization of Knowledge: Evidence vs Assumptions
+## 1. Categorization of Knowledge: Evidence vs Assumptions (No Validated User Research Yet — Hypotheses Only)
 
-To maintain engineering and product rigor, CoachOS strictly distinguishes between **established evidence**, **product hypotheses**, and **unvalidated assumptions**:
+To maintain engineering and product rigor, CoachOS strictly distinguishes between **established evidence**, **product hypotheses**, and **unvalidated assumptions**. No validated user research has been conducted in Phase 02; all behavioral claims below are hypotheses and protocols requiring pilot testing:
 
 | Category | Definition | Current CoachOS Examples |
 |---|---|---|
@@ -46,7 +46,7 @@ To maintain engineering and product rigor, CoachOS strictly distinguishes betwee
 
 ---
 
-## 3. Usability Testing & Pilot Validation Protocol (Phase 14 Prep)
+## 3. Usability Testing & Pilot Validation Protocol (Phase 14 Prep — Proposed Protocol; Requires Implementation and Pilot Validation)
 
 ### 3.1 Key Task Scenarios to Test
 1. **Scenario 1 (Coach):** *You have a new client starting Monday. Search the catalog for "اسکوات", create an 8-week program with a superset on Day 1, save it as a template, and assign it.*

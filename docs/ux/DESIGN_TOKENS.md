@@ -10,7 +10,7 @@
 
 ## 1. Color Palette Tokens & Semantic Roles
 
-All color tokens below are specified in Hex and OKLCH values with verified contrast ratios satisfying **WCAG 2.2 AA** requirements (>= 4.5:1 for normal text; >= 3:1 for large text and UI components).
+All color tokens below are specified in Hex and OKLCH values with design-target contrast ratios intended to satisfy **WCAG 2.2 AA** requirements (>= 4.5:1 for normal text; >= 3:1 for large text and UI components). Contrast values are calculated token-to-token; requires implementation validation and accessibility testing — not a compliance certification.
 
 ### 1.1 Brand & Primary Tokens
 - `--color-brand-primary-500`: `#0D9488` (Teal 600 - Primary brand accent)
@@ -19,7 +19,7 @@ All color tokens below are specified in Hex and OKLCH values with verified contr
 - `--color-brand-secondary-500`: `#3B82F6` (Blue 500 - Secondary accent / info)
 
 ### 1.2 Neutral & Surface Tokens (Dark / Gym-Floor & Light Modes)
-CoachOS utilizes an athlete-optimized **Dark Neutral Palette** by default to reduce glare in gym environments, with high-contrast light mode tokens for desktop administration:
+CoachOS utilizes an athlete-optimized **Dark Neutral Palette** by default — proposed design target intended to reduce perceived glare in bright gym environments (requires user testing to validate effectiveness). High-contrast light mode tokens are specified for desktop administration:
 
 | Token Name | Light Theme Value | Dark Theme Value (Default) | Semantic Role |
 |---|---|---|---|
