@@ -1,159 +1,345 @@
-# Data Model — CoachOS
+# Conceptual Data Model & Entity Specifications — CoachOS
 
-**Status:** Conceptual outline (Phase 00). **Authoritative normalized schema in Phase 03.**  
+**Document version:** 1.1.0 (Phase 01 Preflight Calibrated)  
 **Last updated:** 2026-08-10  
+**Phase alignment:** Phase 01 Conceptual & Logical Specification.  
+**Architectural Notice:** The entity sketches, column definitions, and identifier strategies (e.g., UUIDv7) below represent provisional requirements-level domain models. Physical PostgreSQL DDL, index tuning, foreign-key cascade behaviors, and formal C4/ERD diagrams will be finalized in **Phase 03 — Architecture, Data, Security, and Privacy**.  
+**Language constraints:** Bilingual metadata fields supporting `fa-IR` and `en-US`. **No Arabic tables, columns, or seed catalogs.**
 
 ---
 
-## 1. Design goals
+## 1. Architectural Modeling Principles
 
-- Multi-tenant organizations with optional locations  
-- Athlete may eventually relate to **multiple professionals** (model early)  
-- Bilingual content fields (`fa`, `en`) without Arabic tables/resources  
-- Auditability and soft-delete/archive where appropriate  
-- Media rights/provenance on all binary references  
-- Extensible for nutrition, billing, AI logs later without rewrite  
+1. **Multi-Tenancy Isolation:** Every tenant-scoped entity links explicitly to `organization_id`. Database queries enforce organization boundaries on the server.
+2. **Immutable Program Snapshots:** Assigning a program to an athlete creates an immutable `ProgramSnapshot` to guarantee that future edits to master templates never corrupt historical workout logs.
+3. **Multi-Professional Extensibility (P1-Ready):** Athlete entities link to coaching professionals via explicit assignment tables (`CoachAthleteAssignment`, `NutritionistAssignment`), allowing athletes to work with multiple professionals under strict, consent-governed boundaries.
+4. **Bilingual Normalization:** Canonical exercise entities separate language-neutral biomechanical classification from localized translation tables (`ExerciseTranslation`) and search indexes (`ExerciseAlias`).
+5. **Time-Ordered UUIDs:** Primary keys utilize **UUIDv7** (128-bit time-sortable identifiers) to prevent sequential enumeration attacks and support client-side ID generation for offline PWA logging.
+6. **Strict Media Provenance:** All image and video assets maintain mandatory copyright license and creator attribution metadata (`MediaRights`).
+7. **Append-Only Audit Logging:** Security- and authorization-sensitive events write to an immutable `AuditEvent` table that cannot be updated or deleted by application users.
 
-## 2. Core domain clusters
+---
+
+## 2. Domain Entity Relationship Overview
 
 ```
-Identity & Tenancy     Exercise Library     Programming
-─────────────────      ────────────────     ───────────
-User                   Exercise             Program
-Credential             ExerciseI18n         ProgramPhase / Week / Day
-Organization           ExerciseAlias        Workout
-Membership/Role        Muscle/Equipment     ExercisePrescription
-Invitation             MediaAsset           ProgramTemplate
-Assignment (coach↔ath) MediaRights          ProgramAssignment
-LocalePreferences      Tag / Favorite       ProgramVersion
-
-Logging & Progress     Communication        Admin & Audit
-──────────────────     ──────────────       ─────────────
-WorkoutSession         MessageThread        AuditEvent
-SetLog                 Message              ModerationAction
-AdherenceSnapshot      Notification         FeatureFlag (optional)
-BodyMetric             NotificationPref
-ProgressPhoto (+consent)
-FeedbackFlag
+[User] ────1:N────< [Membership] >────N:1──── [Organization]
+  │                      │                          │
+  │                      │                          ├──1:1── [Location (Primary MVP)]
+  │                      ▼                          │
+  │            [CoachAthleteAssignment]             ├──1:N── [Program (Templates)]
+  │                      │                          │
+  ├──1:N── [WorkoutSession] ──1:N──< [SetLog]       ├──1:N── [Custom Exercise]
+  │              │                                  │
+  ├──1:N── [ProgressPhoto] (Signed URL)             └──1:N── [AuditEvent]
+  │
+[Global Exercise] ──1:N── [ExerciseTranslation (fa/en)]
+        │
+        ├──1:N── [ExerciseAlias (Search Normalized)]
+        └──1:N── [MediaAsset] ──1:1── [MediaRights]
 ```
 
-## 3. Entity sketches (not SQL)
+---
 
-### User
+## 3. Detailed Entity Schemas (Logical Specifications)
 
-- id, email (unique), password hash, is_active, is_platform_admin  
-- display_name, phone (optional), created_at  
-- preferred_locale: `fa-IR` | `en-US`  
-- timezone  
+### 3.1 Identity & Tenancy Domain
 
-### Organization
+#### `User`
+*Global authentication and user identity.*
+- `id` (UUIDv7, PK): Unique global user identifier.
+- `email` (VARCHAR(255), Unique, Indexed): Verified user email.
+- `password_hash` (VARCHAR(255)): Argon2id / bcrypt encrypted password hash.
+- `display_name` (VARCHAR(150)): User's public full name.
+- `phone_number` (VARCHAR(32), Nullable): Optional contact/SMS number.
+- `preferred_locale` (VARCHAR(10), Default: `fa-IR` or `en-US`): Active UI locale.
+- `preferred_unit` (VARCHAR(10), Default: `kg`): `kg` (metric) or `lbs` (imperial).
+- `timezone` (VARCHAR(50), Default: `Asia/Tehran` or `UTC`): User local timezone.
+- `is_platform_admin` (BOOLEAN, Default: `false`): System-wide super-admin flag.
+- `is_active` (BOOLEAN, Default: `true`): Account activation state.
+- `created_at` (TIMESTAMPTZ, UTC): Registration timestamp.
+- `updated_at` (TIMESTAMPTZ, UTC): Last profile modification.
 
-- id, name, slug, owner_user_id  
-- settings JSON (branding later)  
-- created_at, archived_at  
+#### `Organization`
+*The top-level customer boundary (Tenant).*
+- `id` (UUIDv7, PK): Unique organization tenant ID.
+- `name` (VARCHAR(150)): Business or gym name (e.g., "Alborz Performance").
+- `slug` (VARCHAR(100), Unique, Indexed): URL-friendly unique identifier.
+- `owner_user_id` (UUIDv7, FK -> `User.id`): Primary owner of the workspace.
+- `settings` (JSONB): Organization-wide defaults (branding colors, logo URL, default schedule start day).
+- `created_at` (TIMESTAMPTZ, UTC): Creation timestamp.
+- `archived_at` (TIMESTAMPTZ, Nullable): Archival timestamp.
 
-### Location (optional depth in MVP)
+#### `Location` (Single-Location MVP / Multi-Location P1)
+*Physical facility or branch metadata.*
+- `id` (UUIDv7, PK): Location identifier.
+- `organization_id` (UUIDv7, FK -> `Organization.id`, Indexed): Owning organization.
+- `name` (VARCHAR(150)): Facility name (e.g., "Main Gym", "Central Branch").
+- `is_primary` (BOOLEAN, Default: `true`): Primary facility flag (single-location MVP enforces 1 primary per org).
+- `address_line1` (VARCHAR(255), Nullable): Street address.
+- `city` (VARCHAR(100), Nullable): City.
+- `phone` (VARCHAR(32), Nullable): Front-desk phone number.
+- `created_at` (TIMESTAMPTZ, UTC): Creation timestamp.
 
-- id, organization_id, name, address fields optional  
+#### `Membership`
+*Scoped relationship binding a User to an Organization with a defined Role.*
+- `id` (UUIDv7, PK): Membership record ID.
+- `user_id` (UUIDv7, FK -> `User.id`, Indexed): Authenticated user.
+- `organization_id` (UUIDv7, FK -> `Organization.id`, Indexed): Organization tenant.
+- `role` (VARCHAR(30)): Role within this organization (`owner`, `coach`, `athlete`, `support`).
+- `status` (VARCHAR(20), Default: `active`): Membership state (`invited`, `active`, `suspended`).
+- `created_at` (TIMESTAMPTZ, UTC): Membership grant timestamp.
+- *Constraint:* `UNIQUE(user_id, organization_id, role)`
 
-### Membership
+#### `Invitation`
+*Cryptographically secure single-use organization onboarding token.*
+- `id` (UUIDv7, PK): Invitation record ID.
+- `organization_id` (UUIDv7, FK -> `Organization.id`, Indexed): Inviting organization.
+- `invited_by_user_id` (UUIDv7, FK -> `User.id`): Inviting owner or coach.
+- `email` (VARCHAR(255), Indexed): Target recipient email.
+- `role` (VARCHAR(30)): Designated membership role upon acceptance.
+- `token_hash` (VARCHAR(255), Unique, Indexed): SHA-256 hash of single-use URL token.
+- `expires_at` (TIMESTAMPTZ, UTC): Token expiration (7 days from dispatch).
+- `accepted_at` (TIMESTAMPTZ, Nullable): Acceptance timestamp.
+- `created_at` (TIMESTAMPTZ, UTC): Invitation dispatch timestamp.
 
-- user_id, organization_id, role: `owner` | `coach` | `athlete` | `manager` | `support`  
-- status: invited | active | suspended  
-- unique(user, org) or allow multi-role via role table — **decide Phase 03**  
+#### `CoachAthleteAssignment`
+*Explicit authorization binding an Athlete to a specific Coach within an Organization.*
+- `id` (UUIDv7, PK): Assignment ID.
+- `organization_id` (UUIDv7, FK -> `Organization.id`, Indexed): Tenant context.
+- `coach_user_id` (UUIDv7, FK -> `User.id`, Indexed): Assigned coach.
+- `athlete_user_id` (UUIDv7, FK -> `User.id`, Indexed): Assigned athlete.
+- `status` (VARCHAR(20), Default: `active`): `active` | `archived`.
+- `created_at` (TIMESTAMPTZ, UTC): Assignment start timestamp.
+- *Constraint:* `UNIQUE(organization_id, coach_user_id, athlete_user_id)`
 
-### CoachAthleteAssignment
+---
 
-- coach_membership_id or coach_user_id + organization_id  
-- athlete_user_id  
-- starts_at, ends_at, active  
+### 3.2 Bilingual Exercise Library Domain
 
-Supports future multi-coach and multi-pro.
+#### `Exercise`
+*Language-neutral biomechanical exercise definition.*
+- `id` (UUIDv7, PK): Unique exercise identifier.
+- `organization_id` (UUIDv7, FK -> `Organization.id`, Nullable, Indexed): NULL = Platform Canonical Global Exercise; Non-NULL = Private Custom Gym Exercise.
+- `created_by_user_id` (UUIDv7, FK -> `User.id`, Nullable): Creator user ID.
+- `movement_pattern` (VARCHAR(50)): `squat` | `hinge` | `horizontal_push` | `horizontal_pull` | `vertical_push` | `vertical_pull` | `lunge` | `carry` | `isolation` | `cardio` | `other`.
+- `difficulty` (VARCHAR(20)): `beginner` | `intermediate` | `advanced`.
+- `primary_muscles` (TEXT[]): Array of primary muscle tags (e.g., `["quadriceps", "glutes"]`).
+- `secondary_muscles` (TEXT[]): Array of secondary muscle tags (e.g., `["hamstrings", "calves"]`).
+- `equipment_required` (TEXT[]): Array of equipment requirements (e.g., `["barbell", "squat_rack"]`).
+- `status` (VARCHAR(20), Default: `published`): `draft` | `pending_review` | `published` | `archived`.
+- `created_at` (TIMESTAMPTZ, UTC): Creation timestamp.
+- `updated_at` (TIMESTAMPTZ, UTC): Last modification timestamp.
 
-### Invitation
+#### `ExerciseTranslation`
+*Localized names, coaching cues, instructions, and safety notes.*
+- `id` (UUIDv7, PK): Translation ID.
+- `exercise_id` (UUIDv7, FK -> `Exercise.id`, Indexed): Parent exercise.
+- `locale` (VARCHAR(10), Indexed): `fa-IR` or `en-US` only.
+- `name` (VARCHAR(200)): Localized exercise name (e.g., "اسکوات از پشت با هالتر" or "Barbell Back Squat").
+- `instructions` (TEXT): Step-by-step setup and movement instructions.
+- `coaching_cues` (TEXT[]): Key verbal cues (e.g., `["Chest up", "Drive through midfoot"]`).
+- `common_mistakes` (TEXT[]): Pitfalls and form errors to avoid.
+- `safety_notes` (TEXT, Nullable): Contraindications and safety cautions.
+- *Constraint:* `UNIQUE(exercise_id, locale)`
 
-- token hash, email, org_id, role, invited_by, expires_at, accepted_at  
+#### `ExerciseAlias`
+*Synonyms, colloquial fitness names, and search-normalized tokens.*
+- `id` (UUIDv7, PK): Alias record ID.
+- `exercise_id` (UUIDv7, FK -> `Exercise.id`, Indexed): Parent exercise.
+- `locale` (VARCHAR(10)): `fa-IR` or `en-US`.
+- `alias` (VARCHAR(200)): Raw alternate search term (e.g., "زیربغل سیمکش").
+- `normalized_alias` (VARCHAR(200), Indexed): Character-folded search index token (`pg_trgm` indexed).
 
-### Exercise
+#### `MediaAsset`
+*Instructional video demonstrations, animations, and anatomical diagrams.*
+- `id` (UUIDv7, PK): Media identifier.
+- `exercise_id` (UUIDv7, FK -> `Exercise.id`, Indexed): Parent exercise.
+- `media_type` (VARCHAR(20)): `video_mp4` | `image_webp` | `animation_gif`.
+- `storage_key` (VARCHAR(500)): S3-compatible private storage object key.
+- `thumbnail_storage_key` (VARCHAR(500), Nullable): Thumbnail image key.
+- `duration_seconds` (INT, Nullable): Video length.
+- `bytes_size` (BIGINT): File size.
+- `checksum_sha256` (VARCHAR(64)): File integrity checksum.
 
-- id, status: draft | published | archived  
-- difficulty, movement_pattern, equipment M2M, muscles M2M  
-- owner_org_id nullable (null = platform canonical)  
-- created_by, moderation fields  
+#### `MediaRights`
+*Mandatory intellectual property and copyright provenance tracking.*
+- `id` (UUIDv7, PK): Provenance record ID.
+- `media_asset_id` (UUIDv7, FK -> `MediaAsset.id`, Unique, Indexed): Associated media asset.
+- `license_type` (VARCHAR(50)): `original_production` | `licensed_cc_by` | `commercial_license` | `coach_upload`.
+- `source_url` (VARCHAR(500), Nullable): Original provenance link.
+- `creator_attribution` (VARCHAR(255)): Creator/owner credit.
+- `permitted_commercial_use` (BOOLEAN, Default: `true`): Legal verification flag.
+- `reviewed_by_user_id` (UUIDv7, FK -> `User.id`, Nullable): Platform admin reviewer.
+- `reviewed_at` (TIMESTAMPTZ, Nullable): Admin verification timestamp.
 
-### ExerciseTranslation
+---
 
-- exercise_id, locale (`fa-IR` | `en-US`), name, instructions, cues, safety_notes, mistakes  
-- unique(exercise_id, locale)  
+### 3.3 Training Programming Domain
 
-### ExerciseAlias
+#### `Program`
+*Master training program container / template.*
+- `id` (UUIDv7, PK): Program identifier.
+- `organization_id` (UUIDv7, FK -> `Organization.id`, Indexed): Owning organization tenant.
+- `created_by_user_id` (UUIDv7, FK -> `User.id`): Authoring coach.
+- `title` (VARCHAR(200)): Program title (e.g., "12-Week Hypertrophy Periodization").
+- `description` (TEXT, Nullable): Overview and athlete instructions.
+- `target_goal` (VARCHAR(50)): `hypertrophy` | `strength` | `fat_loss` | `endurance` | `general_fitness`.
+- `is_template` (BOOLEAN, Default: `false`): If true, available to clone as an organization template.
+- `is_archived` (BOOLEAN, Default: `false`): Archival state.
+- `created_at` (TIMESTAMPTZ, UTC): Creation timestamp.
+- `updated_at` (TIMESTAMPTZ, UTC): Last modification timestamp.
 
-- exercise_id, locale, alias, normalized_form (for search)  
+#### `ProgramPhase`
+*Mesocycle or macrocycle block within a program.*
+- `id` (UUIDv7, PK): Phase ID.
+- `program_id` (UUIDv7, FK -> `Program.id`, Indexed): Parent program.
+- `name` (VARCHAR(150)): Phase name (e.g., "Phase 1: Accumulation").
+- `sequence_order` (INT): Order within the program (1, 2, 3...).
+- `duration_weeks` (INT, Default: 4): Number of weeks in this block.
 
-### MediaAsset
+#### `ProgramWeek`
+*Microcycle container.*
+- `id` (UUIDv7, PK): Week ID.
+- `phase_id` (UUIDv7, FK -> `ProgramPhase.id`, Indexed): Parent phase.
+- `week_number` (INT): Week number (e.g., 1, 2, 3...).
+- `focus_note` (TEXT, Nullable): Coach instructions for the week.
 
-- id, storage_key, content_type, bytes, checksum  
-- **rights:** license, source_url, attribution, permitted_use, reviewed_by, reviewed_at  
-- provenance notes  
+#### `ProgramDay`
+*Scheduled training day within a week.*
+- `id` (UUIDv7, PK): Day ID.
+- `week_id` (UUIDv7, FK -> `ProgramWeek.id`, Indexed): Parent week.
+- `day_number` (INT): Day sequence (e.g., 1 = Day 1, 2 = Day 2...).
+- `title` (VARCHAR(150)): Day title (e.g., "Upper Body Power").
 
-### Program hierarchy
+#### `Workout`
+*Workout container attached to a training day.*
+- `id` (UUIDv7, PK): Workout ID.
+- `day_id` (UUIDv7, FK -> `ProgramDay.id`, Indexed): Parent day.
+- `title` (VARCHAR(150)): Workout title.
+- `estimated_minutes` (INT, Nullable): Estimated duration.
 
-`Program` → `ProgramPhase` → `ProgramWeek` → `ProgramDay` → `Workout` → `WorkoutItem` → `SetPrescription`
+#### `WorkoutItem`
+*Prescribed exercise block within a workout.*
+- `id` (UUIDv7, PK): Workout item ID.
+- `workout_id` (UUIDv7, FK -> `Workout.id`, Indexed): Parent workout.
+- `exercise_id` (UUIDv7, FK -> `Exercise.id`, Indexed): Prescribed exercise.
+- `sequence_order` (INT): Order within workout (1, 2, 3...).
+- `group_key` (VARCHAR(10), Nullable): Grouping letter for supersets/circuits (e.g., "A1", "A2", "B1").
+- `segment` (VARCHAR(20), Default: `main`): `warmup` | `main` | `cooldown`.
+- `rest_seconds_between_sets` (INT, Default: 90): Prescribed rest interval.
+- `coach_notes` (TEXT, Nullable): Specific coaching cue or instruction for this athlete.
 
-Prescription fields: sets, reps, time, distance, load, percent, RPE, RIR, tempo, rest_seconds, notes, group_key (superset/circuit), segment (warmup|main|cooldown).
+#### `SetPrescription`
+*Prescribed target parameters for individual sets.*
+- `id` (UUIDv7, PK): Prescription ID.
+- `workout_item_id` (UUIDv7, FK -> `WorkoutItem.id`, Indexed): Parent workout item.
+- `set_index` (INT): Set number (1, 2, 3, 4...).
+- `target_reps` (VARCHAR(50)): Prescribed reps (e.g., "8", "8-10", "AMRAP").
+- `target_load` (VARCHAR(50), Nullable): Prescribed weight or intensity (e.g., "100 kg", "75% 1RM", "RPE 8").
+- `target_rpe` (NUMERIC(3,1), Nullable): Target RPE rating (e.g., 8.5).
+- `target_rir` (INT, Nullable): Reps in Reserve target (e.g., 2).
+- `tempo` (VARCHAR(20), Nullable): Prescribed tempo (e.g., "3-0-1-0").
 
-### ProgramAssignment
+#### `ProgramAssignment` & `ProgramSnapshot`
+*Binding of a program version to an athlete with an immutable point-in-time snapshot.*
+- `id` (UUIDv7, PK): Assignment identifier.
+- `organization_id` (UUIDv7, FK -> `Organization.id`, Indexed): Tenant context.
+- `athlete_user_id` (UUIDv7, FK -> `User.id`, Indexed): Recipient athlete.
+- `assigned_by_user_id` (UUIDv7, FK -> `User.id`): Assigning coach.
+- `source_program_id` (UUIDv7, FK -> `Program.id`): Original template ID.
+- `start_date` (DATE, Indexed): Training cycle start date.
+- `end_date` (DATE, Nullable): Training cycle end date.
+- `status` (VARCHAR(20), Default: `active`): `active` | `completed` | `archived`.
+- `snapshot_payload` (JSONB): Complete frozen copy of all phases, weeks, workouts, items, and prescriptions at the instant of assignment.
+- `created_at` (TIMESTAMPTZ, UTC): Assignment timestamp.
 
-- program_id / version_id, athlete_id, assigned_by, start_date, end_date, state  
+---
 
-### WorkoutSession (athlete execution)
+### 3.4 Athlete Workout Execution & Progress Domain
 
-- assignment or scheduled workout ref, athlete_id  
-- started_at, completed_at, status: not_started | in_progress | completed | skipped | modified  
-- modify_reason, athlete_notes, pain_flag, fatigue_score  
+#### `WorkoutSession`
+*Athlete's active or completed execution of a scheduled workout.*
+- `id` (UUIDv7, PK): Session identifier.
+- `program_assignment_id` (UUIDv7, FK -> `ProgramAssignment.id`, Indexed): Parent assignment.
+- `athlete_user_id` (UUIDv7, FK -> `User.id`, Indexed): Executing athlete.
+- `scheduled_date` (DATE, Indexed): Scheduled calendar date.
+- `started_at` (TIMESTAMPTZ, Nullable): Execution start timestamp.
+- `completed_at` (TIMESTAMPTZ, Nullable): Execution finish timestamp.
+- `status` (VARCHAR(20), Default: `scheduled`): `scheduled` | `in_progress` | `completed` | `skipped` | `modified`.
+- `skip_or_modify_reason` (VARCHAR(100), Nullable): Mandatory reason if skipped/modified.
+- `session_rpe` (NUMERIC(3,1), Nullable): Overall session subjective exertion (1–10).
+- `fatigue_score` (INT, Nullable): Subjective readiness/energy rating (1–5).
+- `athlete_notes` (TEXT, Nullable): Athlete's post-workout comments.
+- `created_at` (TIMESTAMPTZ, UTC): Session record creation.
 
-### SetLog
+#### `SetLog`
+*Athlete's recorded actuals per set.*
+- `id` (UUIDv7, PK): Set log identifier.
+- `workout_session_id` (UUIDv7, FK -> `WorkoutSession.id`, Indexed): Parent workout session.
+- `exercise_id` (UUIDv7, FK -> `Exercise.id`, Indexed): Completed exercise.
+- `set_index` (INT): Set number.
+- `actual_reps` (INT): Actual completed repetitions.
+- `actual_load_kg` (NUMERIC(6,2)): Actual weight lifted in kilograms.
+- `actual_rpe` (NUMERIC(3,1), Nullable): Actual perceived exertion.
+- `is_completed` (BOOLEAN, Default: `true`): Set completion status.
+- `notes` (VARCHAR(255), Nullable): Athlete set-level note.
+- `created_at` (TIMESTAMPTZ, UTC): Timestamp of set completion.
 
-- session_item_id, set_index, reps, load, rpe, completed, notes  
+#### `FeedbackFlag`
+*High-visibility alert for pain, injury, or severe fatigue.*
+- `id` (UUIDv7, PK): Feedback record ID.
+- `workout_session_id` (UUIDv7, FK -> `WorkoutSession.id`, Indexed): Associated session.
+- `athlete_user_id` (UUIDv7, FK -> `User.id`, Indexed): Athlete.
+- `flag_type` (VARCHAR(50)): `joint_pain` | `muscle_strain` | `dizziness` | `severe_fatigue`.
+- `anatomical_location` (VARCHAR(100)): e.g., "Left Shoulder", "Lower Back".
+- `severity` (VARCHAR(20)): `mild` | `moderate` | `severe`.
+- `details` (TEXT): Description of symptoms.
+- `is_resolved` (BOOLEAN, Default: `false`): Coach review status.
+- `created_at` (TIMESTAMPTZ, UTC): Report timestamp.
 
-### MessageThread / Message
+#### `ProgressPhoto`
+*Private, consent-governed visual conditioning record.*
+- `id` (UUIDv7, PK): Photo record ID.
+- `athlete_user_id` (UUIDv7, FK -> `User.id`, Indexed): Owning athlete.
+- `storage_key` (VARCHAR(500)): Encrypted S3 object key.
+- `photo_type` (VARCHAR(20)): `front` | `side` | `back`.
+- `athlete_consent_granted` (BOOLEAN, Default: `true`): Consent flag.
+- `captured_at` (DATE): Photo date.
+- `created_at` (TIMESTAMPTZ, UTC): Upload timestamp.
 
-- participants constrained by assignment/org  
-- optional reference_type/id (workout, checkin)  
+---
 
-### Notification
+### 3.5 Communication, Notifications & Audit Domain
 
-- user_id, type, payload, read_at, channel preferences separate  
+#### `MessageThread` & `Message`
+*Contextual 1:1 coach-athlete communication.*
+- `id` (UUIDv7, PK): Message ID.
+- `thread_id` (UUIDv7, Indexed): Conversation thread ID.
+- `sender_user_id` (UUIDv7, FK -> `User.id`, Indexed): Sending user.
+- `recipient_user_id` (UUIDv7, FK -> `User.id`, Indexed): Target user.
+- `workout_session_id` (UUIDv7, FK -> `WorkoutSession.id`, Nullable, Indexed): Contextual workout link.
+- `content` (TEXT): Localized message body.
+- `read_at` (TIMESTAMPTZ, Nullable): Read receipt timestamp.
+- `created_at` (TIMESTAMPTZ, UTC): Dispatch timestamp.
 
-### AuditEvent
+#### `Notification` & `NotificationPreference`
+*In-app alerts and delivery controls.*
+- `id` (UUIDv7, PK): Notification ID.
+- `user_id` (UUIDv7, FK -> `User.id`, Indexed): Target user.
+- `event_type` (VARCHAR(50)): `program_assigned` | `workout_completed` | `pain_flag_raised` | `message_received`.
+- `payload` (JSONB): Navigation links and localized parameters.
+- `read_at` (TIMESTAMPTZ, Nullable): In-app read status.
+- `created_at` (TIMESTAMPTZ, UTC): Dispatch timestamp.
 
-- actor_id, action, object_type, object_id, org_id, ip hash?, metadata JSON, created_at  
-- no raw sensitive bodies  
-
-## 4. Future entities (do not implement now)
-
-- NutritionProfessional profile, MealPlan, FoodItem, Recipe, Allergy  
-- Product, Subscription, Payment, Entitlement  
-- AIRunLog (prompt version, reviewer)  
-- Marketplace Listing, Review  
-
-Schema should avoid hard-coding single-coach-only athlete ownership that blocks multi-pro.
-
-## 5. i18n data rules
-
-- User-generated content: store as entered; UI direction from viewer locale  
-- Catalog content: explicit translation rows for `fa-IR` and `en-US` only  
-- Search: normalize yeh/kaf variants etc. for Persian; do not add Arabic locale catalogs  
-
-## 6. Open modeling questions (Phase 03)
-
-1. Single Membership row vs UserOrgRole table  
-2. Program versioning strategy (copy-on-publish vs event sourced)  
-3. Soft delete vs archive flags  
-4. ID type: UUID everywhere vs bigint  
-5. Full-text: Postgres FTS vs external search later  
-
-## 7. Related
-
-- Phase 03 will produce ERD diagrams under `docs/architecture/`  
-- API shapes in `docs/API_CONTRACT.md`  
+#### `AuditEvent`
+*Immutable security and compliance log.*
+- `id` (UUIDv7, PK): Audit event ID.
+- `actor_user_id` (UUIDv7, FK -> `User.id`, Nullable, Indexed): User performing action (NULL for system).
+- `organization_id` (UUIDv7, FK -> `Organization.id`, Nullable, Indexed): Tenant context.
+- `action` (VARCHAR(100), Indexed): Structured event type (e.g., `auth.login`, `membership.revoked`, `photo.viewed`).
+- `target_entity_type` (VARCHAR(50)): Target table/model (e.g., `ProgramAssignment`).
+- `target_entity_id` (VARCHAR(100)): Target ID.
+- `ip_hash` (VARCHAR(64)): Anonymized SHA-256 hash of client IP.
+- `metadata` (JSONB): Sanitized event details (excluding raw health payloads or passwords).
+- `created_at` (TIMESTAMPTZ, UTC): Immutable event timestamp.

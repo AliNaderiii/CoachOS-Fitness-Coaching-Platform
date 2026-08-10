@@ -1,118 +1,94 @@
 # Project Status — CoachOS
 
 **Last updated:** 2026-08-10 (UTC)  
-**Current phase:** Phase 00 — Discovery and Repository Audit (**complete**)  
-**Next phase:** Phase 01 — Product Requirements and Scope  
-**Working branch:** `arena/019febc6-coachos-fitness-coaching-platf`  
-**Base commit (main):** `a6283e8fa75414f9b47a0e40248f833b6438c0f8`  
+**Current phase:** Phase 01 — Product Requirements and Scope (**complete**)  
+**Next phase:** Phase 02 — UX, Information Architecture, and Design System  
+**Working branch:** `arena/019febfc-coachos-fitness-coaching-platf`  
+**Base commit (main):** `f52c4134087b18c4bd1a8aef9e0100fd63f71b8e` (PR #3 merged)  
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform  
-**License:** MIT  
+**License:** MIT (Review Pending Founder Decision — see ADR-012)  
 
 ---
 
-## 1. One-line status
+## 1. One-Line Status
 
-Greenfield repository audited; product vision, language constraints, MVP direction, risks, and Phase 00 report recorded. **No application code exists yet.**
+Phase 01 requirements package complete: detailed personas, user journeys, INVEST-style P0 user stories with Gherkin acceptance criteria, permissions matrix, NFR targets, domain glossary, competitive landscape, and decision records committed. **No application code exists yet (documentation-only phase).**
 
-## 2. What exists today
+---
 
-| Area | State |
-|------|--------|
-| Application source (frontend/backend) | None |
-| Dependencies / lockfiles | None |
-| Database migrations | None |
-| Tests | None |
-| CI/CD | None |
-| Deployment config | None |
-| Docker / compose | None |
-| Issue tracker / milestones | Created: milestones 1–9; issues #1 (Phase 01), #2 (Phase 00). Bot cannot PATCH/close issues (403) |
-| Documentation (Phase 00) | Created — see section 4 |
-| LICENSE | MIT (pre-existing) |
-| README | Replaced stub with project overview |
+## 2. Post-Merge Repository State & Artifact Verification
 
-## 3. Active constraints
+| Area | Post-Merge State | Evidence / Artifact Link |
+|------|------------------|--------------------------|
+| Main Base Commit | `f52c4134087b18c4bd1a8aef9e0100fd63f71b8e` | PR #3 merged into `main` |
+| Working Branch | `arena/019febfc-coachos-fitness-coaching-platf` | Active session working branch (PR #4 open) |
+| Application Source (Frontend/Backend) | None (by design) | Verified empty via `find` / `git status` |
+| Dependencies / Lockfiles | None (by design) | Verified |
+| Database Migrations | None (by design) | Verified |
+| Documentation Suite | Substantially expanded & complete | See section 4 inventory |
+| LICENSE | MIT (pre-existing) | ADR-012 pending founder approval |
 
-1. **Languages:** Persian (`fa-IR`, RTL) and English (`en-US`, LTR) **only**.  
-2. **Arabic is explicitly out of scope** — no Arabic UI, locale, seed data, or requirements.  
-3. **No marketplace, advanced AI, wearables, or medical claims** in early phases.  
-4. **AI is a copilot** with human review — not an autonomous authority.  
-5. **B2B2C SaaS:** coaches/gyms pay; athletes included.  
-6. **Modular monolith** preferred for MVP; microservices require ADR justification.  
-7. **No third-party proprietary exercise media** without clear rights/provenance.  
-8. **No secrets or real health data** in the repository.
+---
 
-## 4. Documentation inventory (Phase 00)
+## 3. Active Non-Negotiable Constraints
 
-- `README.md`
-- `PROJECT_STATUS.md` (this file)
-- `PROJECT_CHECKLIST.md`
-- `CHANGELOG.md`
-- `docs/MASTER_PRODUCT_BRIEF.md`
-- `docs/PRD.md` (outline; full PRD in Phase 01)
-- `docs/DECISIONS.md`
-- `docs/SECURITY_AND_PRIVACY.md`
-- `docs/DATA_MODEL.md` (outline)
-- `docs/API_CONTRACT.md` (outline)
-- `docs/TRACEABILITY_MATRIX.md` (started)
-- `docs/RELEASE_PLAN.md`
-- `docs/PROMPT_LOG.md`
-- `docs/reports/PHASE-00-DISCOVERY-REPORT.md`
-- Placeholders under `docs/architecture/`, `docs/ux/`, `docs/testing/`
+1. **Languages:** Persian (`fa-IR`, RTL) and English (`en-US`, LTR) **only**.
+2. **Arabic is strictly out of scope:** No Arabic locale files, translations, UI text, or requirements.
+3. **No Marketplace, Payments, or Autonomous AI in P0:** Deferred to P1/P2 backlogs.
+4. **B2B2C SaaS Model:** Organizations/coaches are paying customers; athlete accounts are free/included.
+5. **PWA-First Delivery:** Foundation in Phase 04, athlete validation in Phase 07, advanced offline in Phase 12.
+6. **Single-Location MVP:** Organizations have a single primary facility in P0; multi-location in P1.
+7. **Calendar Strategy:** UTC/Gregorian backend storage with Jalali UI rendering in `fa-IR` locale.
+8. **No Secrets or Real Health Data in Repository:** Synthetic data only.
 
-## 5. Proposed P0 MVP (high level)
+---
 
-See `docs/MASTER_PRODUCT_BRIEF.md` and `docs/RELEASE_PLAN.md` for detail.
+## 4. Documentation Inventory (Phase 01)
 
-1. Auth + org tenancy + RBAC/object permissions + invitations  
-2. fa-IR / en-US language switcher and true RTL/LTR  
-3. Exercise library (i18n, search, media rights metadata)  
-4. Program builder → assign → athlete log  
-5. Messaging + in-app notifications  
-6. Admin moderation + audit log + basic analytics  
-7. Privacy baseline (consent hooks, export/deletion design)
+- `README.md`: Project overview and documentation index.
+- `PROJECT_STATUS.md`: Active post-merge project status (this file).
+- `PROJECT_CHECKLIST.md`: Master phase checklist.
+- `CHANGELOG.md`: Keep-a-Changelog release history.
+- `docs/MASTER_PRODUCT_BRIEF.md`: Core product brief.
+- `docs/PRD.md`: Full product requirements document with P0 user stories, acceptance criteria, permissions matrix, NFRs, and P1/P2 backlogs.
+- `docs/PERSONAS.md`: 6 comprehensive user personas.
+- `docs/USER_JOURNEYS.md`: 5 end-to-end user journeys.
+- `docs/DOMAIN_GLOSSARY.md`: Bilingual domain terminology glossary (English & Persian).
+- `docs/COMPETITIVE_LANDSCAPE.md`: Public desk research benchmarking 10 competitor platforms.
+- `docs/DECISIONS.md`: 22 ADRs and pending decision records.
+- `docs/DATA_MODEL.md`: Conceptual and logical data model specifications.
+- `docs/API_CONTRACT.md`: Versioned REST API endpoint contracts and error envelopes.
+- `docs/SECURITY_AND_PRIVACY.md`: Security baseline, data classification taxonomy, and privacy lifecycle.
+- `docs/TRACEABILITY_MATRIX.md`: End-to-end requirements traceability matrix.
+- `docs/RELEASE_PLAN.md`: Phased delivery roadmap and in-repo milestone backlog.
+- `docs/PROMPT_LOG.md`: Append-only history of prompts and actions.
+- `docs/reports/PHASE-00-DISCOVERY-REPORT.md`: Phase 00 report with Post-Merge Addendum.
+- `docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`: Phase 01 comprehensive requirements report.
 
-## 6. Proposed stack (not yet scaffolded)
+---
 
-- **Frontend:** Next.js + React + TypeScript + PWA direction  
-- **Backend:** Django + DRF + PostgreSQL  
-- **Jobs:** Redis + Celery  
-- **Media:** S3-compatible + signed URLs  
-- **CI:** GitHub Actions  
+## 5. Summary of Scope Corrections
 
-Final confirmation and ADRs in Phase 03; scaffolding in Phase 04.
+1. **PWA Phasing:** Corrected from deferring all PWA to Phase 12. Phase 04 now includes PWA manifest and shell; Phase 07 validates mobile execution; Phase 12 contains advanced offline/background sync.
+2. **License Strategy:** Detailed evaluation of MIT vs Proprietary vs Open-Core vs Private Commercial recorded in ADR-012; flagged as **Pending Founder Approval**.
+3. **Single-Location Scope:** Locked to 1 primary location per organization for MVP; multi-location management allocated to P1.
+4. **Calendar Strategy:** Analyzed 3 options; recommended UTC/Gregorian backend storage with Persian Jalali UI formatting for `fa-IR` locale (ADR-009).
 
-## 7. Risks and unknowns
+---
 
-| ID | Risk / unknown | Severity | Mitigation direction |
-|----|----------------|----------|----------------------|
-| R01 | No product legal name / brand assets | Low | Continue with CoachOS codename |
-| R02 | Auth channel choice (email vs phone/OTP) undecided | Medium | Decide in Phase 01/05; default email+password + optional OTP later |
-| R03 | Payment gateway and Iran/international constraints | High (P1) | Abstract payments; defer to Phase 10 |
-| R04 | Exercise media rights and original content production | High | Schema supports provenance; seed only permitted content |
-| R05 | Health-data regulatory classification (jurisdiction) | High | Privacy design + legal counsel TODO; not medical device |
-| R06 | Persian typography, digits, Jalali calendar expectations | Medium | Design system + i18n strategy in Phases 02–04 |
-| R07 | Low-bandwidth / offline conflict resolution complexity | Medium | Limit offline scope in Phase 12 |
-| R08 | Bot cannot update/close GitHub issues (403); create works | Low | Markdown backlog canonical; manual close optional |
-| R09 | Empty repo — all velocity is greenfield | Info | Standard phased delivery |
-| R10 | Multi-professional athlete profile complexity | Medium | Model early; UI in later phases |
+## 6. Risks, Blockers & Open Items
 
-## 8. Blockers
+| ID | Risk / Decision Item | Severity | Status & Action |
+|----|----------------------|----------|-----------------|
+| **DEC-01** | Repository License Transition (ADR-012) | Medium | **Pending Founder Approval:** Founder to choose MIT vs Proprietary vs Open-Core. |
+| **R01** | Brand Legal Name & Trademark | Low | Continue using CoachOS codename. |
+| **R02** | Payment Gateway Provider Selection (P1) | High (P1) | Gateway abstraction designed (ADR-021); implementation in Phase 10. |
+| **R03** | Exercise Media Copyright Clearance | High | Mandatory rights metadata schema enforced (ADR-008, US-EX-002). |
+| **R04** | Health Data Regulatory Classification | High | Privacy baseline & consent hooks designed; legal counsel TODO before live pilot. |
 
-None blocking Phase 01. GitHub milestones 1–9 and issues #1–#2 created; issue update/close restricted for bot. In-repo backlog remains canonical.
+---
 
-## 9. Immediate next step
+## 7. Next Step
 
-Execute **Phase 01 — Product Requirements and Scope**:
-
-- Personas, journeys, P0 user stories, acceptance criteria  
-- NFR list  
-- Expand PRD and traceability matrix  
-- Commit `docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`
-
-**Exact next recommended prompt:**
-
-> Execute Phase 01 — Product Requirements and Scope. Produce personas, user journeys, P0 MVP user stories with acceptance criteria, P1/P2 backlog, non-functional requirements, update PRD and traceability matrix, and commit the Phase 01 report. Do not scaffold application code. Persian and English only; Arabic remains out of scope.
-
-## 10. Team operating mode
-
-This project is executed as a multi-role product-and-engineering team (strategy, PM, architecture, UX, backend, frontend, security, QA, DevOps, tech writing, code review). Scope is controlled by phase gates; incomplete work is labeled mocked/deferred/blocked explicitly.
+Awaiting founder review of Phase 01. Next execution phase:
+**Phase 02 — UX, Information Architecture, and Design System**

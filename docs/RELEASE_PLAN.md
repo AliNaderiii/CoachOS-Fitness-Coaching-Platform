@@ -1,157 +1,99 @@
-# Release Plan and Backlog — CoachOS
+# Release Plan and Phased Delivery Strategy — CoachOS
 
+**Document version:** 1.0.0 (Phase 01 Baseline)  
 **Last updated:** 2026-08-10  
-**Model:** Phased delivery (Phase 00–14) with P0/P1/P2 product tiers  
+**Delivery Model:** Iterative Phased Delivery (Phases 00–14) with strict P0 / P1 / P2 product scope gates.
 
 ---
 
-## 1. Phase gate overview
+## 1. Phased Delivery Roadmap & Exit Criteria
 
-| Phase | Name | Product tier | Exit criteria (summary) |
-|-------|------|--------------|-------------------------|
-| 00 | Discovery | — | Audit + docs + constraints — **DONE** |
-| 01 | Requirements | P0 spec | Personas, stories, AC, NFR, PRD filled |
-| 02 | UX / Design system | P0 UX | Flows, RTL/LTR, a11y, states |
-| 03 | Architecture & security | P0 arch | ADR final, ERD, threat model, API strategy |
-| 04 | Foundation | P0 eng | Runnable FE/BE, CI, health, env docs |
-| 05 | Identity & tenancy | P0 | Auth, org, invites, authZ tests, audit, locale |
-| 06 | Exercises & programs | P0 | Library + builder + assign + version |
-| 07 | Athlete app | P0 | Today, logging, adherence, progress |
-| 08 | Comms | P0 | Messages, notifications |
-| 09 | Nutrition & multi-pro | P1 | Only when activated |
-| 10 | Billing | P1 | Only when activated |
-| 11 | AI copilot | P2 | Only when activated |
-| 12 | PWA / offline | P0 residual / P1 | Manifest, SW, offline scope |
-| 13 | QA & release | Pilot-ready | Tests, security, staging, checklist |
-| 14 | Pilot | Learn | Feedback, metrics, iterate |
+| Phase | Phase Name | Scope Tier | Core Deliverables & Exit Criteria |
+|---|---|---|---|
+| **Phase 00** | Discovery & Audit | Baseline | Complete repository audit; vision; fa/en-only policy; baseline docs — **COMPLETED** |
+| **Phase 01** | Product Requirements & Scope | P0 Spec | Complete personas, journeys, P0 user stories with Gherkin ACs, NFR targets, updated PRD, RTM — **CURRENT** |
+| **Phase 02** | UX, Information Architecture & Design System | P0 Design | Navigation architecture, wireframes, Persian RTL & English LTR design tokens, WCAG 2.2 AA accessibility specs |
+| **Phase 03** | Architecture, Data, Security & Privacy | P0 Arch | Final ADRs, normalized PostgreSQL ERDs, server-side RBAC/ABAC authorization engine, threat model v1 |
+| **Phase 04** | Project Foundation & PWA Baseline | P0 Eng | Next.js + Django/DRF monorepo scaffold, CI/CD pipeline, health checks, **PWA foundation (Manifest, installable shell, SW)** |
+| **Phase 05** | Identity, Tenancy & Access Control | P0 Core | User auth, single-location MVP orgs, email invites, server-side RBAC/ABAC tests, audit log pipeline |
+| **Phase 06** | Exercise Library & Program Builder | P0 Core | Bilingual exercise catalog, Persian search folding, media rights metadata, hierarchical program builder, templates |
+| **Phase 07** | Athlete Mobile App & Progress Logging | P0 Core | Mobile Today view, one-handed set logging, rest timer, pain/fatigue feedback, **installed PWA mobile validation** |
+| **Phase 08** | Communication & Notifications | P0 Core | Contextual 1:1 coach-athlete message threads, in-app notification engine, notification preferences |
+| **Phase 09** | Nutrition & Multi-Pro Collaboration | P1 Backlog | Nutritionist role, consent-governed collaboration, Persian/international food catalog, meal plans, food logging |
+| **Phase 10** | Billing & Coach Monetization | P1 Backlog | Abstracted payment provider adapters (Shetab domestic / Stripe international), subscription tiers, coach storefront |
+| **Phase 11** | Constrained AI Copilot & Safety | P2 Backlog | Human-reviewed workout adaptation copilot, approved retrieval databases, zero autonomous medical claims |
+| **Phase 12** | Advanced Offline PWA & Integrations | P2 Backlog | Advanced offline sync queues, IndexedDB conflict resolution, background sync, wearable integration review |
+| **Phase 13** | QA, Security, Performance & Release | Pilot Prep | Comprehensive E2E suites, RTL visual regression, penetration testing, performance benchmarking, staging deploy |
+| **Phase 14** | Pilot Operations & Iteration | Validation | Live pilot cohort (gyms, coaches, athletes), metric collection, user feedback, post-pilot roadmap |
 
-**Note:** Phase 12 may partially overlap earlier phases (e.g., manifest basics in foundation) but full offline is gated.
+---
 
-## 2. MVP (P0) release candidate definition
+## 2. PWA Phasing & Sequencing Architecture
 
-A coach organization can onboard, program, assign, and communicate; an athlete can train and log in fa-IR and en-US; admin can moderate exercises; authZ and audit hold under test; security baseline documented; no Arabic; no marketplace/payments/AI required.
+CoachOS follows a progressive PWA deployment strategy:
+1. **Phase 04 (Foundation):**
+   - Web App Manifest (`manifest.json`) configuration (standalone display, icons, theme colors).
+   - Mobile-first responsive viewport and shell layout.
+   - Base Service Worker registration for offline asset shell caching.
+   - PWA-aware routing and offline network fallback screen.
+2. **Phase 07 (Athlete App Validation):**
+   - Mobile workout execution and touch-optimized set logging.
+   - Rest countdown timer with local notifications.
+   - Verification of installed-PWA mobile experience on iOS Safari and Android Chrome.
+3. **Phase 12 (Advanced Capabilities):**
+   - Local IndexedDB workout caching and background sync queue.
+   - Multi-device bidirectional conflict resolution.
+   - Background push notifications where supported.
+   - Evaluation of native bridge vs standalone PWA for wearable hardware (HealthKit / Health Connect).
 
-## 3. In-repo backlog (GitHub Issues equivalent)
+---
 
-> This section is the **canonical backlog**. GitHub mirrors (as of Phase 00): milestones [phase-00 … phase-08](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/milestones), issue [#1 Phase 01](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/issues/1), issue [#2 Phase 00](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/issues/2).
+## 3. Canonical In-Repo Milestone Backlog
 
-### Milestone M0 — Discovery (Phase 00) — GitHub milestone #1
+### Milestone M0: Discovery (Phase 00) — `[x] Complete`
+- [x] `AUDIT-001`: Repository audit and baseline verification
+- [x] `DOC-001`: Master brief, status, checklist, security baseline
+- [x] `DOC-002`: Phase 00 Discovery Report committed and merged (PR #3)
 
-- [x] AUDIT-001 Repository audit  
-- [x] DOC-001 Master brief, status, checklist, security baseline  
-- [x] DOC-002 Phase 00 report  
+### Milestone M1: Requirements & Scope (Phase 01) — `[x] Active`
+- [x] `REQ-001`: Comprehensive Personas (`docs/PERSONAS.md`)
+- [x] `REQ-002`: Detailed User Journeys (`docs/USER_JOURNEYS.md`)
+- [x] `REQ-003`: P0 MVP User Stories with Gherkin Acceptance Criteria (`docs/PRD.md`)
+- [x] `REQ-004`: Domain Glossary (`docs/DOMAIN_GLOSSARY.md`)
+- [x] `REQ-005`: Competitive Landscape & Benchmarking (`docs/COMPETITIVE_LANDSCAPE.md`)
+- [x] `REQ-006`: ADR Decisions & Scope Corrections (`docs/DECISIONS.md`)
+- [x] `REQ-007`: Traceability Matrix Expansion (`docs/TRACEABILITY_MATRIX.md`)
+- [x] `DOC-003`: Phase 01 Requirements Report (`docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`)
 
-### Milestone M1 — Requirements (Phase 01) — GitHub milestone #2 / issue #1
+### Milestone M2: UX & Design System (Phase 02) — `[ ] Next`
+- [ ] `UX-001`: Information architecture & navigation hierarchy
+- [ ] `UX-002`: Coach desktop/tablet program builder wireframes & user flows
+- [ ] `UX-003`: Athlete mobile-first workout execution & logging wireframes
+- [ ] `UX-004`: Organization owner & admin management console wireframes
+- [ ] `UX-005`: Persian RTL layout specifications with `Vazirmatn` font & logical CSS
+- [ ] `UX-006`: WCAG 2.2 AA accessibility specifications & color palette tokens
+- [ ] `UX-007`: Empty, loading, error, and offline state UI designs
+- [ ] `DOC-004`: Phase 02 UX & Design System Report
 
-- [ ] REQ-001 Personas (Admin, Owner, Coach, Athlete)  
-- [ ] REQ-002 Journeys for core happy paths  
-- [ ] REQ-003 P0 user stories + acceptance criteria  
-- [ ] REQ-004 P1/P2 backlog refinement  
-- [ ] REQ-005 NFR targets  
-- [ ] REQ-006 Traceability matrix expansion  
-- [ ] DOC-003 Phase 01 report  
+### Milestone M3: Architecture & Security (Phase 03) — `[ ] Planned`
+- [ ] `ARCH-001`: System context and C4 container diagrams
+- [ ] `ARCH-002`: Finalized ADR package (stack, auth, database, caching)
+- [ ] `ARCH-003`: Normalized PostgreSQL physical data model & ERD diagrams
+- [ ] `ARCH-004`: Server-side authorization matrix & ABAC rules
+- [ ] `SEC-001`: Comprehensive threat model & OWASP Top 10 mitigation
+- [ ] `SEC-002`: Privacy lifecycle & data export/erasure pipeline design
+- [ ] `API-001`: Complete OpenAPI 3.1 specification catalog
+- [ ] `DOC-005`: Phase 03 Architecture & Security Report
 
-### Milestone M2 — UX (Phase 02)
-
-- [ ] UX-001 Information architecture / nav  
-- [ ] UX-002 Coach flows  
-- [ ] UX-003 Athlete flows  
-- [ ] UX-004 Admin flows  
-- [ ] UX-005 RTL/LTR specifications  
-- [ ] UX-006 Empty/loading/error/offline states  
-- [ ] UX-007 Accessibility baseline  
-- [ ] DOC-004 Phase 02 report  
-
-### Milestone M3 — Architecture (Phase 03)
-
-- [ ] ARCH-001 System context + container diagrams  
-- [ ] ARCH-002 Finalize ADRs (stack, auth mechanism)  
-- [ ] ARCH-003 Physical data model / ERD  
-- [ ] ARCH-004 AuthZ matrix  
-- [ ] SEC-001 Threat model v1  
-- [ ] SEC-002 Privacy lifecycle  
-- [ ] API-001 Endpoint catalog v1  
-- [ ] DOC-005 Phase 03 report  
-
-### Milestone M4 — Foundation (Phase 04)
-
-- [ ] ENG-001 Backend scaffold + Postgres migrations smoke  
-- [ ] ENG-002 Frontend scaffold + i18n shell fa/en  
-- [ ] ENG-003 Docker compose dev (optional but preferred)  
-- [ ] ENG-004 CI lint/type/test  
-- [ ] ENG-005 Health endpoints  
-- [ ] DOC-006 Phase 04 report  
-
-### Milestone M5 — Identity (Phase 05)
-
-- [ ] AUTH-001 Register/login/logout/reset  
-- [ ] ORG-001 Org create + membership  
-- [ ] ORG-002 Invitations  
-- [ ] AUTHZ-001 RBAC + object-level tests  
-- [ ] AUDIT-001 Audit event pipeline  
-- [ ] I18N-001 Locale preference API + UI switcher  
-- [ ] DOC-007 Phase 05 report  
-
-### Milestone M6 — Training domain (Phase 06)
-
-- [ ] EX-001 Exercise schema + i18n + search  
-- [ ] EX-002 Media rights metadata  
-- [ ] PRG-001 Program builder  
-- [ ] PRG-002 Templates + version + assign  
-- [ ] DOC-008 Phase 06 report  
-
-### Milestone M7 — Athlete (Phase 07)
-
-- [ ] ATH-001 Today + calendar  
-- [ ] ATH-002 Session logging  
-- [ ] ATH-003 Adherence + feedback  
-- [ ] ATH-004 Progress metrics (+ photos if scoped)  
-- [ ] DOC-009 Phase 07 report  
-
-### Milestone M8 — Comms (Phase 08)
-
-- [ ] MSG-001 Threads + contextual refs  
-- [ ] NTF-001 In-app notifications + prefs  
-- [ ] NTF-002 Email/push adapter interface  
-- [ ] DOC-010 Phase 08 report  
-
-### Later milestones
-
-- M9 Nutrition (P1)  
-- M10 Billing (P1)  
-- M11 AI (P2)  
-- M12 PWA/Offline  
-- M13 QA/Release  
-- M14 Pilot  
-
-## 4. Suggested GitHub milestones (create when permitted)
-
-```
-phase-00-discovery
-phase-01-requirements
-phase-02-ux
-phase-03-architecture
-phase-04-foundation
-phase-05-identity
-phase-06-training
-phase-07-athlete
-phase-08-comms
-phase-09-nutrition
-phase-10-billing
-phase-11-ai
-phase-12-pwa
-phase-13-release
-phase-14-pilot
-```
-
-## 5. Versioning intent
-
-- `0.1.x` — internal foundation through identity  
-- `0.2.x` — training domain  
-- `0.3.x` — athlete + comms MVP feature-complete  
-- `0.9.x` — release candidate / staging  
-- `1.0.0` — pilot production  
-
-## 6. Rollback and release engineering
-
-Documented fully in Phase 13. Until then: prefer forward-fix migrations; never destructive unreviewed migrations on shared environments.
+### Milestones M4–M14 (Future Execution Phases)
+- **M4 (Foundation):** Scaffold backend, frontend, CI, and PWA manifest.
+- **M5 (Identity):** Implement auth, single-location orgs, invites, server-side RBAC.
+- **M6 (Training):** Implement bilingual exercises, Persian search, program builder.
+- **M7 (Athlete):** Implement Today view, mobile set logging, rest timer, pain flags.
+- **M8 (Comms):** Implement contextual 1:1 threads and in-app notification engine.
+- **M9 (Nutrition - P1):** Implement nutritionist role, Persian foods, meal plans.
+- **M10 (Billing - P1):** Implement payment abstraction and coach subscriptions.
+- **M11 (AI - P2):** Implement constrained, human-reviewed workout copilot.
+- **M12 (PWA Advanced - P2):** Implement offline sync queue and wearable review.
+- **M13 (Release):** Execute full automated test suites, security audit, staging deploy.
+- **M14 (Pilot):** Run live cohort pilot and collect empirical business metrics.
