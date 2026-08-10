@@ -21,7 +21,7 @@ Phase 01 requirements package complete: detailed personas, user journeys, INVEST
 | Area | Post-Merge State | Evidence / Artifact Link |
 |------|------------------|--------------------------|
 | Main Base Commit | `f52c4134087b18c4bd1a8aef9e0100fd63f71b8e` | PR #3 merged into `main` |
-| Working Branch | `arena/019febfc-coachos-fitness-coaching-platf` | Active session working branch |
+| Working Branch | `arena/019febfc-coachos-fitness-coaching-platf` | Active session working branch (PR #4 open) |
 | Application Source (Frontend/Backend) | None (by design) | Verified empty via `find` / `git status` |
 | Dependencies / Lockfiles | None (by design) | Verified |
 | Database Migrations | None (by design) | Verified |

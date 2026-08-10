@@ -293,7 +293,7 @@ Authored `docs/COMPETITIVE_LANDSCAPE.md` benchmarking 10 platforms:
 - **Session Working Branch:** `arena/019febfc-coachos-fitness-coaching-platf`
 - **Main Base Commit:** `f52c4134087b18c4bd1a8aef9e0100fd63f71b8e` (PR #3 merged)
 - **Tracking Milestones:** Milestones 1–9 active on GitHub; in-repo backlog in `docs/RELEASE_PLAN.md` remains authoritative.
-- **Pull Request Creation:** A PR for Phase 01 will be opened from branch `arena/019febfc-coachos-fitness-coaching-platf` to `main` upon phase completion.
+- **Pull Request:** [PR #4: docs(phase-01): product requirements and scope specification](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/4) opened from branch `arena/019febfc-coachos-fitness-coaching-platf` to `main` (not merged automatically).
 
 ---
 
