@@ -65,15 +65,18 @@ CoachOS follows a progressive PWA deployment strategy:
 - [x] `REQ-007`: Traceability Matrix Expansion (`docs/TRACEABILITY_MATRIX.md`)
 - [x] `DOC-003`: Phase 01 Requirements Report (`docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`)
 
-### Milestone M2: UX & Design System (Phase 02) — `[ ] Next`
-- [ ] `UX-001`: Information architecture & navigation hierarchy
-- [ ] `UX-002`: Coach desktop/tablet program builder wireframes & user flows
-- [ ] `UX-003`: Athlete mobile-first workout execution & logging wireframes
-- [ ] `UX-004`: Organization owner & admin management console wireframes
-- [ ] `UX-005`: Persian RTL layout specifications with `Vazirmatn` font & logical CSS
-- [ ] `UX-006`: WCAG 2.2 AA accessibility specifications & color palette tokens
-- [ ] `UX-007`: Empty, loading, error, and offline state UI designs
-- [ ] `DOC-004`: Phase 02 UX & Design System Report
+### Milestone M2: UX & Design System (Phase 02) — `[x] Complete`
+- [x] `UX-001`: Information architecture & navigation hierarchy (`docs/ux/INFORMATION_ARCHITECTURE.md`, `docs/ux/NAVIGATION_MODEL.md`)
+- [x] `UX-002`: Coach desktop/tablet program builder wireframes & user flows (`docs/ux/USER_FLOWS.md`, `docs/ux/WIREFRAMES.md`)
+- [x] `UX-003`: Athlete mobile-first workout execution & logging wireframes (`docs/ux/USER_FLOWS.md`, `docs/ux/WIREFRAMES.md`)
+- [x] `UX-004`: Organization owner & admin management console wireframes (`docs/ux/USER_FLOWS.md`, `docs/ux/SCREEN_INVENTORY.md`)
+- [x] `UX-005`: Persian RTL layout specifications with `Vazirmatn` font & logical CSS (`docs/ux/RTL_LTR_SPECIFICATION.md`)
+- [x] `UX-006`: WCAG 2.2 AA accessibility specifications & color palette tokens (`docs/ux/ACCESSIBILITY_SPEC.md`, `docs/ux/DESIGN_TOKENS.md`)
+- [x] `UX-007`: Empty, loading, error, and offline state UI designs (`docs/ux/STATE_AND_ERROR_MATRIX.md`)
+- [x] `UX-008`: Microcopy & UX guidelines in English & Persian (`docs/ux/UX_COPY.md`)
+- [x] `UX-009`: UX requirements traceability matrix (`docs/ux/UX_TRACEABILITY_MATRIX.md`)
+- [x] `UX-010`: UX research assumptions & validation plan (`docs/ux/UX_RESEARCH_AND_ASSUMPTIONS.md`)
+- [x] `DOC-004`: Phase 02 UX & Design System Report (`docs/reports/PHASE-02-UX-DESIGN-REPORT.md`)
 
 ### Milestone M3: Architecture & Security (Phase 03) — `[ ] Planned`
 - [ ] `ARCH-001`: System context and C4 container diagrams

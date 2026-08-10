@@ -9,38 +9,48 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 
 ### Added
 
-- **Phase 01 Product Requirements and Scope Package:**
-  - `docs/PRD.md`: Full Product Requirements Document detailing product vision, business goals, measurable success metrics, complete INVEST-style P0 user stories with Gherkin acceptance criteria (positive and negative authorization scenarios), permissions matrix, prioritized P1/P2 backlogs, and non-functional requirements (WCAG 2.2 AA, security, performance).
-  - `docs/PERSONAS.md`: 6 detailed user personas (Platform Administrator `P-ADMIN`, Gym/Organization Owner `P-OWNER`, Coach/Trainer `P-COACH`, Athlete/Client `P-ATH`, Nutrition Professional `P-NUT` [P1], Support Staff `P-SUP`).
-  - `docs/USER_JOURNEYS.md`: 5 end-to-end user journeys with preconditions, step-by-step main flows, error states, and server-side permission checks.
-  - `docs/DOMAIN_GLOSSARY.md`: Bilingual fitness, tenancy, localization, and privacy glossary in English and Persian (`fa-IR`).
-  - `docs/COMPETITIVE_LANDSCAPE.md`: Public desk research benchmarking 10 platforms (ABC Trainerize, PT Distinction, Everfit, TrueCoach, My PT Hub, FITR, TrainHeroic, Exercise.com, Liaqa, Nutrium/Practice Better) and defining 8 differentiation hypotheses.
-  - `docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`: Comprehensive 27-section Phase 01 report with English and Persian executive summaries.
-- **Decision Records & Scope Corrections (`docs/DECISIONS.md`):**
-  - ADR-009: Calendar strategy (UTC/Gregorian storage with Persian Jalali UI display formatting for `fa-IR`).
-  - ADR-011: PWA sequencing correction (Phase 04 foundation, Phase 07 mobile athlete execution validation, Phase 12 advanced offline/wearables/native).
-  - ADR-012: License and IP evaluation (MIT vs Proprietary vs Open-Core vs Private Commercial) marked as **Pending Founder Approval**.
-  - ADR-013: Single-location-first MVP strategy with P1 multi-location roadmap.
-  - ADR-014 through ADR-022: Membership model, program versioning snapshots, archival lifecycle, UUIDv7 identifiers, Persian search normalization, data ownership, multi-pro collaboration, payment deferral, and marketplace deferral.
-- **Architectural & Specification Enhancements:**
-  - `docs/DATA_MODEL.md`: Updated entity models (single-location MVP, program snapshots, media rights provenance, feedback flags).
-  - `docs/API_CONTRACT.md`: Versioned REST API endpoint specs, error envelopes, and authorization contracts for all P0 stories.
-  - `docs/SECURITY_AND_PRIVACY.md`: Comprehensive 9-tier data classification taxonomy, privacy lifecycle, and threat model.
-  - `docs/TRACEABILITY_MATRIX.md`: End-to-end mapping from requirements to stories, ACs, APIs, phases, and test types (including negative authZ tests).
-  - `docs/RELEASE_PLAN.md`: Updated phased roadmap reflecting corrected PWA milestones and in-repo task backlog.
+- **Phase 02 UX, Information Architecture, and Design System Package:**
+  - `docs/ux/INFORMATION_ARCHITECTURE.md`: Role-based information architecture, routing hierarchy, and site map covering athlete, coach, owner, and admin workspaces.
+  - `docs/ux/NAVIGATION_MODEL.md`: Multi-device navigation paradigms (mobile bottom navigation, active workout canvas, desktop collapsible sidebar, breadcrumbs, dual-pane builder).
+  - `docs/ux/SCREEN_INVENTORY.md`: Comprehensive inventory and technical specifications for 34 P0 screens.
+  - `docs/ux/USER_FLOWS.md`: Step-by-step user flows with Mermaid sequence and flowchart diagrams for owner onboarding, coach programming, athlete workout execution, and admin moderation.
+  - `docs/ux/WIREFRAMES.md`: Detailed bidirectional ASCII wireframes for core athlete and coach screens in both English LTR and Persian RTL (mirrored).
+  - `docs/ux/DESIGN_SYSTEM.md`: Core design principles, component library specifications (buttons, inputs, datepickers, program tree nodes, consent dialogs, rest timers).
+  - `docs/ux/DESIGN_TOKENS.md`: Visual tokens (colors, dark obsidian canvas, typography, 4px spacing scale, elevation, z-index, motion) with WCAG 2.2 AA contrast validation tables.
+  - `docs/ux/RTL_LTR_SPECIFICATION.md`: CSS logical properties, bidirectional mirroring rules, mixed-direction BiDi isolation (`<bdi>`), and Persian character normalization.
+  - `docs/ux/RESPONSIVE_BEHAVIOR.md`: 6-tier breakpoint taxonomy, one-handed mobile gym floor ergonomics, natural thumb zone analysis, and component reflows.
+  - `docs/ux/ACCESSIBILITY_SPEC.md`: WCAG 2.2 Level AA compliance specifications, modal focus trapping, ARIA live announcements, and 10-point test checklist.
+  - `docs/ux/STATE_AND_ERROR_MATRIX.md`: 8-state handling matrix and progressive offline PWA matrix across Phase 04/07/12.
+  - `docs/ux/UX_COPY.md`: Non-clinical bilingual microcopy dictionary and content guidelines in English and Persian.
+  - `docs/ux/UX_TRACEABILITY_MATRIX.md`: 1:1 mapping from all 29 P0 user stories to UX specifications.
+  - `docs/ux/UX_RESEARCH_AND_ASSUMPTIONS.md`: Hypothesis categorization, research questions by persona, and pilot usability protocol.
+  - `docs/reports/PHASE-02-UX-DESIGN-REPORT.md`: Comprehensive 31-section Phase 02 completion report with English and Persian executive summaries.
+- **UX Architecture Decision Records (`docs/DECISIONS.md`):**
+  - ADR-023: Athlete mobile navigation & full-screen active workout canvas pattern.
+  - ADR-024: Coach program builder desktop dual-pane master-detail pattern.
+  - ADR-025: Persian typography strategy using Vazirmatn variable web font.
+  - ADR-026: Non-clinical UX language standard for subjective feedback.
+  - ADR-027: Explicit affirmative consent interaction model for sensitive photos.
+  - ADR-028: Dark-neutral visual theme for mobile gym-floor glare reduction.
 
 ### Changed
 
-- Updated `PROJECT_STATUS.md` to reflect post-merge state (PR #3 merged into `main` via commit `f52c413`) and Phase 01 completion.
-- Updated `PROJECT_CHECKLIST.md` marking all Phase 01 deliverables complete.
-- Updated `docs/PROMPT_LOG.md` logging PR #3 merge record, full text of Prompt 002, and Prompt 003 preflight initiation.
-- Updated `docs/reports/PHASE-00-DISCOVERY-REPORT.md` with `Post-Phase-00 Merge Addendum`.
-- Calibrated `docs/COMPETITIVE_LANDSCAPE.md`, `docs/PRD.md`, `docs/SECURITY_AND_PRIVACY.md`, `docs/DATA_MODEL.md`, `docs/API_CONTRACT.md`, and `docs/USER_JOURNEYS.md` during Phase 01 preflight consistency audit (calibrated competitor language qualifiers, labeled performance/workload targets as hypotheses, clarified owner vs coach privacy boundaries, and verified PWA phasing across Phase 04/07/12).
+- Updated `PROJECT_STATUS.md` reflecting Phase 02 completion and post-merge base commit `3921083`.
+- Updated `PROJECT_CHECKLIST.md` marking all Phase 02 deliverables complete with evidence links.
+- Updated `docs/RELEASE_PLAN.md` marking Milestone M2 complete.
 
 ### Notes
 
-- Documentation and requirements engineering only; **no application code, dependencies, or database migrations added** (by design).
-- Language policy strictly preserved: Persian (`fa-IR`) and English (`en-US`) only; Arabic remains strictly out of scope.
+- Documentation and design specifications only; **zero application source code, dependencies, or database migrations added** (by design).
+- Strict language constraint: Persian (`fa-IR`) and English (`en-US`) only; Arabic remains strictly out of scope.
+
+## [0.0.2] — 2026-08-10
+
+### Added
+
+- Phase 01 Product Requirements and Scope Package (merged via PR #4, commit `392108372450dc8a40fe79c6201144733955b7c0`).
+- 22 Architecture Decision Records (ADR-001 through ADR-022).
+- Personas (`docs/PERSONAS.md`), user journeys (`docs/USER_JOURNEYS.md`), domain glossary (`docs/DOMAIN_GLOSSARY.md`), and competitive landscape (`docs/COMPETITIVE_LANDSCAPE.md`).
 
 ## [0.0.1] — 2026-08-10
 

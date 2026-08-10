@@ -56,18 +56,18 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 02 — UX, Information Architecture, and Design System
 
-- [ ] Navigation model defined
-- [ ] Coach flows designed
-- [ ] Athlete flows designed
-- [ ] Organization/admin flows designed
-- [ ] Persian RTL reviewed (typography & layout)
-- [ ] English LTR reviewed
-- [ ] Accessibility baseline defined (WCAG 2.2 AA)
-- [ ] Responsive breakpoints defined
-- [ ] Empty/loading/error/offline states designed
-- [ ] Phase 02 report committed
+- [x] Navigation model defined — evidence: `docs/ux/NAVIGATION_MODEL.md`, `docs/ux/INFORMATION_ARCHITECTURE.md`
+- [x] Coach flows designed — evidence: `docs/ux/USER_FLOWS.md`, `docs/ux/WIREFRAMES.md`
+- [x] Athlete flows designed — evidence: `docs/ux/USER_FLOWS.md`, `docs/ux/WIREFRAMES.md`
+- [x] Organization/admin flows designed — evidence: `docs/ux/USER_FLOWS.md`, `docs/ux/SCREEN_INVENTORY.md`
+- [x] Persian RTL reviewed (typography & layout) — evidence: `docs/ux/RTL_LTR_SPECIFICATION.md`
+- [x] English LTR reviewed — evidence: `docs/ux/RTL_LTR_SPECIFICATION.md`, `docs/ux/DESIGN_TOKENS.md`
+- [x] Accessibility baseline defined (WCAG 2.2 AA) — evidence: `docs/ux/ACCESSIBILITY_SPEC.md`
+- [x] Responsive breakpoints defined — evidence: `docs/ux/RESPONSIVE_BEHAVIOR.md`
+- [x] Empty/loading/error/offline states designed — evidence: `docs/ux/STATE_AND_ERROR_MATRIX.md`
+- [x] Phase 02 report committed — evidence: `docs/reports/PHASE-02-UX-DESIGN-REPORT.md`
 
-**Phase 02 status:** `[ ]` Not started
+**Phase 02 status:** `[x]` Complete (2026-08-10)
 
 ---
 

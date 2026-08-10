@@ -34,6 +34,12 @@
 | **ADR-020** | Multi-Professional Collaboration & Consent Architecture (P1 Scope) | **Accepted** | No | Phase 01 |
 | **ADR-021** | Payment Gateway Abstraction & Coach Monetization Deferral to Phase 10 | **Accepted** | No | Phase 01 |
 | **ADR-022** | Public Discovery Marketplace Deferral to Phase 11+ / P2 | **Accepted** | No | Phase 01 |
+| **ADR-023** | Athlete Mobile Navigation & Active Workout Canvas Pattern | **Accepted** | No | Phase 02 |
+| **ADR-024** | Coach Program Builder Desktop Dual-Pane Master-Detail Pattern | **Accepted** | No | Phase 02 |
+| **ADR-025** | Persian Typography Strategy: Vazirmatn Variable Web Font | **Accepted** | No | Phase 02 |
+| **ADR-026** | Non-Clinical UX Language Standard for Subjective Feedback | **Accepted** | No | Phase 02 |
+| **ADR-027** | Explicit Affirmative Consent Interaction Model for Sensitive Photos | **Accepted** | No | Phase 02 |
+| **ADR-028** | Dark-Neutral Visual Theme for Mobile Gym-Floor Glare Reduction | **Accepted** | No | Phase 02 |
 
 ---
 
@@ -265,3 +271,51 @@
 - **Context:** Building a two-sided marketplace (coach discovery, public ratings, booking, dispute resolution) before perfecting the core 1:1 coaching operating system risks premature failure.
 - **Decision:** Public marketplace, reviews, and client discovery are classified strictly as **P2 Backlog** and will not be developed until P0 and P1 operating system workflows achieve high pilot retention.
 - **Consequences:** Focuses team execution 100% on software quality for existing coach-client relationships.
+
+---
+
+### ADR-023 — Athlete Mobile Navigation & Active Workout Canvas Pattern
+- **Status:** **Accepted** (Phase 02 UX)
+- **Context:** Mobile athletes on gym floors need fast navigation between Today, Calendar, Progress, and Messages, but during an active workout session, accidental tab navigation leads to friction and lost training focus.
+- **Decision:** Use a persistent 5-tab Bottom Navigation Bar for general athlete browsing, and switch to a full-screen modal **Active Workout Canvas** when "Start Workout" is tapped (hiding the bottom nav until the session is finished or paused).
+- **Consequences:** Maximizes gym-floor focus, eliminates misclicks, and anchors timer and set-logging controls in the natural thumb zone.
+
+---
+
+### ADR-024 — Coach Program Builder Desktop Dual-Pane Master-Detail Pattern
+- **Status:** **Accepted** (Phase 02 UX)
+- **Context:** Strength coaches drafting multi-week periodization need simultaneous visibility of the overarching mesocycle structure and granular set prescriptions.
+- **Decision:** Implement a dual-pane layout on desktop/tablet (>= 1024px) with a sticky Program Outline Tree on `inline-start` (35% width) and an Exercise Prescription Editor on `inline-end` (65% width). Reflow into an accordion stack on mobile viewports.
+- **Consequences:** Accelerates program creation speed and maintains periodization context.
+
+---
+
+### ADR-025 — Persian Typography Strategy: Vazirmatn Variable Web Font
+- **Status:** **Accepted** (Phase 02 UX)
+- **Context:** Persian text readability on high-DPI mobile screens and desktop monitors requires specialized font metrics to prevent clipping of vertical diacritics and ascenders/descenders.
+- **Decision:** Adopt **`Vazirmatn`** (OFL licensed) as the primary Persian font family, augmented with +15% line-height relative to Latin text and zero letter-spacing. Pair with `Inter` for English text.
+- **Consequences:** Delivers crisp, legible Persian typography across all viewport sizes without font-licensing liability.
+
+---
+
+### ADR-026 — Non-Clinical UX Language Standard for Subjective Feedback
+- **Status:** **Accepted** (Phase 02 UX)
+- **Context:** Collecting pain, soreness, and fatigue data must not cross into medical diagnosis or clinical treatment claims.
+- **Decision:** All subjective health reporting in the UI is strictly labeled as **"Discomfort & Readiness Feedback for Coach Review"** accompanied by mandatory non-clinical disclaimers.
+- **Consequences:** Protects the platform from medical device regulatory liabilities while maintaining high coaching utility.
+
+---
+
+### ADR-027 — Explicit Affirmative Consent Interaction Model for Sensitive Photos
+- **Status:** **Accepted** (Phase 02 UX)
+- **Context:** Physique progress photos are highly sensitive personal assets requiring unambiguous privacy boundaries.
+- **Decision:** The UI mandates an explicit modal consent dialog before any photo upload, stating clearly that photos are accessible only to the assigned coach. Progress photos default to strictly private, and athletes can unilaterally revoke coach access at any time.
+- **Consequences:** Establishes strong consumer trust and adheres to international privacy standards.
+
+---
+
+### ADR-028 — Dark-Neutral Visual Theme for Mobile Gym-Floor Glare Reduction
+- **Status:** **Accepted** (Phase 02 UX)
+- **Context:** Gyms frequently have intense overhead lighting and athletes operate devices with sweaty hands and variable screen brightness.
+- **Decision:** Implement a **Dark Obsidian Neutral Canvas** (`#0B0F17`) as the default visual theme for the Athlete PWA, using high-contrast Emerald/Teal status accents and crisp typography meeting WCAG 2.2 AAA contrast standards.
+- **Consequences:** Eliminates screen glare and reduces battery consumption on OLED mobile devices during 60+ minute training sessions.
