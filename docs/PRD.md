@@ -427,14 +427,14 @@ Scenario: English locale renders LTR
 US-I18N-002: Persian Search Normalization & Character Variant Folding
 ===============================================================================
 - Persona: P-COACH, P-ATH
-- Business Value: Guarantees search matches regardless of Arabic vs Persian keyboard inputs.
+- Business Value: Guarantees search matches regardless of Perso-Arabic script keyboard-variant inputs for Persian search.
 - Priority: P0 (Core MVP)
 - Planned Phase: Phase 06 (Exercise Library)
 - Traceability Link: FR-EX-01 -> REQ-I18N-002
 
 User Story:
 As a Persian-speaking coach,
-I want exercise search to normalize Arabic character variants (ي to ی, ك to ک),
+I want exercise search to normalize Perso-Arabic script keyboard-variant differences (ي → ی, ك → ک, with Persian Unicode character-variant folding),
 So that I can quickly find exercises regardless of device keyboard settings.
 
 Acceptance Criteria (Gherkin):
@@ -958,10 +958,10 @@ The following matrix defines the authoritative server-side authorization boundar
 - **NFR-PRV-03 (Data Portability & Deletion):** Self-service endpoints for full JSON/CSV data export and account anonymization/erasure pipeline (engineered with GDPR Article 17/20-adjacent principles; formal legal review required before commercial launch).
 - **NFR-PRV-04 (No Real PII in Development):** Test fixtures, seed data, and documentation must exclusively use synthetic, fictionalized data.
 
-### 8.4 Accessibility (WCAG 2.2 AA)
-- **NFR-A11Y-01 (Color Contrast):** Minimum 4.5:1 contrast ratio for standard text and 3:1 for large text and interactive UI controls.
-- **NFR-A11Y-02 (Keyboard & Screen Reader Navigability):** All interactive components (inputs, modals, buttons, workout cards) fully operable via keyboard with visible focus indicators and ARIA labels.
-- **NFR-A11Y-03 (Touch Target Sizing):** Mobile interactive targets (e.g., set checkmark buttons, number keypad inputs) possess a minimum touch dimension of 44x44 CSS pixels.
+### 8.4 Accessibility (WCAG 2.2 AA — Design Target; Requires Implementation Validation and Accessibility Testing)
+- **NFR-A11Y-01 (Color Contrast — Design Target):** Minimum 4.5:1 contrast ratio for standard text and 3:1 for large text and interactive UI controls (design target; requires implementation contrast testing, not a compliance certification).
+- **NFR-A11Y-02 (Keyboard & Screen Reader Navigability — Proposed Pattern):** All interactive components (inputs, modals, buttons, workout cards) designed to be fully operable via keyboard with visible focus indicators and ARIA labels (requires keyboard and screen-reader testing).
+- **NFR-A11Y-03 (Touch Target Sizing):** Mobile interactive targets (e.g., set checkmark buttons, number keypad inputs) possess a minimum touch dimension of **44×44 CSS pixels** per WCAG 2.5.5; **48×48px is the preferred design target** for primary CTAs — actual implementation must be tested against accessibility and device usability requirements.
 
 ### 8.5 Performance & Low-Bandwidth Usability
 - **NFR-PERF-01 (Today's Workout Loading):** Athlete "Today's Workout" dashboard engineering target: loads and renders interactive content in < 1.5 seconds on simulated 3G mobile networks (750kbps / 100ms RTT) to be benchmarked in Phase 13.

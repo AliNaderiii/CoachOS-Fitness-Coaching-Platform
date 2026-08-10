@@ -129,7 +129,7 @@
 ### 3.5 Technical Comfort & Privacy Concerns
 - **Technical Comfort:** Moderate to High (power user of mobile apps, social media, fitness trackers; values speed, keyboard shortcuts on desktop, and drag-and-drop builders).
 - **Privacy Concerns:** Needs assurance that proprietary program templates are private to their organization/account and cannot be stolen or seen by other coaches.
-- **Accessibility Needs:** Clear touch targets (minimum 44x44px), rapid number keypad inputs, support for both metric (`kg`) and imperial (`lbs`) units.
+- **Accessibility Needs:** Clear touch targets (minimum **44×44px** per WCAG 2.5.5; **48×48px preferred design target** — requires implementation testing), rapid number keypad inputs, support for both metric (`kg`) and imperial (`lbs`) units.
 
 ### 3.6 Willingness-To-Pay & Failure Triggers
 - **Willingness-to-Pay Assumption:** Moderate to High. If independent, willing to pay $20–$50/month for software that saves 5+ hours of programming per week and elevates client retention. If gym-employed, covered by the gym owner.

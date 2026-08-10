@@ -4,7 +4,7 @@ Bilingual, mobile-first fitness coaching operating system for coaches, gyms, and
 
 > **Product name:** not finalized. Working codename: **CoachOS**.  
 > **License:** MIT (Review Pending Founder Decision — see `docs/DECISIONS.md` ADR-012)  
-> **Status:** Phase 01 complete — Product Requirements and Scope. No application code yet.
+> **Status:** Phase 02 complete — UX, Information Architecture, and Design System. No application code yet.
 
 ## Vision
 
@@ -38,18 +38,19 @@ Do not add Arabic translation, locale, seed data, or UI. Architecture may remain
 | Phase | Name | Status |
 |-------|------|--------|
 | 00 | Discovery and Repository Audit | **Complete** (PR #3 merged) |
-| 01 | Product Requirements and Scope | **Complete** |
-| 02 | UX, Information Architecture, and Design System | Next |
-| 03–14 | See [`PROJECT_CHECKLIST.md`](./PROJECT_CHECKLIST.md) | Not started |
+| 01 | Product Requirements and Scope | **Complete** (PR #4 merged) |
+| 02 | UX, Information Architecture, and Design System | **Complete** |
+| 03 | Architecture, Data, Security, and Privacy | Next |
+| 04–14 | See [`PROJECT_CHECKLIST.md`](./PROJECT_CHECKLIST.md) | Not started |
 
 ## Repository state
 
-This repository is currently in the documentation and requirements engineering stage:
+This repository is currently in the documentation, requirements, and UX design specification stage:
 
-- PR #3 merged into `main` (commit `f52c4134087b18c4bd1a8aef9e0100fd63f71b8e`)
-- Phase 01 complete on working branch `arena/019febfc-coachos-fitness-coaching-platf`
+- PR #3 and PR #4 merged into `main` (commit `392108372450dc8a40fe79c6201144733955b7c0`)
+- Phase 02 complete on working branch `arena/019febfc-coachos-fitness-coaching-platf`
 - No application source, dependencies, CI, tests, or deployment config (by design)
-- Complete Product Requirements Package authored in `docs/`
+- Complete Product Requirements Package and UX Design System authored in `docs/`
 
 ## Documentation map
 
@@ -64,15 +65,32 @@ This repository is currently in the documentation and requirements engineering s
 | [`docs/USER_JOURNEYS.md`](./docs/USER_JOURNEYS.md) | 5 end-to-end user journeys |
 | [`docs/DOMAIN_GLOSSARY.md`](./docs/DOMAIN_GLOSSARY.md) | Bilingual domain terminology glossary (English & Persian) |
 | [`docs/COMPETITIVE_LANDSCAPE.md`](./docs/COMPETITIVE_LANDSCAPE.md) | Competitive benchmarking (10 platforms) & differentiation |
-| [`docs/DECISIONS.md`](./docs/DECISIONS.md) | Architecture and product decision log (ADRs) |
+| [`docs/DECISIONS.md`](./docs/DECISIONS.md) | Architecture and product decision log (28 ADRs) |
 | [`docs/DATA_MODEL.md`](./docs/DATA_MODEL.md) | Conceptual and logical domain entity models |
 | [`docs/API_CONTRACT.md`](./docs/API_CONTRACT.md) | Versioned REST API specifications and error contracts |
 | [`docs/SECURITY_AND_PRIVACY.md`](./docs/SECURITY_AND_PRIVACY.md) | Security baseline, data classification taxonomy, and privacy lifecycle |
 | [`docs/TRACEABILITY_MATRIX.md`](./docs/TRACEABILITY_MATRIX.md) | End-to-end requirements traceability matrix |
 | [`docs/RELEASE_PLAN.md`](./docs/RELEASE_PLAN.md) | Phased release plan and milestone backlogs |
 | [`docs/PROMPT_LOG.md`](./docs/PROMPT_LOG.md) | Founder/agent prompt history |
+| **UX & Design System Suite** | |
+| [`docs/ux/INFORMATION_ARCHITECTURE.md`](./docs/ux/INFORMATION_ARCHITECTURE.md) | Role-based IA, site map, and routing hierarchy |
+| [`docs/ux/NAVIGATION_MODEL.md`](./docs/ux/NAVIGATION_MODEL.md) | Multi-device navigation patterns & dual-pane builder |
+| [`docs/ux/SCREEN_INVENTORY.md`](./docs/ux/SCREEN_INVENTORY.md) | Full specifications for 34 P0 screens |
+| [`docs/ux/USER_FLOWS.md`](./docs/ux/USER_FLOWS.md) | Step-by-step user flows with Mermaid sequence/flow diagrams |
+| [`docs/ux/WIREFRAMES.md`](./docs/ux/WIREFRAMES.md) | Bidirectional ASCII wireframes for core screens (LTR & RTL) |
+| [`docs/ux/DESIGN_SYSTEM.md`](./docs/ux/DESIGN_SYSTEM.md) | Component library specifications, states, and accessibility |
+| [`docs/ux/DESIGN_TOKENS.md`](./docs/ux/DESIGN_TOKENS.md) | Visual tokens (colors, type, spacing, elevation, motion) with contrast checks |
+| [`docs/ux/RTL_LTR_SPECIFICATION.md`](./docs/ux/RTL_LTR_SPECIFICATION.md) | CSS logical properties, bidirectional mirroring & Persian BiDi |
+| [`docs/ux/RESPONSIVE_BEHAVIOR.md`](./docs/ux/RESPONSIVE_BEHAVIOR.md) | Breakpoints, one-handed mobile gym ergonomics & thumb zones |
+| [`docs/ux/ACCESSIBILITY_SPEC.md`](./docs/ux/ACCESSIBILITY_SPEC.md) | WCAG 2.2 AA accessibility specifications & verification checklist |
+| [`docs/ux/STATE_AND_ERROR_MATRIX.md`](./docs/ux/STATE_AND_ERROR_MATRIX.md) | 8-state handling & progressive offline PWA matrix |
+| [`docs/ux/UX_COPY.md`](./docs/ux/UX_COPY.md) | Non-clinical bilingual microcopy dictionary (EN & FA) |
+| [`docs/ux/UX_TRACEABILITY_MATRIX.md`](./docs/ux/UX_TRACEABILITY_MATRIX.md) | 1:1 mapping from P0 user stories to UX specifications |
+| [`docs/ux/UX_RESEARCH_AND_ASSUMPTIONS.md`](./docs/ux/UX_RESEARCH_AND_ASSUMPTIONS.md) | Hypothesis categorization, research questions & usability plan |
+| **Phase Reports** | |
 | [`docs/reports/PHASE-00-DISCOVERY-REPORT.md`](./docs/reports/PHASE-00-DISCOVERY-REPORT.md) | Phase 00 completion report |
 | [`docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`](./docs/reports/PHASE-01-REQUIREMENTS-REPORT.md) | Phase 01 completion report |
+| [`docs/reports/PHASE-02-UX-DESIGN-REPORT.md`](./docs/reports/PHASE-02-UX-DESIGN-REPORT.md) | Phase 02 completion report |
 
 ## Proposed technical stack (pending Phase 03 confirmation)
 
