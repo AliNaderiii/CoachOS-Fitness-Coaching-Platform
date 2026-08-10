@@ -28,6 +28,7 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Initial technical options evaluated — `docs/DECISIONS.md` (ADR-001 draft)
 - [x] Initial GitHub issues/milestones created **or** in-repo backlog equivalent — milestones [1–9](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/milestones); issues [#1](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/issues/1), [#2](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/issues/2); canonical backlog `docs/RELEASE_PLAN.md`
 - [x] Phase 00 report committed — `docs/reports/PHASE-00-DISCOVERY-REPORT.md`
+- [x] Phase 00 merged to main via PR #3 (commit `f52c4134087b18c4bd1a8aef9e0100fd63f71b8e`)
 
 **Phase 00 status:** `[x]` Complete (2026-08-10)
 
@@ -35,17 +36,21 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 01 — Product Requirements and Scope
 
-- [ ] Personas written
-- [ ] User journeys written
-- [ ] P0 MVP defined (detailed stories)
-- [ ] P1 and P2 backlog defined
-- [ ] User stories written
-- [ ] Acceptance criteria written
-- [ ] Non-functional requirements written
-- [ ] Traceability matrix started/expanded
-- [ ] Phase 01 report committed
+- [x] Personas written — evidence: `docs/PERSONAS.md`
+- [x] User journeys written — evidence: `docs/USER_JOURNEYS.md`
+- [x] Domain glossary written — evidence: `docs/DOMAIN_GLOSSARY.md`
+- [x] Competitive landscape & market benchmarking written — evidence: `docs/COMPETITIVE_LANDSCAPE.md`
+- [x] P0 MVP defined (detailed stories) — evidence: `docs/PRD.md` §5
+- [x] P1 and P2 backlog defined — evidence: `docs/PRD.md` §7, `docs/RELEASE_PLAN.md`
+- [x] User stories written with stable IDs — evidence: `docs/PRD.md` §5
+- [x] Acceptance criteria written in Gherkin with positive/negative authZ — evidence: `docs/PRD.md` §5
+- [x] Non-functional requirements written with measurable targets — evidence: `docs/PRD.md` §8
+- [x] Permissions matrix written — evidence: `docs/PRD.md` §6, `docs/SECURITY_AND_PRIVACY.md`
+- [x] Decisions updated with PWA, License, Location, Calendar ADRs — evidence: `docs/DECISIONS.md`
+- [x] Traceability matrix expanded with all P0 mappings — evidence: `docs/TRACEABILITY_MATRIX.md`
+- [x] Phase 01 report committed — evidence: `docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`
 
-**Phase 01 status:** `[ ]` Not started
+**Phase 01 status:** `[x]` Complete (2026-08-10)
 
 ---
 
@@ -55,9 +60,9 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [ ] Coach flows designed
 - [ ] Athlete flows designed
 - [ ] Organization/admin flows designed
-- [ ] Persian RTL reviewed
+- [ ] Persian RTL reviewed (typography & layout)
 - [ ] English LTR reviewed
-- [ ] Accessibility baseline defined
+- [ ] Accessibility baseline defined (WCAG 2.2 AA)
 - [ ] Responsive breakpoints defined
 - [ ] Empty/loading/error/offline states designed
 - [ ] Phase 02 report committed
@@ -68,14 +73,14 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 03 — Architecture, Data, Security, and Privacy
 
-- [ ] Architecture diagram created
+- [ ] Architecture diagram created (C4 System Context & Container)
 - [ ] ADRs created/finalized
 - [ ] Domain boundaries defined
-- [ ] Data model created
-- [ ] Authorization model defined
+- [ ] Normalized PostgreSQL data model & ERD created
+- [ ] Authorization model (RBAC + ABAC) defined
 - [ ] Threat model completed
 - [ ] Privacy/data lifecycle documented
-- [ ] API strategy documented
+- [ ] API strategy & OpenAPI catalog documented
 - [ ] Backup/restore strategy documented
 - [ ] Phase 03 report committed
 
@@ -83,12 +88,13 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ---
 
-## Phase 04 — Project Foundation
+## Phase 04 — Project Foundation & PWA Baseline
 
 - [ ] Local development setup works
 - [ ] Environment configuration documented
-- [ ] Frontend scaffold works
-- [ ] Backend scaffold works
+- [ ] Frontend scaffold works (Next.js + TypeScript + Tailwind)
+- [ ] Backend scaffold works (Django + DRF)
+- [ ] PWA foundation (Manifest, installable shell, Service Worker) works
 - [ ] Database and migrations work
 - [ ] CI pipeline works
 - [ ] Lint/type/test commands work
@@ -101,12 +107,12 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 05 — Identity, Tenancy, and Roles
 
-- [ ] Authentication works
-- [ ] Organization creation works
-- [ ] Invitations work
+- [ ] Authentication works (Email + Password)
+- [ ] Single-location organization creation works
+- [ ] Invitations work (single-use tokens)
 - [ ] Role permissions work server-side
-- [ ] Object-level access tests exist
-- [ ] Audit events exist
+- [ ] Object-level access tests exist (negative authZ tests)
+- [ ] Audit events exist (immutable logging)
 - [ ] Persian/English settings work
 - [ ] Phase 05 report committed
 
@@ -117,12 +123,12 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 ## Phase 06 — Exercise Library and Training Programs
 
 - [ ] Exercise schema works
-- [ ] Exercise search/filter works
+- [ ] Bilingual exercise search & Persian character variant folding works
 - [ ] Media rights metadata exists
-- [ ] Program builder works
-- [ ] Templates work
-- [ ] Assignments work
-- [ ] Versioning works
+- [ ] Program builder works (hierarchical phases/weeks/days/items/prescriptions)
+- [ ] Reusable templates work
+- [ ] Program assignments work (immutable snapshot creation)
+- [ ] Admin moderation queue works
 - [ ] Coach tests exist
 - [ ] Phase 06 report committed
 
@@ -132,13 +138,14 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 07 — Athlete App and Progress
 
-- [ ] Today view works
-- [ ] Workout logging works
-- [ ] Completion/adherence works
-- [ ] Progress metrics work
-- [ ] Feedback and notes work
-- [ ] Progress photos are permissioned
-- [ ] Mobile responsiveness tested
+- [ ] Today workout view works
+- [ ] Mobile set actuals logging works
+- [ ] Rest timer works
+- [ ] Exercise substitution/modification works with reasons
+- [ ] Completion/adherence tracking works
+- [ ] Feedback and pain/fatigue flags work
+- [ ] Progress photos are permissioned and consent-governed
+- [ ] Mobile responsiveness & installed-PWA mobile experience tested
 - [ ] Phase 07 report committed
 
 **Phase 07 status:** `[ ]` Not started
@@ -147,11 +154,11 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 08 — Communication and Notifications
 
-- [ ] Message threads work
-- [ ] Contextual references work
+- [ ] Contextual 1:1 message threads work
+- [ ] Workout session contextual references work
 - [ ] In-app notifications work
 - [ ] Notification preferences work
-- [ ] Email/push adapter documented
+- [ ] Email/push adapter interface documented
 - [ ] Abuse/rate limits considered
 - [ ] Phase 08 report committed
 
@@ -164,9 +171,8 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [ ] Nutritionist role implemented
 - [ ] Consent-based collaboration implemented
 - [ ] Meal plans work
-- [ ] Food/recipe data model works
+- [ ] Persian & international food/recipe data model works
 - [ ] Macro calculations are tested
-- [ ] Persian food content strategy documented
 - [ ] Health-data privacy review completed
 - [ ] Phase 09 report committed
 
@@ -176,25 +182,24 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 10 — Billing and Coach Monetization
 
-- [ ] Products/packages exist
+- [ ] Payment provider abstraction (Shetab domestic / Stripe international) exists
+- [ ] Products and packages exist
 - [ ] Subscriptions exist
-- [ ] Payment adapter exists
 - [ ] Webhooks are idempotent
 - [ ] Entitlements are tested
-- [ ] Refund/cancellation logic exists
+- [ ] Multi-location gym support implemented
 - [ ] Coach storefront exists
 - [ ] Phase 10 report committed
 
-**Phase 10 status:** `[ ]` Not started — **P1/P2, deferred until activated**
+**Phase 10 status:** `[ ]` Not started — **P1, deferred until activated**
 
 ---
 
 ## Phase 11 — AI Copilot
 
 - [ ] AI use cases prioritized
-- [ ] Safety boundaries documented
-- [ ] Approved data sources defined
-- [ ] Human-review workflow exists
+- [ ] Safety boundaries & human-in-the-loop review workflow documented
+- [ ] Approved retrieval data sources defined
 - [ ] Prompt/version logging exists
 - [ ] Cost/rate limits exist
 - [ ] Evaluation cases exist
@@ -205,18 +210,17 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ---
 
-## Phase 12 — PWA, Offline, and Platform Integrations
+## Phase 12 — Advanced Offline PWA & Integrations
 
-- [ ] Manifest works
-- [ ] Install flow works
-- [ ] Service worker works
-- [ ] Offline scope documented
-- [ ] Sync/conflict behavior tested
-- [ ] Push limitations documented
-- [ ] Native app decision recorded
+- [ ] Advanced IndexedDB offline workout caching works
+- [ ] Sync queues & conflict resolution work
+- [ ] Background sync where supported works
+- [ ] Push notification limitations documented
+- [ ] Wearable integrations (HealthKit / Health Connect) evaluated
+- [ ] Native application strategy decision recorded
 - [ ] Phase 12 report committed
 
-**Phase 12 status:** `[ ]` Not started
+**Phase 12 status:** `[ ]` Not started — **P2, deferred until activated**
 
 ---
 
@@ -225,11 +229,11 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [ ] Unit tests pass
 - [ ] Integration tests pass
 - [ ] E2E tests pass
-- [ ] RTL/LTR tests pass
-- [ ] Accessibility review pass
-- [ ] Security review pass
+- [ ] RTL/LTR visual regression tests pass
+- [ ] Accessibility review pass (WCAG 2.2 AA)
+- [ ] Security review & penetration testing pass
 - [ ] Dependency scan pass
-- [ ] Performance baseline recorded
+- [ ] Performance baseline recorded (< 1.5s Today view on 3G)
 - [ ] Backup/restore tested
 - [ ] Staging deployment works
 - [ ] Release checklist completed
@@ -241,9 +245,9 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 14 — Pilot and Iteration
 
-- [ ] Pilot users defined
+- [ ] Pilot cohort defined (gyms, coaches, athletes)
 - [ ] Feedback mechanism exists
-- [ ] Usage metrics defined
+- [ ] Empirical usage and business metrics collected
 - [ ] Critical bugs resolved
 - [ ] Onboarding documented
 - [ ] Pricing hypothesis tested
@@ -253,11 +257,12 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ---
 
-## Cross-cutting standing rules (always on)
+## Cross-Cutting Standing Rules (Always On)
 
-- [x] No Arabic content or locale work
-- [x] No secrets committed
-- [ ] All user-facing strings via i18n resources (enforced once UI exists)
+- [x] No Arabic content, locale files, or requirements
+- [x] No secrets committed to Git repository
+- [x] Synthetic test data only (no real PII/health data)
+- [ ] All user-facing strings via i18n resources (`fa-IR`, `en-US`)
 - [ ] Server-side authorization for every sensitive action
-- [ ] Audit log for sensitive access/changes
+- [ ] Immutable audit log for sensitive access/mutations
 - [ ] Phase report + checklist + changelog + prompt log updated per phase

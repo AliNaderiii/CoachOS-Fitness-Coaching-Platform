@@ -39,3 +39,76 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
   - ADR-008 media provenance accepted
 - **Blockers:** None for Phase 01. Bot cannot update/close GitHub issues (create OK).
 - **Follow-up prompt needed:** Execute Phase 01 — Product Requirements and Scope (see Phase 00 report §17).
+
+---
+
+## Post-Phase-00 Merge Record
+
+- **Date/time:** 2026-08-10T13:57:45Z (UTC)
+- **Action:** Pull Request #3 merged into `main`
+- **Pull Request:** `https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/3`
+- **Merge commit:** `f52c4134087b18c4bd1a8aef9e0100fd63f71b8e`
+- **Base commit on main:** `f52c4134087b18c4bd1a8aef9e0100fd63f71b8e`
+- **Result:** Phase 00 documentation foundation officially merged into main repository.
+
+---
+
+## Prompt 002
+
+- **Date/time:** 2026-08-10 (UTC)
+- **Source:** Founder / supervising agent
+- **Phase:** 01 — Product Requirements and Scope
+- **Exact prompt:**
+
+```text
+**CONTINUE COACHOS AS A PROFESSIONAL PRODUCT-AND-ENGINEERING TEAM**
+
+You are continuing the CoachOS Fitness Coaching Platform as a coordinated professional team consisting of:
+
+- Founder’s Technical Advisor
+- Product Manager
+- Business Analyst
+- UX Researcher
+- UX/UI Designer
+- Principal Software Architect
+- Security and Privacy Engineer
+- QA/Test Engineer
+- Technical Writer
+- Release Manager
+- Code Reviewer
+
+The project is a bilingual, mobile-first fitness coaching operating system for coaches, gyms, athletes, and future nutrition professionals.
+
+This instruction executes **Phase 01 — Product Requirements and Scope**.
+
+This phase is documentation and requirements engineering only.
+
+**Do not write application code.**
+**Do not scaffold the frontend or backend.**
+**Do not install dependencies.**
+**Do not create database migrations.**
+**Do not create AI integrations.**
+**Do not create payment integrations.**
+
+**1. REPOSITORY AND PHASE 00 VERIFICATION**
+... [Full prompt text including verification, non-negotiable constraints, vision, scope corrections for PWA/License/Location/Calendar, PRD requirements, personas, journeys, P0 user stories and acceptance criteria, permissions matrix, NFRs, competitive landscape, decisions, report requirements, and communication protocol] ...
+```
+
+- **Requested outcome:** Convert Phase 00 vision into a complete, testable, implementation-ready Product Requirements Package. Produce `docs/PERSONAS.md`, `docs/USER_JOURNEYS.md`, `docs/DOMAIN_GLOSSARY.md`, `docs/COMPETITIVE_LANDSCAPE.md`, `docs/PRD.md`, `docs/DECISIONS.md`, `docs/DATA_MODEL.md`, `docs/API_CONTRACT.md`, `docs/SECURITY_AND_PRIVACY.md`, `docs/TRACEABILITY_MATRIX.md`, `docs/RELEASE_PLAN.md`, `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`. Persian and English only; Arabic strictly out of scope. No application code.
+- **Actions taken:**
+  - Verified post-merge repository state (`f52c413` on `main`) and active session working branch `arena/019febfc-coachos-fitness-coaching-platf`.
+  - Authored comprehensive `docs/PERSONAS.md` covering 6 detailed personas (Admin, Owner, Coach, Athlete, Nutritionist P1, Support Staff).
+  - Authored detailed `docs/USER_JOURNEYS.md` covering 5 core journeys with step-by-step flows, error states, and server-side permission checks.
+  - Authored `docs/DOMAIN_GLOSSARY.md` establishing bilingual fitness, tenancy, i18n, and privacy terminology in English and Persian.
+  - Conducted public desk research and authored `docs/COMPETITIVE_LANDSCAPE.md` benchmarking 10 platforms.
+  - Updated `docs/DECISIONS.md` with 22 ADRs and pending decisions, analyzing PWA sequencing (Phase 04/07/12), MIT license options (flagged for founder approval), single-location MVP, calendar strategy (UTC/Gregorian storage with Jalali UI formatting for `fa-IR`), and architectural boundaries.
+  - Substantially expanded `docs/PRD.md` with product vision, business goals, measurable success metrics, full P0 user stories with Gherkin acceptance criteria, permissions matrix, prioritized P1/P2 backlog, and non-functional requirements (WCAG 2.2 AA, security, performance).
+  - Updated `docs/DATA_MODEL.md`, `docs/API_CONTRACT.md`, `docs/SECURITY_AND_PRIVACY.md`, `docs/TRACEABILITY_MATRIX.md`, `docs/RELEASE_PLAN.md`.
+  - Updated `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`.
+  - Authored 27-section comprehensive `docs/reports/PHASE-01-REQUIREMENTS-REPORT.md` with English and Persian executive summaries.
+- **Decisions made & pending:**
+  - ADR-009 Jalali UI formatting over UTC/Gregorian backend storage proposed.
+  - ADR-011 PWA sequencing corrected (Phase 04 foundation, Phase 07 mobile athlete execution validation, Phase 12 advanced offline/wearables/native).
+  - ADR-012 Repository license evaluation (MIT vs Proprietary vs Open-Core vs Private Commercial) documented and marked as **Pending Founder Approval**.
+  - ADR-013 Single-location-first MVP strategy accepted with P1 multi-location roadmap.
+- **Follow-up prompt needed:** Execute Phase 02 — UX, Information Architecture, and Design System.
