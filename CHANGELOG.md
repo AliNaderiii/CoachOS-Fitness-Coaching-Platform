@@ -5,7 +5,71 @@ All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 This project will follow [Semantic Versioning](https://semver.org/) once the first versioned release is cut.
 
-## [Unreleased] — Phase 03 Architecture, Data, Security, Privacy (in progress towards release)
+## [Unreleased] — Phase 05 Identity, Tenancy, and Roles (awaiting founder authorization)
+
+## [0.4.0] — 2026-08-11 — Phase 04 Project Foundation and PWA Baseline
+
+### Added
+
+- **Monorepo Architecture & Scaffolding:**
+  - `frontend/`: Next.js 14.2 App Router, TypeScript strict mode, Tailwind CSS with logical properties, Vitest test suite.
+  - `backend/`: Django 5.2 + Django REST Framework 3.18, Python 3.12 target, modular environment settings (`base`, `dev`, `staging`, `prod`, `test`), Pytest suite.
+  - `infra/`: Multi-container Docker Compose definitions (`compose.yaml`, `docker-compose.yml`), container definitions (`infra/docker/frontend.Dockerfile`, `backend.Dockerfile`, `redis.conf`), development automation scripts (`infra/scripts/dev.sh`, `check-secrets.sh`, `wait-for-services.sh`).
+  - `.github/workflows/`: CI quality gates (`ci.yml`, `security-scan.yml`) verifying linting, type-checking, backend Pytest, frontend Vitest, Next.js build, PWA manifest, secret scanning, and strict Arabic exclusion.
+- **PWA Baseline (Level 1 Foundation — ADR-011, ADR-046):**
+  - Web App Manifest (`manifest.json` and `manifest.webmanifest`) with standalone display, dark obsidian background `#0B0F17`, and original 192px/512px standard and maskable PNG icons.
+  - Service Worker (`sw.js`) implementing Cache-First caching for static assets, Network-First navigation with fallback, and offline shell caching.
+  - Dedicated bilingual Offline Fallback Page (`/offline`) with auto-reconnection listeners and retry CTA.
+  - `NetworkStatusBanner` component detecting connectivity and warning users that offline data is retained temporarily in memory.
+  - `InstallPromptBanner` component providing Android `beforeinstallprompt` handling and iOS Safari "Add to Home Screen" instructions.
+- **Bilingual RTL/LTR Foundation (ADR-003, ADR-047):**
+  - Dynamic `lang` and `dir` injection on HTML document root (`fa-IR` -> `rtl`, `en-US` -> `ltr`).
+  - Strict CSS logical properties for layout directionality.
+  - Reusable `PersianNormalizer` utility in both frontend (`lib/i18n/normalizer.ts`) and backend (`apps/core/utils/persian_normalizer.py`) folding Perso-Arabic keyboard variants (`ي`/`ى` -> `ی`, `ك` -> `ک`, Arabic-Indic digits, and ZWNJ handling).
+  - BiDi text isolation utility (`<bdi>` / unicode isolates) preventing punctuation flipping in mixed Persian/Latin text.
+  - Complete translation dictionaries (`fa-IR.json` and `en-US.json`) with 100% key parity and zero Arabic resources.
+  - Solar Hijri (Jalali) date conversion algorithm separate from UTC/Gregorian timestamp storage (ADR-009).
+- **Backend Foundation & Security Baseline (ADR-048):**
+  - Safe health endpoints: `GET /healthz` (200 OK liveness), `GET /readyz` (PostgreSQL + Redis readiness check), `GET /api/v1/meta` (public system metadata).
+  - RFC 7807 Problem Details custom exception handler with localized `message_key` and field error breakdown.
+  - Middleware stack: `CorrelationIDMiddleware` (generating/propagating `X-Request-ID` UUIDv7), `SecurityHeadersMiddleware` (HSTS, CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff), `LoggingRedactionMiddleware` (scrubbing sensitive passwords, tokens, auth headers), and `TenantContextMiddleware` interface.
+  - Time-ordered UUIDv7 identifier generator (`id_generator.py`) with validation and tests.
+  - HttpOnly session cookie authentication configuration with CSRF double-submit token headers.
+  - Strict frontend secret boundary (`NEXT_PUBLIC_*` public config only; runtime error on private key detection).
+- **Architecture Specifications:**
+  - `docs/architecture/HOSTING_AND_DATA_RESIDENCY_DECISION.md`: Comprehensive 10-dimension evaluation of PaaS, EU Cloud, Bare VPS, Dual-Region Active-Passive (Iran Edge Proxy + EU Core), and Dual-Region Active-Active.
+  - `docs/architecture/PHASE04_FOUNDATION_DECISIONS.md`: Monorepo architecture, boundaries, and ADR summaries.
+  - `docs/architecture/LOCAL_DEVELOPMENT.md`: Step-by-step local developer guide for Docker and native runtimes.
+  - `docs/architecture/CI_CD_FOUNDATION.md`: GitHub Actions workflow specification and CI quality gates.
+  - `docs/architecture/PWA_FOUNDATION.md`: PWA Level 1 specification, manifest, service worker, and browser limitations.
+  - `docs/architecture/SECURITY_FOUNDATION.md`: Security headers, session transport, log scrubbing, and error sanitization.
+  - `docs/reports/PHASE-04-FOUNDATION-REPORT.md`: Comprehensive 25-section completion report.
+- **Architecture Decision Records (`docs/DECISIONS.md`):**
+  - ADR-010: Monorepo Folder Layout & Package Boundaries (Accepted).
+  - ADR-012: Repository License & Intellectual Property Strategy (Accepted — Proprietary / All Rights Reserved).
+  - ADR-044: Monorepo Structure & Local Workspace Scaffolding (Accepted).
+  - ADR-045: Frontend Foundation Architecture & Public Runtime Configuration Boundary (Accepted).
+  - ADR-046: PWA Baseline Architecture, App-Shell Caching, and Offline Fallback Strategy (Accepted).
+  - ADR-047: Bilingual RTL/LTR Execution & Persian Search Normalization Architecture (Accepted).
+  - ADR-048: Backend Foundation, Error Sanitization Envelope, Middleware Pipeline, and Health Endpoints (Accepted).
+  - ADR-049: Hosting and Dual-Region Deployment Strategy (Accepted — Decision Gate Defined).
+
+### Changed
+
+- Transitioned repository `LICENSE` from MIT to **Proprietary / All Rights Reserved** (Copyright (c) 2026 CoachOS Technologies / Ali Naderi) pursuant to founder intellectual property mandate (ADR-012).
+- Applied security & configuration review corrections:
+  - Fail-closed secret configuration for production/staging (mandatory `DJANGO_SECRET_KEY` and `DATABASE_URL`, strict `ALLOWED_HOSTS`).
+  - Secure default DRF permissions (`IsAuthenticated` global default; `/healthz`, `/readyz`, `/api/v1/meta` explicit `AllowAny`).
+  - Validated `CorrelationIDMiddleware` preventing malformed or log-injection request IDs.
+  - Tenant context safety enforcing session-only active organization derivation (`ALLOW_TENANT_HEADER_OVERRIDE=False`).
+  - Frontend security headers and CSP delivery on HTML responses via `next.config.mjs`.
+  - Normalized static-page build count to 18 pages.
+- Updated `README.md` with runnable local development commands, architecture structure, and updated project status.
+- Updated `PROJECT_STATUS.md` and `PROJECT_CHECKLIST.md` marking Phase 04 complete.
+
+---
+
+## [0.3.0] — 2026-08-11 — Phase 03 Architecture, Data, Security, Privacy
 
 ### Added
 

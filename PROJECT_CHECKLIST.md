@@ -93,18 +93,18 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 04 — Project Foundation & PWA Baseline
 
-- [ ] Local development setup works
-- [ ] Environment configuration documented
-- [ ] Frontend scaffold works (Next.js + TypeScript + Tailwind)
-- [ ] Backend scaffold works (Django + DRF)
-- [ ] PWA foundation (Manifest, installable shell, Service Worker) works
-- [ ] Database and migrations work
-- [ ] CI pipeline works
-- [ ] Lint/type/test commands work
-- [ ] Health checks work
-- [ ] Phase 04 report committed
+- [x] Local development setup works — evidence: `docker-compose.yml`, `compose.yaml`, `infra/docker/`, `docs/architecture/LOCAL_DEVELOPMENT.md`
+- [x] Environment configuration documented — evidence: `.env.example`, `docs/architecture/LOCAL_DEVELOPMENT.md`, `backend/config/settings/`
+- [x] Frontend scaffold works (Next.js + TypeScript + Tailwind) — evidence: `frontend/` Next.js 14 App Router, `tailwind.config.js`, 29 Vitest tests passing, static build verified
+- [x] Backend scaffold works (Django + DRF) — evidence: `backend/` Django 5.2 + DRF 3.18, 21 Pytest tests passing, middleware pipeline, RFC 7807 problem details
+- [x] PWA foundation (Manifest, installable shell, Service Worker) works — evidence: `frontend/public/manifest.json`, `frontend/public/sw.js`, `frontend/public/icons/`, `frontend/app/[locale]/offline/page.tsx`, `frontend/components/pwa/`
+- [x] Database and migrations work — evidence: PostgreSQL 16 connection config, initial foundation syncdb/migrations tested in test/dev
+- [x] CI pipeline works — evidence: `.github/workflows/ci.yml`, `.github/workflows/security-scan.yml`, `infra/scripts/check-secrets.sh`
+- [x] Lint/type/test commands work — evidence: Ruff lint + format (clean), ESLint (clean), TypeScript `tsc --noEmit` (clean), Pytest (21 passed), Vitest (29 passed)
+- [x] Health checks work — evidence: `GET /healthz` (200 OK liveness), `GET /readyz` (DB + Redis readiness), `GET /api/v1/meta` (public system metadata)
+- [x] Phase 04 report committed — evidence: `docs/reports/PHASE-04-FOUNDATION-REPORT.md`
 
-**Phase 04 status:** `[ ]` Not started
+**Phase 04 status:** `[x]` Complete (2026-08-11)
 
 ---
 

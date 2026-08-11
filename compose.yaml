@@ -1,0 +1,4 @@
+# Compose specification file (Docker Compose v2)
+# Mirrors docker-compose.yml for universal compatibility
+include:
+  - path: docker-compose.yml

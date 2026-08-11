@@ -1,0 +1,25 @@
+name: Security & Vulnerability Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * 0" # Weekly on Sundays
+
+jobs:
+  secret-scan:
+    name: Secret & Pattern Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan repository for secrets
+        run: |
+          bash infra/scripts/check-secrets.sh

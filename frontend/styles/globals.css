@@ -1,0 +1,53 @@
+@import "./tokens.css";
+@import url("https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Typography & Layout Defaults */
+html {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Persian typography baseline (ADR-025) */
+[dir="rtl"] {
+  font-family: var(--font-vazirmatn, "Vazirmatn"), system-ui, -apple-system, sans-serif;
+  line-height: 1.65;
+  letter-spacing: 0;
+}
+
+/* English typography baseline */
+[dir="ltr"] {
+  font-family: var(--font-inter, "Inter"), system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+
+/* Accessible focus outline */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling for dark obsidian theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}

@@ -1,9 +1,9 @@
 # Release Plan and Phased Delivery Strategy — CoachOS
 
-**Document version:** 2.0.0 (Phase 03 Finalized)  
-**Last updated:** 2026-08-10  
+**Document version:** 2.1.0 (Phase 04 Foundation Finalized)  
+**Last updated:** 2026-08-11  
 **Delivery Model:** Iterative Phased Delivery (Phases 00–14) with strict P0 / P1 / P2 product scope gates.  
-**Phase 03 Update:** Milestone M3 Architecture & Security now complete — authoritative docs: SYSTEM_CONTEXT, CONTAINER_ARCHITECTURE, COMPONENT_BOUNDARIES, DATA_FLOW, DEPLOYMENT_ARCHITECTURE, ERD, DOMAIN_MODULES, AUTHORIZATION_ARCHITECTURE, PWA_ARCHITECTURE, MEDIA_STORAGE, OBSERVABILITY, BACKUP_AND_DISASTER_RECOVERY, README, OPENAPI.yaml, JSON_SCHEMAS, THREAT_MODEL, PRIVACY_DATA_LIFECYCLE, SECURITY_CONTROL_MATRIX, ARCHITECTURE_VALIDATION_CHECKLIST, PHASE-03-ARCHITECTURE-REPORT.
+**Phase 04 Update:** Milestone M4 Foundation & PWA Baseline now complete — runnable monorepo with Next.js 14, Django 5/DRF, PostgreSQL 16, Redis 7, PWA manifest, service worker, bilingual RTL/LTR engine, CI quality gates, and safe health endpoints.
 
 ---
 
@@ -14,8 +14,8 @@
 | **Phase 00** | Discovery & Audit | Baseline | Complete repository audit; vision; fa/en-only policy; baseline docs — **COMPLETED** PR #3 |
 | **Phase 01** | Product Requirements & Scope | P0 Spec | Complete personas, journeys, P0 user stories with Gherkin ACs, NFR targets, updated PRD, RTM — **COMPLETED** PR #4 |
 | **Phase 02** | UX, Information Architecture & Design System | P0 Design | Navigation architecture, wireframes (34 screens exact), 14 UX spec docs, Persian RTL & English LTR design tokens, WCAG 2.2 AA design target, PWA offline boundary documented — **COMPLETED** PR #5 |
-| **Phase 03** | Architecture, Data, Security & Privacy | P0 Arch | Final ADRs (43 ADRs), normalized PostgreSQL ERDs, C4 system/context/container, domain boundaries 20 modules, server-side RBAC/ABAC + consent matrix, threat model STRIDE 21 threats + control matrix, privacy lifecycle Tier0-8 + pre-DPIA, OpenAPI 3.1 provisional /api/v1, media storage private signed TTL≤15min, PWA three-level, observability + backup/DR RPO/RTO proposed — **COMPLETED** (this phase) |
-| **Phase 04** | Project Foundation & PWA Baseline | P0 Eng | Next.js + Django/DRF monorepo scaffold, CI/CD pipeline, health checks, **PWA foundation (Manifest, installable shell, SW)** |
+| **Phase 03** | Architecture, Data, Security & Privacy | P0 Arch | Final ADRs (43 ADRs), normalized PostgreSQL ERDs, C4 system/context/container, domain boundaries 20 modules, server-side RBAC/ABAC + consent matrix, threat model STRIDE 21 threats + control matrix, privacy lifecycle Tier0-8 + pre-DPIA, OpenAPI 3.1 provisional /api/v1, media storage private signed TTL≤15min, PWA three-level, observability + backup/DR RPO/RTO proposed — **COMPLETED** PR #6 |
+| **Phase 04** | Project Foundation & PWA Baseline | P0 Eng | Next.js 14 + Django 5/DRF monorepo scaffold, CI/CD pipeline, health checks (/healthz, /readyz, /api/v1/meta), **PWA foundation (Manifest, installable shell, SW, offline page)** — **COMPLETED** (this phase) |
 | **Phase 05** | Identity, Tenancy & Access Control | P0 Core | User auth, single-location MVP orgs, email invites, server-side RBAC/ABAC tests, audit log pipeline |
 | **Phase 06** | Exercise Library & Program Builder | P0 Core | Bilingual exercise catalog, Persian search folding, media rights metadata, hierarchical program builder, templates |
 | **Phase 07** | Athlete Mobile App & Progress Logging | P0 Core | Mobile Today view, one-handed set logging, rest timer, pain/fatigue feedback, **installed PWA mobile validation** |
@@ -89,8 +89,18 @@ CoachOS follows a progressive PWA deployment strategy:
 - [x] `API-001`: Complete OpenAPI 3.1 specification catalog — `docs/OPENAPI.yaml` /api/v1 provisional covering all P0 groups with purpose/auth/role/object-permission/request/response/error/localization/idempotency/audit/rate-limit/sensitivity + RFC7807 + message_key, `docs/JSON_SCHEMAS.md` snapshot + queue + export manifest
 - [x] `DOC-005`: Phase 03 Architecture & Security Report — `docs/reports/PHASE-03-ARCHITECTURE-REPORT.md` 31 sections
 
-### Milestones M4–M14 (Future Execution Phases)
-- **M4 (Foundation):** Scaffold backend, frontend, CI, and PWA manifest.
+### Milestone M4: Foundation & PWA Baseline (Phase 04) — `[x] Complete`
+- [x] `FND-001`: Monorepo directory structure (`frontend/`, `backend/`, `infra/`, `.github/`, `docker-compose.yml`, `compose.yaml`)
+- [x] `FND-002`: Backend Django 5 + DRF shell with modular settings, middleware pipeline, and RFC 7807 error envelopes
+- [x] `FND-003`: Frontend Next.js 14 App Router shell with dynamic `[locale]` routing, TypeScript strict, and dark obsidian theme
+- [x] `FND-004`: Safe health check endpoints (`GET /healthz`, `GET /readyz`, `GET /api/v1/meta`)
+- [x] `FND-005`: PWA Web App Manifest (`manifest.json`), 192px/512px maskable PNG icons, Service Worker, and `/offline` screen
+- [x] `FND-006`: Bilingual RTL/LTR engine (`fa-IR` / `en-US`), zero Arabic resources, and Persian text search normalizer
+- [x] `FND-007`: Security boundary enforcement (`NEXT_PUBLIC_*` client isolation, secret scanning, log redaction)
+- [x] `FND-008`: CI/CD automation workflows in GitHub Actions (`ci.yml`, `security-scan.yml`)
+- [x] `DOC-006`: Phase 04 Foundation Report (`docs/reports/PHASE-04-FOUNDATION-REPORT.md`)
+
+### Milestones M5–M14 (Future Execution Phases)
 - **M5 (Identity):** Implement auth, single-location orgs, invites, server-side RBAC.
 - **M6 (Training):** Implement bilingual exercises, Persian search, program builder.
 - **M7 (Athlete):** Implement Today view, mobile set logging, rest timer, pain flags.
