@@ -79,7 +79,7 @@ C4Context
 
 **GitHub Markdown Rendering Note:** Uses `C4Context` — if renderer does not support C4, fallback Mermaid below renders equivalent.
 
-### Fallback Mermaid (Generic)
+### Fallback Mermaid (Generic) — Corrected Secret Boundary Final Fix
 
 ```mermaid
 flowchart TB
@@ -89,6 +89,11 @@ flowchart TB
         Owner[Org Owner P0]
         Admin[Platform Admin P0 — MFA Required]
         Nutri[Nutrition Pro P1 Future — Consent Gated]
+    end
+
+    subgraph Config [Configuration Providers — Corrected Boundary]
+        PublicConfig[PublicConfigProvider<br/>Build/Deploy Config<br/>NEXT_PUBLIC_* only<br/>NO private secrets]
+        SecretMgr[Secrets Manager<br/>Private secrets only<br/>DB URL, Django SECRET_KEY<br/>Redis, S3, Email API, JWT keys]
     end
 
     subgraph Platform [Platform Trust Boundary — CoachOS]
@@ -113,11 +118,13 @@ flowchart TB
     Owner -->|HTTPS| Web
     Admin -->|HTTPS MFA| Web
     Nutri -.->|Future consent flow| Web
-    Web -->|/api/v1 JSON| API
+    PublicConfig -->|Public runtime config only<br/>NEXT_PUBLIC_API_BASE_URL<br/>NEXT_PUBLIC_APP_NAME<br/>NO secrets| Web
+    Web -->|HTTPS /api/v1 requests only<br/>No secret-management flow| API
     API -->|SQL tenant-scoped| PG
     API -->|Cache/Queue| Redis
     API -->|Private PUT/GET signed| S3
     API -->|Send email| Email
+    API -->|Private secrets only<br/>No frontend access| SecretMgr
     API -.->|Future| Push
     API -.->|Future Phase10| Pay
     API -.->|Future Phase11| AI
@@ -127,6 +134,7 @@ flowchart TB
     style Platform fill:#0B0F17,stroke:#0D9488,color:#F8FAFC
     style External Actors fill:#1E293B,stroke:#94A3B8,color:#F8FAFC
     style External Services fill:#1E293B,stroke:#64748B,color:#F8FAFC
+    style Config fill:#1E293B,stroke:#F59E0B,color:#F8FAFC
 ```
 
 ---

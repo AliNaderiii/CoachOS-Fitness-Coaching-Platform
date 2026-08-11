@@ -83,9 +83,63 @@ Phase 03 architecture complete: C4 system context + container diagrams, 20 domai
 
 **No Application Code Created:** Verified via find backend frontend package.json requirements.txt migrations — none beyond docs — spec only.
 
+## 1.3 Final Phase 03 Review Fixes (PR #6 — Final Review, Correction-Only Task 2)
+
+**Commit:** Final review correction commit on Phase03 branch `arena/019fed02-coachos-fitness-coaching-platf` after `b6ea570` — addressing final review items, no app code, no dependencies, no migrations, no secrets.
+
+**1. Remove misleading public-config frontend-to-backend arrow (Task 1 Final):**
+- Previous correction removed forbidden `FE --> SecretMgr` correctly, but introduced misleading `FE -->|Public runtime config only NEXT_PUBLIC_* NO private secrets| BE` — public frontend runtime config is not a secret request from frontend to backend.
+- **Corrected Diagrams and Text to:**
+  - Frontend receives public runtime config from its deployment/build configuration (PublicConfigProvider), not via secret request to backend.
+  - Backend and worker receive private secrets through server-side secret injection (Secrets Manager).
+  - Browser/frontend does not access Secrets Manager.
+  - Frontend does not send public runtime config to backend as secret-management flow.
+  - Normal frontend-to-backend relationship remains API request relationship only.
+  - **Clear notation used:**
+    - `PublicConfigProvider --> FE` (public config only)
+    - `BE --> SecretMgr` (private secrets)
+    - `Worker --> SecretMgr` (private secrets)
+    - `FE --> BE : HTTPS /api/v1 requests only` (normal API, no secret-management flow)
+- Applied to: `DEPLOYMENT_ARCHITECTURE.md` (topology diagram updated to include Config subgraph with PublicConfigProvider and SecretMgr, correct arrows), `CONTAINER_ARCHITECTURE.md` (fallback generic flow updated with PublicConfig and SecretMgr nodes and correct notation), `SYSTEM_CONTEXT.md` (fallback generic flow updated with Config subgraph, PublicConfig --> Web public runtime config only, Web --> API HTTPS /api/v1 only, API --> SecretMgr private secrets only, no frontend access), `COMPONENT_BOUNDARIES.md` (security boundaries text already corrected, no FE --> SecretMgr, no misleading public config arrow — verified via grep).
+- Also verified `THREAT_MODEL.md` and `SECURITY_CONTROL_MATRIX.md` do not contain misleading flow — only contain explanatory text about forbidden `FE --> SecretMgr` being forbidden and removed, which is acceptable as documentation of correction, not as diagram relationship.
+
+**2. Make OpenAPI auth response consistent with recommended cookie-session MVP (Task 2 Final):**
+- `OPENAPI.yaml` correctly recommends `cookieAuth` for MVP and keeps bearer/JWT as optional alternative, but `AuthResponse` previously presented `access_token` and `refresh_token` as ordinary response properties without conditional nature.
+- **Corrected OpenAPI spec so that:**
+  - Cookie-session registration/login responses do NOT imply access and refresh tokens are returned to frontend — recommended MVP uses HttpOnly session cookie (sessionid) via Set-Cookie header and CSRF mechanism (csrftoken cookie + X-CSRFToken header).
+  - `access_token` and `refresh_token` are now explicitly marked optional/nullable (`nullable: true`) and clearly documented as present only when optional bearer strategy is selected.
+  - Added `csrf_token` optional/nullable field present only when cookieAuth MVP is used, with description about CSRF double-submit.
+  - Added separate schemas `CookieAuthResponse` (recommended MVP — no tokens in body, HttpOnly cookie via Set-Cookie, CSRF token) and `BearerAuthResponse` (optional alternative — short-lived access ≤15min memory + rotating HttpOnly refresh cookie).
+  - Updated `AuthResponse` description block with corrected auth transport consistency final fix details: recommended MVP cookieAuth no tokens in body, optional bearer tokens optional/nullable only when bearer selected, explicit prohibition no long-lived tokens in localStorage/sessionStorage, frontend never accesses Secrets Manager, provisional until Phase04.
+  - Updated `/auth/register` and `/auth/login` endpoint descriptions to clarify MVP cookieAuth issues session via Set-Cookie + CSRF, no tokens in body for MVP, tokens optional only when bearer optional alternative, rate-limited, no long-lived tokens in localStorage, FE --> SecretMgr forbidden, public config PublicConfigProvider --> FE, private secrets BE/Worker --> SecretMgr, FE --> BE HTTPS /api/v1 only, provisional until Phase04.
+  - `security`, `securitySchemes`, `AuthResponse`, registration, login, ADR-032 remain consistent: security top-level order cookieAuth first (recommended), bearerAuth second (optional alternative), securitySchemes descriptions updated to reflect corrected transport consistency, x-auth-strategy notes updated.
+  - No long-lived token may be stored in localStorage or sessionStorage — explicit prohibition in AuthResponse and securitySchemes.
+  - Kept `OPENAPI.yaml` provisional until Phase04 implementation validation — version bumped to `1.0.1-provisional-corrected` previously, now remains provisional with additional correction note version stays same but content corrected, or bump to `1.0.2-provisional-final-review`? Keep as `1.0.1-provisional-corrected` with additional final review correction notes — document as provisional.
+
+**3. Validation after correction (Task 3):**
+- Parse `OPENAPI.yaml` as YAML if parser available — yaml module not available per no-install rule (attempted `import yaml` failed), used manual regex validation.
+- Confirm it is OpenAPI 3.1: openapi version 3.1.0 OK.
+- Confirm all local $ref references resolve: total $ref 137 local 137 missing schema refs [] (61 defined schemas after adding CookieAuthResponse and BearerAuthResponse).
+- Confirm no frontend-to-Secrets-Manager relationship remains in architecture diagrams: grep -Rn "FE --> SecretMgr" in docs/architecture/ shows only in explanatory text about forbidden/removed, not in actual mermaid diagram arrow (checked via grep -v forbidden/removed). Correct notation present: PublicConfigProvider --> FE, BE --> SecretMgr, Worker --> SecretMgr, FE --> BE HTTPS /api/v1 requests only — verified via grep.
+- Confirm no application source code, dependencies, migrations, secrets, real health data added: find backend frontend package.json requirements.txt Dockerfile .github/workflows/migrations — none beyond docs — spec only — verification passed.
+
+**Files Changed in Final Review Correction Commit (Expected):**
+- `docs/architecture/DEPLOYMENT_ARCHITECTURE.md` — remove misleading FE -->|Public runtime config| BE arrow, replace with correct notation PublicConfigProvider --> FE, BE --> SecretMgr, Worker --> SecretMgr, FE --> BE HTTPS /api/v1 requests only
+- `docs/architecture/CONTAINER_ARCHITECTURE.md` — update fallback generic flow to include PublicConfigProvider and SecretMgr nodes, correct arrows, update Boundaries text to reflect final fix removes misleading arrow and uses correct notation
+- `docs/architecture/SYSTEM_CONTEXT.md` — update fallback generic flow to include Config subgraph PublicConfigProvider and SecretMgr, correct arrows PublicConfig --> Web, Web --> API HTTPS /api/v1 only, API --> SecretMgr private secrets only
+- `docs/OPENAPI.yaml` — make AuthResponse tokens optional/nullable, document conditional presence only when optional bearer strategy selected, add csrf_token optional, add CookieAuthResponse and BearerAuthResponse schemas, update /auth/register and /auth/login descriptions to clarify MVP cookie session no tokens in body, optional bearer tokens optional, explicit prohibitions, keep security schemes consistent, remain provisional
+- `docs/reports/PHASE-03-ARCHITECTURE-REPORT.md` — add Section 36 final review fixes, update validation results
+- `PROJECT_STATUS.md` — add Section 1.3 final review fixes
+- `PROJECT_CHECKLIST.md` — note final review fixes applied (if needed)
+- `CHANGELOG.md` — add final review correction entry
+- `docs/PROMPT_LOG.md` — append Prompt 006 final review fixes
+- `docs/DECISIONS.md` — update ADR-032 and ADR-005 if auth/API decision clarified (AuthResponse correction)
+
+**No Application Code Created:** Verified via find backend frontend package.json requirements.txt migrations Dockerfile CI workflows — none beyond docs.
+
 ---
 
-## 2. Post-Merge Repository State & Artifact Verification (Phase03 Complete + Correction)
+## 2. Post-Merge Repository State & Artifact Verification (Phase03 Complete + Correction + Final Review Fixes)
 
 | Area | Post-Merge State | Evidence / Artifact Link |
 |------|------------------|--------------------------|

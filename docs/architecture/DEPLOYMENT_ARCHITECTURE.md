@@ -42,16 +42,21 @@ flowchart TB
         Health[Health Endpoint /healthz + /readyz]
     end
 
+    subgraph Config [Configuration Providers]
+        PublicConfig[PublicConfigProvider<br/>Build/Deploy Config<br/>NEXT_PUBLIC_* only<br/>NO private secrets]
+        SecretMgr[Secrets Manager<br/>AWS SM / GCP SM / env<br/>Private secrets only]
+    end
+
     subgraph External [External Services]
         EmailSvc[Email Provider<br/>SES / SendGrid / Postmark]
-        SecretMgr[Secrets Manager<br/>AWS SM / GCP SM / env]
     end
 
     Browser -->|HTTPS| WAF --> CDN
     CDN --> ALB
     ALB --> FE
     ALB --> BE
-    FE -->|/api/v1| BE
+    PublicConfig -->|Public runtime config<br/>NEXT_PUBLIC_API_BASE_URL<br/>NO secrets| FE
+    FE -->|HTTPS /api/v1 requests only<br/>No secret-management flow| BE
     BE --> PG
     BE --> Redis
     BE --> S3
@@ -60,9 +65,8 @@ flowchart TB
     Worker --> S3
     Worker --> EmailSvc
     BE --> EmailSvc
-    BE --> SecretMgr
-    Worker --> SecretMgr
-    FE -->|Public runtime config only<br/>NEXT_PUBLIC_* vars<br/>NO private secrets| BE
+    BE -->|Private secrets<br/>DB URL, Django SECRET_KEY<br/>Redis, S3, Email API, JWT keys| SecretMgr
+    Worker -->|Private secrets only| SecretMgr
     BE --> Logs
     BE --> Metrics
     BE --> SentryErr
@@ -140,12 +144,17 @@ flowchart LR
 
 ## 6. Secrets & Configuration (Corrected Boundary)
 
-- **Secrets Manager Boundary (Critical Correction):**
+- **Secrets Manager Boundary (Critical Correction — Final Fix Task 1):**
   - **Frontend (Next.js) MUST NEVER access Secrets Manager directly.** Browser and frontend runtime (including SSR Node.js serving frontend) never receive private secrets.
   - Private secrets — database URLs, Django `SECRET_KEY`, Redis credentials, S3 access keys/secret keys, email provider API keys, JWT signing keys, VAPID private keys, any provider secrets — are available **only** to backend and worker runtimes through server-side secret injection (Secrets Manager / environment variables injected at deploy time, not bundled).
-  - Frontend receives **only explicitly public runtime configuration** via build-time `NEXT_PUBLIC_*` variables (e.g., `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_SENTRY_DSN` public, `NEXT_PUBLIC_APP_NAME`). No private secret may be prefixed with `NEXT_PUBLIC_` or included in client bundle, server component props, or API proxy.
-  - Frontend MUST NOT receive, render, bundle, or proxy private secrets. `FE --> SecretMgr` relationship is explicitly **forbidden** and removed from topology diagrams. Only `BE --> SecretMgr` and `Worker --> SecretMgr` are allowed.
-  - Verification: CI build checks that `NEXT_PUBLIC_` contains no secret patterns, and bundle scan ensures no database URL, secret key, or S3 secret appears in frontend chunks. Secret scan via gitleaks fails build if secret pattern detected in frontend bundle or repo.
+  - Frontend receives **only explicitly public runtime configuration** from its deployment/build configuration (PublicConfigProvider), not via a secret request to backend. Public config delivered via build-time `NEXT_PUBLIC_*` variables (e.g., `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_SENTRY_DSN` public, `NEXT_PUBLIC_APP_NAME`) at build/deploy time. No private secret may be prefixed with `NEXT_PUBLIC_` or included in client bundle, server component props, or API proxy.
+  - Frontend MUST NOT receive, render, bundle, or proxy private secrets. `FE --> SecretMgr` relationship is explicitly **forbidden** and removed from topology diagrams. Only `BE --> SecretMgr` and `Worker --> SecretMgr` are allowed. The relationship `FE -->|Public runtime config only ...| BE` was **misleading** (public config is not a secret-management flow from frontend to backend) and has been **removed and corrected** to `PublicConfigProvider --> FE : Public runtime config NEXT_PUBLIC_* only (no secrets)` and `FE --> BE : HTTPS /api/v1 requests only`.
+  - Correct notation (Task 1 final):
+    - `PublicConfigProvider --> FE` (public config only)
+    - `BE --> SecretMgr` (private secrets)
+    - `Worker --> SecretMgr` (private secrets)
+    - `FE --> BE : HTTPS /api/v1 requests only` (normal API, no secret-management flow)
+  - Verification: CI build checks that `NEXT_PUBLIC_` contains no secret patterns, and bundle scan ensures no database URL, secret key, or S3 secret appears in frontend chunks. Secret scan via gitleaks fails build if secret pattern detected in frontend bundle or repo. Diagram validation confirms no FE --> SecretMgr and no FE --> SecretMgr public config arrow.
 
 - **Secrets Manager:** All private secrets stored in Secrets Manager / env. Never committed to Git.
 - **Config example `.env.example` (proposed placeholders, not real secrets):**

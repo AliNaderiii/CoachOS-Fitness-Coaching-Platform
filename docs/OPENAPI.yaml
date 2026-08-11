@@ -59,7 +59,12 @@ paths:
     post:
       tags: [Authentication]
       summary: User Registration & Email Credential Onboarding
-      description: Public endpoint. Creates User record with Argon2id/bcrypt hash, issues session/token. Rate-limited per IP.
+      description: |
+        Public endpoint. Creates User record with Argon2id/bcrypt hash.
+        **Recommended MVP (cookieAuth):** Issues session via HttpOnly Secure SameSite=Lax session cookie (sessionid) set via Set-Cookie header + CSRF token via csrftoken cookie for state-changing mutations. No access_token/refresh_token in body for MVP — tokens optional/nullable only when optional bearer strategy selected.
+        **Optional Alternative (bearerAuth):** Short-lived access ≤15min in memory + rotating refresh HttpOnly cookie with reuse detection.
+        Rate-limited per IP. No long-lived tokens in localStorage. Frontend never accesses Secrets Manager — public config only via PublicConfigProvider --> FE, private secrets BE/Worker --> SecretMgr.
+        Provisional until Phase04 validation.
       operationId: register
       security: []
       x-purpose: Onboard unauthenticated user via email+password
@@ -104,7 +109,12 @@ paths:
     post:
       tags: [Authentication]
       summary: Secure Password Authentication
-      description: Verifies credentials, resets failed counters on success, establishes session. Rate-limited.
+      description: |
+        Verifies credentials, resets failed counters on success, establishes session. Rate-limited.
+        **Recommended MVP (cookieAuth):** Establishes HttpOnly Secure SameSite=Lax session cookie via Set-Cookie header + CSRF token, no tokens in body. No long-lived tokens in localStorage.
+        **Optional Alternative (bearerAuth):** Returns short-lived access ≤15min in memory (optional/nullable) + rotating refresh HttpOnly cookie with reuse detection — only when bearer strategy selected.
+        Frontend never accesses Secrets Manager — public config only via PublicConfigProvider --> FE, private secrets BE/Worker --> SecretMgr. FE --> BE HTTPS /api/v1 requests only.
+        Provisional until Phase04 validation.
       operationId: login
       security: []
       x-required-role: Public
@@ -1465,7 +1475,14 @@ components:
           type: string
 
     AuthResponse:
+      description: |
+        **Corrected for Auth Transport Consistency — Final Fix Task 2:**
+        - **Recommended MVP (cookieAuth):** Response does NOT include access_token/refresh_token in JSON body. Authentication via HttpOnly Secure SameSite=Lax session cookie set via Set-Cookie header (sessionid), plus CSRF token via separate csrftoken cookie (readable) for state-changing mutations. Frontend must NOT store long-lived tokens in localStorage/sessionStorage. No tokens in body for MVP — cookie set via header.
+        - **Optional Alternative (bearerAuth):** When optional bearer/JWT strategy selected, response MAY include short-lived access_token (≤15min, to be held in memory not localStorage) and rotating refresh_token in HttpOnly Secure SameSite cookie (or as HttpOnly cookie, not in body for refresh). For backward compatibility, tokens documented as optional/nullable and explicitly marked present only when optional bearer strategy is selected.
+        - **Explicit Prohibition:** No long-lived token may be stored in localStorage or sessionStorage. Frontend MUST NEVER access Secrets Manager.
+        - **Provisional:** Remains provisional until Phase04 implementation validation — final choice recommended cookieAuth.
       type: object
+      required: [user, memberships]
       properties:
         user:
           $ref: '#/components/schemas/UserResponse'
@@ -1473,10 +1490,64 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MembershipResponse'
+        csrf_token:
+          type: string
+          nullable: true
+          description: |
+            CSRF token for cookie-session mutations — present only when cookieAuth recommended MVP is used.
+            Frontend reads csrftoken cookie (non-HttpOnly) and sends X-CSRFToken header for POST/PATCH/DELETE.
+            Marked optional and provisional.
         access_token:
           type: string
+          nullable: true
+          description: |
+            **Optional — Bearer/JWT alternative only.** Short-lived access token ≤15min in memory (not localStorage).
+            **Must NOT be present in recommended cookie-session MVP** — MVP uses HttpOnly session cookie via Set-Cookie header, not tokens in body.
+            Present only when optional bearer strategy selected — marked optional/nullable, explicitly documented.
+            Explicit prohibition: never store in localStorage/sessionStorage.
         refresh_token:
           type: string
+          nullable: true
+          description: |
+            **Optional — Bearer/JWT alternative only.** Rotating refresh token — should be delivered as HttpOnly Secure SameSite cookie, not in JSON body for production.
+            If included in body for transitional compatibility, it is optional/nullable and present only when optional bearer strategy selected.
+            Recommended: refresh token as HttpOnly cookie with reuse detection revoking all sessions on reuse.
+            Explicit prohibition: never store long-lived refresh in localStorage/sessionStorage.
+        message:
+          type: string
+          description: Localized message_key extension may be added via x- pattern.
+
+    CookieAuthResponse:
+      description: |
+        **Recommended MVP Response — Cookie Session:**
+        - No access_token/refresh_token in body — authentication via HttpOnly Secure SameSite=Lax session cookie (sessionid) set via Set-Cookie header.
+        - CSRF token via csrftoken cookie (readable) + X-CSRFToken header for state-changing mutations.
+        - No long-lived tokens in localStorage/sessionStorage.
+        - Public runtime config from PublicConfigProvider --> FE, private secrets BE --> SecretMgr, Worker --> SecretMgr, FE --> BE HTTPS /api/v1 requests only.
+      allOf:
+        - $ref: '#/components/schemas/AuthResponse'
+        - type: object
+          properties:
+            csrf_token:
+              type: string
+              description: CSRF token for state-changing mutations when using cookieAuth.
+
+    BearerAuthResponse:
+      description: |
+        **Optional Alternative Response — Bearer/JWT (Proposed/Conditional):**
+        - Short-lived access_token ≤15min in memory (not localStorage) + rotating refresh_token in HttpOnly Secure SameSite cookie with reuse detection.
+        - Explicit prohibition: never store long-lived tokens in localStorage/sessionStorage.
+        - Marked proposed/conditional requiring Phase04 validation — not recommended MVP.
+      allOf:
+        - $ref: '#/components/schemas/AuthResponse'
+        - type: object
+          properties:
+            access_token:
+              type: string
+              description: Short-lived access ≤15min in memory only when bearerAuth selected.
+            refresh_token:
+              type: string
+              description: Rotating refresh HttpOnly Secure SameSite cookie — preferably not in body but as HttpOnly cookie; if in body, transitional only, optional.
 
     CurrentUserResponse:
       type: object

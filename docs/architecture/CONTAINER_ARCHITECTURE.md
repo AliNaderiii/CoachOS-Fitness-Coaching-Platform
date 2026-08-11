@@ -90,11 +90,16 @@ flowchart TB
         AIFuture[(AI Future)]
     end
 
+    PublicConfig[PublicConfigProvider<br/>Build/Deploy Config<br/>NEXT_PUBLIC_* only]
+
+    SecretMgr[Secrets Manager<br/>Private secrets only]
+
     Ath -->|HTTPS| WebApp
     Coach -->|HTTPS| WebApp
     Owner -->|HTTPS| WebApp
     Admin -->|HTTPS MFA| WebApp
-    WebApp -->|API calls| API
+    PublicConfig -->|Public runtime config only<br/>NEXT_PUBLIC_*<br/>No secrets| WebApp
+    WebApp -->|HTTPS /api/v1 requests only<br/>No secret-management flow| API
     WebApp -->|SW registration| PWA
     API --> Modules
     Modules --> AuthZ
@@ -103,6 +108,7 @@ flowchart TB
     API --> Redis
     API --> S3
     API --> Email
+    API -->|Private secrets only| SecretMgr
     API -. Future .-> PushFuture
     API -. Future Phase10 .-> PayFuture
     API -. Future Phase11 .-> AIFuture
@@ -120,9 +126,14 @@ flowchart TB
 
 - **Responsibility:** All UI rendering, PWA lifecycle, i18n resource loading, client-side validation, network status indicator, temporary form preservation (Phase 07), offline fallback shell (Phase 04).
 - **Key Tech:** Next.js 14 App Router (proposed), React 18, TypeScript 5, Tailwind CSS with logical properties, Vazirmatn + Inter fonts, next-pwa or custom SW.
-- **Boundaries (Corrected):**
+- **Boundaries (Corrected — Final Fix Task 1):**
   - No direct DB access, no server-side authz bypass.
-  - **No secret handling — CRITICAL CORRECTION:** Browser and frontend runtime MUST NEVER access Secrets Manager directly. Private secrets (DB URLs, Django secret keys, Redis credentials, S3 credentials, email API keys, JWT signing keys) are available only to backend and worker runtimes via server-side injection. Frontend receives only explicitly public runtime config (`NEXT_PUBLIC_*` vars such as `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_APP_NAME`). Frontend MUST NEVER receive, render, bundle, or proxy private secrets. Relationship `FE --> SecretMgr` is forbidden and removed. Updated deployment topology shows `BE --> SecretMgr` and `Worker --> SecretMgr` only, and `FE -->|Public runtime config only, NO private secrets| BE`.
+  - **No secret handling — CRITICAL CORRECTION (Final):** Browser and frontend runtime MUST NEVER access Secrets Manager directly. Private secrets (DB URLs, Django secret keys, Redis credentials, S3 credentials, email API keys, JWT signing keys) are available only to backend and worker runtimes via server-side injection. Frontend receives **only explicitly public runtime configuration from its deployment/build configuration (PublicConfigProvider)**, not via a secret request to backend. Public config delivered via build-time `NEXT_PUBLIC_*` vars (`NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_APP_NAME`). Frontend MUST NEVER receive, render, bundle, or proxy private secrets. Relationships forbidden/removed: `FE --> SecretMgr` forbidden, and misleading `FE -->|Public runtime config only ...| BE` is **removed and corrected** to correct notation:
+    - `PublicConfigProvider --> FE : Public runtime config NEXT_PUBLIC_* only (no secrets)`
+    - `BE --> SecretMgr : Private secrets`
+    - `Worker --> SecretMgr : Private secrets`
+    - `FE --> BE : HTTPS /api/v1 requests only` (normal API, no secret-management flow)
+  - Updated deployment topology shows correct notation above, not secret-management flow from frontend to backend.
   - Auth via HttpOnly cookie (recommended MVP) or short-lived Bearer token in memory — never long-lived token in localStorage (see ADR-032 corrected).
 - **PWA Sequencing:**
   - Phase 04: Manifest, icons 192/512 maskable, standalone display, SW registration, app-shell caching, offline fallback page.

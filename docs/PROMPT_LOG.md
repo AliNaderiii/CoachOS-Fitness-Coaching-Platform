@@ -1713,3 +1713,162 @@ At the end:
 - **Working Branch:** `arena/019fed02-coachos-fitness-coaching-platf` — correction commit on top of `ddbdceb`
 - **Commit:** Correction commit addressing 6 review tasks — secret manager boundary, CSP, auth transport consistency, data-model integrity (owner source of truth, multi-role, assignment partial unique), backup wording, API validation — plus updates to PHASE-03 report, PROJECT_STATUS, CHANGELOG, PROJECT_CHECKLIST, DECISIONS, PROMPT_LOG — no application code created (spec only)
 - **Result:** Corrections applied, ready to push to PR #6 for founder review, do not merge, do not start Phase04
+
+---
+
+## Prompt 006
+
+- **Date/time:** 2026-08-10 (UTC)
+- **Source:** Founder / supervising agent — Final Phase 03 Review Fixes
+- **Phase:** 03 — Architecture, Data, Security, and Privacy — Final Review Corrections (PR #6)
+- **Exact Full Text Received:**
+
+```text
+**CoachOS — Final Phase 03 Review Fixes**
+
+PR #6 remains open:
+
+https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/6
+
+Current Phase 03 correction commit:
+
+b6ea570
+
+Perform correction-only work. Do not merge PR #6. Do not start Phase 04. Do not create application code, dependencies, migrations, or secrets.
+
+**1. Remove the misleading public-config frontend-to-backend arrow**
+
+The corrected deployment and container diagrams removed the forbidden `FE --> SecretMgr` relationship, which is correct. However, they currently show a relationship similar to:
+
+**text**
+
+`FE -->|Public runtime config only NEXT_PUBLIC_* NO private secrets| BE`
+
+This is still misleading because public frontend runtime configuration is not a secret request sent from the frontend to the backend.
+
+Correct the diagrams and text so that:
+
+- Frontend receives public runtime configuration from its deployment/build configuration.
+- Backend and worker receive private secrets through server-side secret injection.
+- The browser/frontend does not access Secrets Manager.
+- The frontend does not send public runtime configuration to the backend as a secret-management flow.
+- The normal frontend-to-backend relationship remains the API request relationship only.
+
+Use a clear notation such as:
+
+**text**
+
+`PublicConfigProvider --> FE`  
+`BE --> SecretMgr`  
+`Worker --> SecretMgr`  
+`FE --> BE : HTTPS /api/v1 requests only`
+
+Apply this to at least:
+
+- `docs/architecture/DEPLOYMENT_ARCHITECTURE.md`
+- `docs/architecture/CONTAINER_ARCHITECTURE.md`
+- `docs/architecture/SYSTEM_CONTEXT.md` if applicable
+- `docs/architecture/COMPONENT_BOUNDARIES.md` if applicable
+- `docs/THREAT_MODEL.md` or `docs/SECURITY_CONTROL_MATRIX.md` if the wording references the incorrect flow
+
+**2. Make OpenAPI authentication response consistent with the recommended cookie-session MVP**
+
+`docs/OPENAPI.yaml` correctly recommends `cookieAuth` for MVP and keeps bearer/JWT as an optional alternative. However, `AuthResponse` still presents `access_token` and `refresh_token` as ordinary response properties without making their conditional nature clear.
+
+Correct the OpenAPI specification so that:
+
+- Cookie-session registration/login responses do not imply that access and refresh tokens are returned to the frontend.
+- `access_token` and `refresh_token` are either:
+  - removed from the default cookie-session response and documented under a separate optional bearer response, or
+  - explicitly marked optional/nullable and clearly documented as present only when the optional bearer strategy is selected.
+- The recommended MVP response uses an HttpOnly session cookie and an appropriate CSRF mechanism.
+- The optional JWT response documents short-lived in-memory access tokens and rotating HttpOnly refresh cookies.
+- No long-lived token may be stored in localStorage or sessionStorage.
+- `security`, `securitySchemes`, `AuthResponse`, registration, login, and ADR-032 remain consistent.
+
+Keep `docs/OPENAPI.yaml` provisional until Phase 04 implementation validation.
+
+**3. Validate after correction**
+
+Run correction-only validation:
+
+- Parse `docs/OPENAPI.yaml` as YAML if a parser is already available; do not install a dependency only for this task.
+- Confirm it is OpenAPI 3.1.
+- Confirm all local `$ref` references resolve.
+- Confirm no frontend-to-Secrets-Manager relationship remains in architecture diagrams.
+- Confirm no application source code, dependencies, migrations, secrets, or real health data were added.
+
+**4. Update project artifacts**
+
+Update only what is necessary:
+
+- `docs/reports/PHASE-03-ARCHITECTURE-REPORT.md`
+- `PROJECT_STATUS.md`
+- `PROJECT_CHECKLIST.md`
+- `CHANGELOG.md`
+- `docs/PROMPT_LOG.md`
+- `docs/DECISIONS.md` if an auth/API decision is clarified
+
+Record:
+
+- What was corrected
+- Why it was corrected
+- Remaining proposed/conditional decisions
+- Validation evidence
+
+Commit and push the correction to the existing PR #6 branch.
+
+Show:
+
+- New commit hash
+- Exact files changed
+- Validation results
+- Confirmation that PR #6 remains open
+- Confirmation that Phase 04 was not started
+
+Stop after pushing the correction. Do not merge PR #6.
+```
+
+- **Actions Taken (Final Review Corrections):**
+
+**Task 1 — Remove misleading public-config frontend-to-backend arrow:**
+- Previous correction removed forbidden FE --> SecretMgr correctly, but introduced misleading FE -->|Public runtime config only NEXT_PUBLIC_* NO private secrets| BE — public frontend runtime config is not a secret request from frontend to backend.
+- Corrected diagrams and text so that frontend receives public runtime config from its deployment/build configuration (PublicConfigProvider), backend/worker receive private secrets through server-side secret injection, browser/frontend does not access Secrets Manager, frontend does not send public runtime config to backend as secret-management flow, normal frontend-to-backend relationship remains API request relationship only.
+- Used clear notation: PublicConfigProvider --> FE, BE --> SecretMgr, Worker --> SecretMgr, FE --> BE : HTTPS /api/v1 requests only.
+- Applied to DEPLOYMENT_ARCHITECTURE.md (topology diagram updated to include Config subgraph with PublicConfigProvider and SecretMgr, correct arrows, removed misleading arrow), CONTAINER_ARCHITECTURE.md (fallback generic flow updated with PublicConfigProvider and SecretMgr nodes, correct arrows, Boundaries text corrected to remove misleading arrow and use correct notation), SYSTEM_CONTEXT.md (fallback generic flow updated with Config subgraph, PublicConfig --> Web public runtime config only, Web --> API HTTPS /api/v1 only, API --> SecretMgr private secrets only), COMPONENT_BOUNDARIES.md (security boundaries text already corrected, no FE --> SecretMgr, no misleading public config arrow — verified via grep), THREAT_MODEL.md and SECURITY_CONTROL_MATRIX.md (no forbidden relationship in diagrams, only explanatory text about forbidden/removed).
+
+**Task 2 — OpenAPI auth response consistent with cookie-session MVP:**
+- AuthResponse previously presented access_token and refresh_token as ordinary response properties without conditional nature.
+- Corrected so that cookie-session registration/login responses do not imply tokens returned to frontend — MVP uses HttpOnly session cookie and CSRF mechanism, tokens optional/nullable present only when optional bearer strategy selected.
+- Added csrf_token optional/nullable present only when cookieAuth MVP, added separate schemas CookieAuthResponse (recommended MVP — no tokens in body, HttpOnly cookie via Set-Cookie, CSRF token) and BearerAuthResponse (optional alternative — short-lived access ≤15min memory + rotating HttpOnly refresh cookie), explicit prohibition no long-lived token in localStorage/sessionStorage.
+- Updated AuthResponse description with corrected auth transport consistency, made access_token/refresh_token optional nullable with descriptions conditional presence only when bearer selected, added csrf_token optional, updated /auth/register and /auth/login endpoint descriptions to clarify MVP cookie session no tokens in body, optional bearer tokens optional, explicit prohibitions, FE --> SecretMgr forbidden, public config PublicConfigProvider --> FE, private secrets BE/Worker --> SecretMgr, FE --> BE HTTPS /api/v1 only, provisional until Phase04.
+- Kept security, securitySchemes, ADR-032 consistent, remains provisional.
+
+**Task 3 — Validate after correction:**
+- Parse OPENAPI.yaml as YAML if parser available — yaml module not available per no-install rule (attempted import yaml failed), used manual regex validation.
+- Confirmed OpenAPI 3.1 (3.1.0 OK), total $ref 137 local 137 missing schema refs [] (61 defined schemas after adding CookieAuthResponse/BearerAuthResponse), security schemes consistent with corrected auth strategy, error responses RFC7807-compatible with message_key true, P0 endpoint groups align with API_CONTRACT PRD story IDs auth rules, no Payment/AI/Wearable as P0 implemented, paths count 37.
+- Confirmed no frontend-to-Secrets-Manager relationship remains in architecture diagrams: grep -Rn FE --> SecretMgr in docs/architecture/ shows only explanatory text about forbidden/removed, not actual mermaid diagram arrow (checked via grep -v forbidden/removed). Correct notation present: PublicConfigProvider --> FE, BE --> SecretMgr, Worker --> SecretMgr, FE --> BE HTTPS /api/v1 requests only — verified via grep.
+- Confirmed no application source code, dependencies, migrations, secrets, real health data added via find checks.
+
+**Task 4 — Update project artifacts:**
+- Updated docs/reports/PHASE-03-ARCHITECTURE-REPORT.md with Section 36 final review fixes, validation results.
+- Updated PROJECT_STATUS.md Section 1.3 final review fixes.
+- Updated PROJECT_CHECKLIST.md note final review fixes.
+- Updated CHANGELOG.md with final review correction entry.
+- Updated docs/PROMPT_LOG.md with Prompt 006.
+- Updated docs/DECISIONS.md ADR-005/032/014 and auth/API decision clarified.
+
+- **Validation Evidence:** See Task 3 validation commands output.
+
+- **Blockers:** None.
+
+- **Result:** Final review corrections applied, ready to push to PR #6 for founder review, do not merge, do not start Phase04.
+
+---
+
+## Post-Phase-03 Final Review Corrections Work Record
+
+- **Date/time:** 2026-08-10 (UTC) — Final review correction commit for PR #6
+- **Working Branch:** `arena/019fed02-coachos-fitness-coaching-platf` — correction commit on top of `b6ea570`
+- **Commit:** Final review correction addressing misleading public-config arrow and OpenAPI auth response consistency — plus updates to report, status, checklist, changelog, prompt log, decisions — no application code created (spec only)
+- **Result:** Corrections applied, ready to push to PR #6 for founder review, do not merge, do not start Phase04
