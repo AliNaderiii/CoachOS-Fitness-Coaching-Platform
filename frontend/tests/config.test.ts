@@ -6,6 +6,8 @@ describe("Frontend Secret Boundary & Public Config (ADR-045)", () => {
     const safeEnv = {
       NEXT_PUBLIC_API_BASE_URL: "http://localhost:8000",
       NEXT_PUBLIC_APP_NAME: "CoachOS",
+      NEXT_PUBLIC_SENTRY_DSN_PUBLIC: "https://public@example.ingest.sentry.io/1",
+      NEXT_PUBLIC_OAUTH_CLIENT_ID: "public-browser-client",
       NODE_ENV: "test",
     };
 
@@ -34,6 +36,9 @@ describe("Frontend Secret Boundary & Public Config (ADR-045)", () => {
     "CELERY_BROKER_URL",
     "AWS_SECRET_ACCESS_KEY",
     "NEXT_PUBLIC_API_TOKEN",
+    "NEXT_PUBLIC_API_SECRET",
+    "NEXT_PUBLIC_API_KEY",
+    "NEXT_PUBLIC_APP_SECRET",
     "PRIVATE_KEY",
   ])("rejects private configuration key %s without exposing its value", (key) => {
     const privateValue = "must-not-appear-in-errors";

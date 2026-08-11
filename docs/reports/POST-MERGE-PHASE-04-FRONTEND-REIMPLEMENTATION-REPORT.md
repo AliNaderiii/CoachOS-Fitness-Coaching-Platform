@@ -61,12 +61,12 @@ Because authoritative original source was unrecoverable, the following decisions
 1. **Locale governance:** supported locales are exactly `fa-IR` and `en-US`; `fa-IR` is the default; metadata is Persian/RTL and English/LTR; no fallback or Arabic locale is created.
 2. **Dictionary inventory:** dictionaries cover the current tracked shell and placeholder call sites. They contain 54 matching, non-empty leaf keys. A governance test enumerates every current tracked UI key rather than relying only on key-count parity.
 3. **Date display:** timestamps are parsed as ISO input and rendered from UTC calendar parts to avoid host-timezone drift. `fa-IR` uses deterministic algorithmic Gregorian-to-Jalali display; `en-US` uses deterministic Gregorian month names. Invalid source dates and invalid Gregorian date parts raise `RangeError` rather than being normalized silently.
-4. **Number display:** only finite numbers are accepted. Persian display uses Persian digits and `fa-IR`; English display uses `en-US`. Weight formatting supports only `kg` and `lb`.
+4. **Number display:** only finite numbers are accepted. Persian display uses Persian digits and `fa-IR`; English display uses `en-US`. Weight formatting supports only `kg` and `lbs`.
 5. **Persian search normalization:** Unicode NFKC normalization, Arabic keyboard-variant folding (`ي`/`ى` to `ی`, `ك` to `ک`), Arabic-Indic digit folding, diacritic removal, trimming, and whitespace collapse are applied. ZWNJ is preserved by default to match the existing frontend contract and may be removed explicitly.
 6. **BiDi handling:** Unicode First Strong Isolate and Pop Directional Isolate are used around mixed-direction dynamic values. The prescription helper is intentionally minimal and is not a workout-domain implementation.
 7. **Public configuration:** frontend source reads only the two explicit public variables it needs: `NEXT_PUBLIC_API_BASE_URL` and `NEXT_PUBLIC_APP_NAME`. Safe non-public process metadata such as `NODE_ENV` is accepted by the standalone validator, while private/secret-like keys and credential-bearing API URLs are rejected without echoing values.
 8. **API base URL:** `/api/v1` is the safe relative default. Configuration may be relative or an HTTP(S) URL without embedded credentials. Individual request paths are resolved below the configured base, and external absolute request paths are not accepted.
-9. **API transport:** browser cookies are included; `Accept-Language` is always sent; a caller-supplied request ID is honored or a UUID-shaped ID is generated; a caller-supplied idempotency key is sent only when explicitly provided. No idempotency key is generated automatically.
+9. **API transport:** browser cookies are included; `Accept-Language` is always sent; an explicitly supplied request ID is forwarded as `X-Request-ID`; when that header is absent, the backend `CorrelationIDMiddleware` generates and returns the correlation ID. The frontend client does not generate a request ID. A caller-supplied idempotency key is sent only when explicitly provided; no idempotency key is generated automatically.
 10. **CSRF:** the readable Django `csrftoken` cookie is decoded and sent as `X-CSRFToken` only for unsafe methods. No access token, refresh token, or secret is stored in `localStorage` or `sessionStorage`.
 11. **Problem Details:** non-success responses become typed `ApiError` instances. Only bounded, expected RFC 7807 fields and response request ID are copied; arbitrary server payloads, response bodies, stack traces, and secrets are not exposed.
 12. **Service-worker registration:** registration occurs only when called in a browser that exposes `navigator.serviceWorker`; it registers `/sw.js` with scope `/`, returns `null` on unsupported/error paths, and adds no logging or advanced background behavior.
@@ -90,7 +90,7 @@ The i18n helpers provide finite number/weight formatting, strict UTC-derived Gre
 
 ### 5.4 Minimal API client
 
-`frontend/lib/api/client.ts` is a typed foundation wrapper around `fetch`. It includes locale, request ID, optional explicit idempotency, readable CSRF cookie handling for unsafe methods, JSON request/response support, `credentials: "include"`, and bounded RFC 7807 error sanitization. It does not implement authentication or any Phase 05 domain API.
+`frontend/lib/api/client.ts` is a typed foundation wrapper around `fetch`. It includes locale, forwarding of explicitly supplied request IDs, exposure of backend response request IDs, optional explicit idempotency, readable CSRF cookie handling for unsafe methods, JSON request/response support, `credentials: "include"`, and bounded RFC 7807 error sanitization. It does not implement authentication or any Phase 05 domain API.
 
 ### 5.5 Service-worker registration
 
@@ -119,7 +119,7 @@ This is the narrowest repository-root exception needed to track the authorized T
 - **Expanded `frontend/tests/i18n.test.ts`:** exact locale metadata plus exhaustive governance for all 54 current tracked bilingual UI keys and non-empty values.
 - Existing BiDi, component, PWA, security-header, and no-Arabic tests remain unchanged and passing.
 
-Final clean Vitest result: **11 test files passed; 49 tests passed; 0 failed**.
+Initial remediation clean-validation result at implementation commit `8c268db973530157fb1468bc1838f8bca59f7310`: **11 test files passed; 49 tests passed; 0 failed**.
 
 ---
 

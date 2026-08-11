@@ -25,7 +25,7 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
   - `frontend/`: Next.js 14.2 App Router, TypeScript strict mode, Tailwind CSS with logical properties, Vitest test suite.
   - `backend/`: Django 5.2 + Django REST Framework 3.18, Python 3.12 target, modular environment settings (`base`, `dev`, `staging`, `prod`, `test`), Pytest suite.
   - `infra/`: Multi-container Docker Compose definitions (`compose.yaml`, `docker-compose.yml`), container definitions (`infra/docker/frontend.Dockerfile`, `backend.Dockerfile`, `redis.conf`), development automation scripts (`infra/scripts/dev.sh`, `check-secrets.sh`, `wait-for-services.sh`).
-  - `.github/workflows/`: CI quality gates (`ci.yml`, `security-scan.yml`) verifying linting, type-checking, backend Pytest, frontend Vitest, Next.js build, PWA manifest, secret scanning, and strict Arabic exclusion.
+  - Local CI quality-gate definitions under `infra/ci/` (`ci.yml`, `security-scan.yml`) cover linting, type-checking, backend Pytest, frontend Vitest, Next.js build, PWA manifest, secret scanning, and strict Arabic exclusion; GitHub Actions activation remains pending a separate PR and Workflows permission.
 - **PWA Baseline (Level 1 Foundation — ADR-011, ADR-046):**
   - Web App Manifest (`manifest.json` and `manifest.webmanifest`) with standalone display, dark obsidian background `#0B0F17`, and original 192px/512px standard and maskable PNG icons.
   - Service Worker (`sw.js`) implementing Cache-First caching for static assets, Network-First navigation with fallback, and offline shell caching.
