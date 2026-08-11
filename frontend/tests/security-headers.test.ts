@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import nextConfig from "../next.config.mjs";
+import nextConfig, { getCspHeader } from "../next.config.mjs";
 
-describe("Frontend Security Headers & CSP Delivery (ADR-045)", () => {
-  it("delivers baseline security headers and CSP on all routes", async () => {
+describe("Frontend Security Headers & Environment-Specific CSP Delivery (ADR-045)", () => {
+  it("delivers baseline security headers on all routes", async () => {
     if (!nextConfig.headers) {
       throw new Error("nextConfig.headers is not defined");
     }
@@ -25,5 +25,24 @@ describe("Frontend Security Headers & CSP Delivery (ADR-045)", () => {
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("base-uri 'self'");
+  });
+
+  it("ensures development CSP allows HMR but is explicitly isolated", () => {
+    const devCsp = (getCspHeader as (isProd?: boolean) => string)(false);
+    expect(devCsp).toContain("unsafe-eval");
+    expect(devCsp).toContain("unsafe-inline");
+    expect(devCsp).toContain("default-src 'self'");
+    expect(devCsp).toContain("object-src 'none'");
+    expect(devCsp).toContain("frame-ancestors 'none'");
+    expect(devCsp).toContain("base-uri 'self'");
+  });
+
+  it("ensures production CSP strictly eliminates unsafe-eval", () => {
+    const prodCsp = (getCspHeader as (isProd?: boolean) => string)(true);
+    expect(prodCsp).not.toContain("unsafe-eval");
+    expect(prodCsp).toContain("script-src 'self' https:");
+    expect(prodCsp).toContain("object-src 'none'");
+    expect(prodCsp).toContain("frame-ancestors 'none'");
+    expect(prodCsp).toContain("base-uri 'self'");
   });
 });

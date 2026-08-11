@@ -31,6 +31,31 @@ if not raw_cors:
     raise ImproperlyConfigured("CORS_ALLOWED_ORIGINS must be explicitly configured in production.")
 CORS_ALLOWED_ORIGINS = [o.strip() for o in raw_cors.split(",") if o.strip()]
 
+raw_csrf = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+if not raw_csrf:
+    raise ImproperlyConfigured(
+        "CSRF_TRUSTED_ORIGINS must be explicitly configured in production. Silent fallback to empty is prohibited."
+    )
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in raw_csrf.split(",") if o.strip()]
+
+REDIS_URL = os.environ.get("REDIS_URL")
+if not REDIS_URL:
+    raise ImproperlyConfigured(
+        "REDIS_URL environment variable is mandatory in production. Silent localhost fallback is prohibited."
+    )
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+if not CELERY_BROKER_URL:
+    raise ImproperlyConfigured(
+        "CELERY_BROKER_URL environment variable is mandatory in production. Silent localhost fallback is prohibited."
+    )
+
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND")
+if not CELERY_RESULT_BACKEND:
+    raise ImproperlyConfigured(
+        "CELERY_RESULT_BACKEND environment variable is mandatory in production. Silent localhost fallback is prohibited."
+    )
+
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
