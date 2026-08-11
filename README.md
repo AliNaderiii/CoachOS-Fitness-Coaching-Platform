@@ -82,12 +82,11 @@ bash infra/scripts/check-secrets.sh
 CoachOS-Fitness-Coaching-Platform/
 ├── frontend/                     # Next.js 14 App Router, TypeScript, PWA, Tailwind CSS
 ├── backend/                      # Django 5 + DRF, Python 3.12 target, modular settings
-├── infra/                        # Dockerfiles, scripts, container configurations
+├── infra/                        # Dockerfiles, scripts, CI quality gates (infra/ci/)
 ├── docs/                         # Specifications, architecture, UX, reports, threat models
 │   ├── architecture/             # Architecture specifications (ADRs, C4, PWA, CI/CD, Hosting)
 │   ├── reports/                  # Phase execution reports
 │   └── ux/                       # UX design system, wireframes, and design tokens
-├── .github/workflows/            # GitHub Actions CI quality gates
 ├── docker-compose.yml            # Multi-container orchestration
 ├── .env.example                  # Environment variable template
 └── LICENSE                       # Proprietary / All Rights Reserved notice

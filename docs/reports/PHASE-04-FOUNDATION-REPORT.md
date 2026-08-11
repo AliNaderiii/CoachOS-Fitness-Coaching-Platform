@@ -97,14 +97,13 @@ CoachOS-Fitness-Coaching-Platform/
 │   ├── manage.py                 # Django management CLI
 │   └── pyproject.toml / reqs     # Python dependencies
 ├── infra/                        # Infrastructure & orchestration assets
+│   ├── ci/                       # CI quality gates definitions (ci.yml, security-scan.yml)
 │   ├── docker/                   # Dockerfiles (frontend, backend, redis)
 │   └── scripts/                  # Development & verification scripts
 ├── docs/                         # Specifications, architecture, UX, reports, threat models
 │   ├── architecture/             # Architecture specifications
 │   ├── reports/                  # Phase execution reports
 │   └── ux/                       # UX specifications & design tokens
-├── .github/                      # GitHub automation
-│   └── workflows/                # CI / security workflows
 ├── docker-compose.yml            # Local multi-container development orchestration
 ├── compose.yaml                  # Docker Compose v2 alias
 ├── .env.example                  # Safe template environment variables
@@ -349,8 +348,8 @@ Coverage: 79% project total (90%+ core apps/middleware/views/exceptions)
 - `infra/scripts/check-secrets.sh`
 - `infra/scripts/dev.sh`
 - `infra/scripts/wait-for-services.sh`
-- `.github/workflows/ci.yml`
-- `.github/workflows/security-scan.yml`
+- `infra/ci/ci.yml` (CI quality gates definition)
+- `infra/ci/security-scan.yml` (Security scanning definition)
 
 ### 17.3 Backend Application
 - `backend/pyproject.toml`

@@ -33,11 +33,12 @@ The Phase 04 Continuous Integration (CI) foundation guarantees code quality, arc
 ## 2. GitHub Actions Workflow Architecture
 
 ```
-.github/
-└── workflows/
-    ├── ci.yml               # Unified CI pipeline (Frontend, Backend, Security, i18n)
-    └── security-scan.yml     # Secret scanning & dependency vulnerability audit
+infra/ci/
+├── ci.yml                   # Unified CI pipeline (Frontend, Backend, Security, i18n)
+└── security-scan.yml        # Secret scanning & dependency vulnerability audit
 ```
+
+*(Note: Stored under `infra/ci/` and deployable to `.github/workflows/` via repository administrative configuration).*
 
 ### 2.1 Pipeline Jobs Matrix
 

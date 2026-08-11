@@ -58,14 +58,9 @@ CoachOS-Fitness-Coaching-Platform/
 │   ├── manage.py                 # Django management CLI
 │   └── pyproject.toml / reqs     # Python dependencies
 ├── infra/                        # Infrastructure & orchestration assets
+│   ├── ci/                       # CI quality gates (ci.yml, security-scan.yml)
 │   ├── docker/                   # Dockerfiles (frontend, backend, redis)
 │   └── scripts/                  # Development & verification scripts
-├── docs/                         # Architecture, UX, requirements, decisions
-│   ├── architecture/             # Architecture specifications
-│   ├── reports/                  # Phase execution reports
-│   └── ux/                       # UX specifications & design tokens
-├── .github/                      # GitHub automation
-│   └── workflows/                # CI / security workflows
 ├── docker-compose.yml            # Local multi-container development orchestration
 ├── compose.yaml                  # Docker Compose v2 alias
 ├── .env.example                  # Safe template environment variables
