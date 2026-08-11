@@ -36,4 +36,11 @@ describe("Locale Formatters (ADR-009)", () => {
     const enFormatted = formatDate(isoDate, "en-US");
     expect(enFormatted).toBe("August 11, 2026");
   });
+
+  it("uses UTC date parts near a timezone boundary and rejects invalid dates", () => {
+    expect(formatDate("2026-08-11T23:59:59-10:00", "en-US")).toBe("August 12, 2026");
+    expect(() => formatDate("not-an-iso-date", "fa-IR")).toThrowError(RangeError);
+    expect(() => formatDate("2026-02-30T12:00:00Z", "en-US")).toThrowError(RangeError);
+    expect(() => gregorianToJalali(2026, 2, 30)).toThrowError(RangeError);
+  });
 });

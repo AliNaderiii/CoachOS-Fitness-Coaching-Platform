@@ -1,0 +1,74 @@
+{
+  "app": {
+    "tagline": "Fitness coaching platform",
+    "foundation_badge": "Phase 04 Foundation",
+    "loading": "Loading…"
+  },
+  "nav": {
+    "athlete_view": "Athlete view",
+    "coach_view": "Coach view",
+    "org_view": "Organization view",
+    "login": "Log in",
+    "today": "Today",
+    "calendar": "Calendar",
+    "programs": "Programs",
+    "messages": "Messages",
+    "profile": "Profile"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "version": "Foundation version 0.4",
+    "legal_notice": "Proprietary software"
+  },
+  "auth": {
+    "login_title": "Welcome back to CoachOS",
+    "register_title": "Create an account",
+    "email_label": "Email address",
+    "password_label": "Password",
+    "submit_login": "Log in",
+    "submit_register": "Create account",
+    "placeholder_warning": "This is a Phase 04 interface preview. Account actions are not available yet."
+  },
+  "home": {
+    "welcome_title": "CoachOS foundation is ready",
+    "welcome_subtitle": "A bilingual, PWA-first foundation for fitness coaching.",
+    "cta_athlete": "View athlete shell",
+    "cta_coach": "View coach shell",
+    "status_title": "Foundation status",
+    "status_frontend": "Frontend shell",
+    "status_backend": "Backend foundation",
+    "status_pwa": "PWA baseline",
+    "status_i18n": "Persian and English",
+    "placeholder_notice": "These screens demonstrate the Phase 04 foundation only; product workflows are not implemented."
+  },
+  "pwa": {
+    "install_title": "Install CoachOS App",
+    "install_description": "Add CoachOS to your Home Screen for quick access.",
+    "install_button": "Install now",
+    "ios_instructions_title": "Install on iPhone or iPad",
+    "ios_instruction_step1": "Tap Share in Safari.",
+    "ios_instruction_step2": "Choose Add to Home Screen.",
+    "offline_notice": "Offline — unsaved input is retained temporarily in memory; reconnect before saving."
+  },
+  "offline": {
+    "title": "You are offline",
+    "description": "CoachOS cannot reach the network. Reconnect to continue with online features.",
+    "cached_content_notice": "Previously cached foundation pages may remain available. No durable offline data queue is enabled.",
+    "retry_button": "Retry connection"
+  },
+  "errors": {
+    "not_found_title": "Page not found",
+    "not_found_description": "The requested page does not exist in this foundation shell.",
+    "not_found_button": "Return home",
+    "server_error_title": "Something went wrong",
+    "server_error_description": "The page could not be displayed. Please try again."
+  },
+  "placeholders": {
+    "athlete_today_title": "Today's workout",
+    "athlete_today_desc": "Foundation shell for the future athlete workout experience.",
+    "coach_programs_title": "Training programs",
+    "coach_programs_desc": "Foundation shell for the future coach program workspace.",
+    "org_settings_title": "Organization settings",
+    "org_settings_desc": "Foundation shell for future organization configuration."
+  }
+}

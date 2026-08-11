@@ -27,11 +27,17 @@ describe("Frontend Persian Search Normalizer (ADR-018)", () => {
     expect(normalized).toBe("حرکت اسکوات");
   });
 
-  it("handles zero-width non-joiners gracefully", () => {
+  it("preserves ZWNJ by default and removes it on request", () => {
+    expect(normalizePersianSearch("می‌خواهم")).toContain("\u200C");
+
     const raw = "می‌خواهم شنا\u200Cسوئدی";
     const normalized = normalizePersianSearch(raw, false);
 
     expect(normalized).not.toContain("\u200C");
     expect(normalized).toContain("شنا");
+  });
+
+  it("collapses whitespace and trims normalized search input", () => {
+    expect(normalizePersianSearch("  حرکت   اسکوات  ")).toBe("حرکت اسکوات");
   });
 });

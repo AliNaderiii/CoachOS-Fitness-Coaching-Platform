@@ -1,18 +1,18 @@
 # Project Status — CoachOS
 
-**Last updated:** 2026-08-11 (UTC)  
-**Current phase:** Phase 04 — Project Foundation and PWA Baseline (**complete**)  
-**Next phase:** Phase 05 — Identity, Tenancy, and Roles (awaiting explicit founder instruction)  
-**Working branch:** `arena/019fefbf-coachos-fitness-coaching-platf`  
-**Base commit (main):** `692b2b02ac23d8ad433270fa9ea585f5dc860768` (PR #6 merged)  
-**Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform  
+**Last updated:** 2026-08-11 (UTC)
+**Current phase:** Phase 04 — Post-merge frontend reimplementation remediation (**implemented and clean-validated; PR review pending**)
+**Next step:** Review and merge this remediation; workflow activation remains a later separate PR; Phase 05 remains unstarted
+**Working branch:** `arena/019ff11c-coachos-fitness-coaching-platf`
+**Base commit (main):** `1c4a552ab86f6bca7b522492c8488614ae0d97de` (PR #7 merge)
+**Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
 **License:** Proprietary / All Rights Reserved (ADR-012 — Copyright (c) 2026 CoachOS Technologies / Ali Naderi)
 
 ---
 
 ## 1. One-Line Status
 
-Phase 04 foundation complete: Modular monorepo established (`frontend/` Next.js 14 App Router + `backend/` Django 5 DRF + `infra/` Docker Compose + CI quality gates), runnable bilingual PWA shell (`fa-IR` RTL / `en-US` LTR with dynamic HTML attributes and zero Arabic resources), Web App Manifest + Service Worker app-shell caching with offline fallback page, 37 backend Pytest tests passing (100%), 32 frontend Vitest tests passing (100%), Next.js production build verified (18 static pages generated), fail-closed secret, DB, host, CSRF, and Redis/Celery configuration (no silent SQLite or localhost Redis fallback, mandatory `DJANGO_SECRET_KEY`, `DATABASE_URL`, `CSRF_TRUSTED_ORIGINS`, `REDIS_URL`, and `CELERY_BROKER_URL`), secure default DRF permissions (`IsAuthenticated` global default with explicit `AllowAny` on `/healthz`, `/readyz`, `/api/v1/meta`), environment-specific CSP (development HMR vs production script-src without `unsafe-eval`), validated `CorrelationIDMiddleware` (UUIDv7), tenant header protection (`ALLOW_TENANT_HEADER_OVERRIDE=False`), security headers, logging redaction, strict frontend secret boundary (`NEXT_PUBLIC_*` only), ADR-012 Proprietary license applied, and comprehensive Hosting & Data Residency evaluation documented with pre-pilot decision gate. **Zero Phase 05 domain features (users, orgs, programs, workouts) created prematurely — foundation only.**
+The merged Phase 04 tree was missing nine documented `frontend/lib/` files because the broad `lib/` ignore rule had hidden untracked frontend source during the original delivery. Authoritative original source proved unrecoverable, so the founder authorized a specification-based reimplementation—not a restoration. The nine files are now tracked through narrow `/frontend/lib/` exceptions and implement exact `fa-IR`/`en-US` locale governance, matching bilingual dictionaries, deterministic Jalali/Gregorian display, Persian normalization, Unicode BiDi isolation, public-only configuration validation, a foundation-only typed API client, and SSR-safe `/sw.js` registration. Clean tracked-only validation at implementation commit `8c268db973530157fb1468bc1838f8bca59f7310` passed frontend lint/type-check/49 tests/build (18 pages), backend Ruff/37 tests, compliance and scope scans, ignore diagnostics, and tracked-file audit. **No workflow activation or Phase 05 domain feature is included; both remain blocked behind separate review and authorization.**
 
 ---
 
@@ -21,7 +21,7 @@ Phase 04 foundation complete: Modular monorepo established (`frontend/` Next.js 
 | Area | Implemented Artifacts | Verification / Tests |
 |---|---|---|
 | **Monorepo Architecture** | `frontend/`, `backend/`, `infra/`, `docker-compose.yml`, `compose.yaml`, `.env.example`, `.gitignore` | Local development verified via Docker & direct runtime |
-| **Frontend Shell** | Next.js 14.2 App Router, TypeScript strict, Tailwind logical CSS, dark obsidian theme (`#0B0F17`), placeholder dashboard screens clearly marked as foundation-only | 32 Vitest tests passing; Next.js static build verified (18 static pages generated) |
+| **Frontend Shell** | Next.js 14.2 App Router, TypeScript strict, Tailwind logical CSS, dark obsidian theme (`#0B0F17`), placeholder dashboard screens clearly marked as foundation-only | 49 Vitest tests passing; Next.js static build verified (18 static pages generated) |
 | **PWA Baseline** | `manifest.json`, `manifest.webmanifest`, `sw.js` (Cache-First static, Network-First navigation), 192px/512px maskable PNG icons, `/offline` page, `NetworkStatusBanner`, `InstallPromptBanner` | Manifest validation test passing; PWA icon dimension test passing; Service worker caching verified |
 | **Bilingual RTL/LTR Engine** | Dynamic `lang` and `dir` on HTML root, `fa-IR` RTL, `en-US` LTR, BiDi text isolation (`<bdi>`), Persian search normalizer (`PersianNormalizer`), Jalali date conversion | i18n tests passing; dictionary 100% key parity; Jalali converter test passing |
 | **Language Governance** | Strict exclusion of Arabic locale files (`ar-*.json`, `ar.json`, `ar.po`) across frontend and backend | `test_no_arabic.py` passing; `no-arabic.test.ts` passing; CI check-secrets scanner passing |
@@ -32,7 +32,7 @@ Phase 04 foundation complete: Modular monorepo established (`frontend/` Next.js 
 | **Frontend CSP & Headers** | Environment-specific CSP (dev HMR vs production without `unsafe-eval`), object-src 'none', frame-ancestors 'none' | `security-headers.test.ts` (3 tests passing) |
 | **Error Handling & Security** | RFC 7807 Problem Details envelope with `message_key`, zero internal stack traces in client responses, log redaction, HttpOnly session cookie config | `test_errors.py`, `test_drf_exceptions.py`, `test_security_headers.py`, `test_secret_leakage.py` passing |
 | **Entity Identifiers** | Time-ordered UUIDv7 generator (`id_generator.py`) with validation | `test_uuidv7.py` passing; verified time-ordering trend |
-| **CI/CD Quality Gates** | `infra/ci/ci.yml`, `infra/ci/security-scan.yml`, `infra/scripts/check-secrets.sh` | Lint (Ruff + ESLint), Type-check (tsc), Unit tests (Vitest + Pytest), Secret scanning, Arabic exclusion |
+| **Local Quality-Gate Definitions** | `infra/ci/ci.yml`, `infra/ci/security-scan.yml`, `infra/scripts/check-secrets.sh` | Commands pass locally; GitHub Actions are not active and workflow activation requires a separate PR |
 | **License & IP** | Transitioned to Proprietary / All Rights Reserved notice in `LICENSE` and ADR-012 | `LICENSE` file updated; ADR-012 accepted per founder mandate |
 | **Hosting & Data Residency** | Comprehensive 10-dimension evaluation of PaaS, EU Cloud, Bare VPS, Dual-Region in `HOSTING_AND_DATA_RESIDENCY_DECISION.md` | Decision gate established; zero cloud credentials in Git |
 
@@ -60,13 +60,16 @@ Phase 04 foundation complete: Modular monorepo established (`frontend/` Next.js 
 | **ADR-049** | Production Hosting Provider Selection | Medium | **Evaluation Complete:** Comparative matrix in `HOSTING_AND_DATA_RESIDENCY_DECISION.md`; production deployment gated until Phase 13 founder approval. |
 | **TODO-CSP-001** | CSP Strict Nonce Migration | Low | Next.js development uses `'unsafe-inline'`; production eliminates `unsafe-eval`; migration to per-request cryptographic nonce planned before production pilot. |
 | **LEGAL** | Privacy Compliance (GDPR & Iran Data Residency) | High | Formal pre-DPIA documented; jurisdiction-specific legal review required before handling real production health telemetry. |
+| **P04-REMEDIATION** | Missing original `frontend/lib/` source | Medium | Authoritative source was unrecoverable. Founder-authorized specification-based reimplementation is clean-validated and awaiting PR review; see `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`. |
+| **CI-ACTIVATION** | GitHub Actions not active | Medium | Keep separate from this remediation. Activation requires a later workflow PR and visible remote checks; `infra/ci/` alone is not activation evidence. |
 
 ---
 
 ## 5. Next Step
 
-Phase 04 complete + all review corrections applied. Standing by for explicit founder instruction to begin:
-**Phase 05 — Identity, Tenancy, and Roles**
-- Do not start Phase 05 automatically.
-- Await explicit founder instruction.
-- Next phase will implement User model, single-location Organization tenancy, secure invitation tokens, session authentication, and server-side RBAC/ABAC authorization tests.
+Complete the Phase 04 post-merge remediation review sequence:
+1. Push the fixed remediation branch and open a PR targeting `main`.
+2. Verify the remote commit and all nine tracked `frontend/lib/` files.
+3. Leave the PR open for founder review; do not merge automatically.
+4. Keep GitHub Actions workflow activation in a later separate PR.
+5. Do not start Phase 05 without a new explicit founder instruction after remediation review and merge.

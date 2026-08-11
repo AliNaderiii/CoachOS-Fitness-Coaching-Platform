@@ -17,6 +17,9 @@ downloads/
 eggs/
 .eggs/
 lib/
+# Phase 04 frontend TypeScript source (not a Python environment artifact)
+!/frontend/lib/
+!/frontend/lib/**
 lib64/
 parts/
 sdist/

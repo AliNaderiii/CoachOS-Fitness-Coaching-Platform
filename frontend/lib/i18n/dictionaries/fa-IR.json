@@ -1,0 +1,74 @@
+{
+  "app": {
+    "tagline": "سامانه مربیگری ورزشی",
+    "foundation_badge": "زیرساخت فاز ۰۴",
+    "loading": "در حال بارگذاری…"
+  },
+  "nav": {
+    "athlete_view": "نمای ورزشکار",
+    "coach_view": "نمای مربی",
+    "org_view": "نمای مجموعه",
+    "login": "ورود",
+    "today": "امروز",
+    "calendar": "تقویم",
+    "programs": "برنامه‌ها",
+    "messages": "پیام‌ها",
+    "profile": "پروفایل"
+  },
+  "footer": {
+    "rights": "تمامی حقوق محفوظ است.",
+    "version": "نسخه زیرساخت ۰٫۴",
+    "legal_notice": "نرم‌افزار اختصاصی"
+  },
+  "auth": {
+    "login_title": "به CoachOS خوش آمدید",
+    "register_title": "ساخت حساب کاربری",
+    "email_label": "نشانی ایمیل",
+    "password_label": "رمز عبور",
+    "submit_login": "ورود به حساب",
+    "submit_register": "ساخت حساب",
+    "placeholder_warning": "این صفحه فقط پیش‌نمایش رابط فاز ۰۴ است و عملیات حساب کاربری هنوز فعال نیست."
+  },
+  "home": {
+    "welcome_title": "زیرساخت CoachOS آماده است",
+    "welcome_subtitle": "زیرساختی دوزبانه و مبتنی بر وب‌اپ برای مربیگری ورزشی.",
+    "cta_athlete": "مشاهده نمای ورزشکار",
+    "cta_coach": "مشاهده نمای مربی",
+    "status_title": "وضعیت زیرساخت",
+    "status_frontend": "پوسته فرانت‌اند",
+    "status_backend": "زیرساخت بک‌اند",
+    "status_pwa": "پایه وب‌اپ",
+    "status_i18n": "فارسی و انگلیسی",
+    "placeholder_notice": "این صفحه‌ها فقط زیرساخت فاز ۰۴ را نمایش می‌دهند و فرایندهای محصول هنوز پیاده‌سازی نشده‌اند."
+  },
+  "pwa": {
+    "install_title": "نصب برنامه CoachOS",
+    "install_description": "برای دسترسی سریع، CoachOS را به صفحه اصلی اضافه کنید.",
+    "install_button": "نصب برنامه",
+    "ios_instructions_title": "نصب در آیفون یا آیپد",
+    "ios_instruction_step1": "در Safari روی اشتراک‌گذاری بزنید.",
+    "ios_instruction_step2": "گزینه افزودن به صفحه اصلی را انتخاب کنید.",
+    "offline_notice": "آفلاین — ورودی ذخیره‌نشده موقتاً در حافظه می‌ماند؛ پیش از ذخیره دوباره متصل شوید."
+  },
+  "offline": {
+    "title": "اتصال اینترنت برقرار نیست",
+    "description": "CoachOS به شبکه دسترسی ندارد. برای ادامه امکانات آنلاین دوباره متصل شوید.",
+    "cached_content_notice": "ممکن است صفحه‌های زیرساختی ذخیره‌شده در دسترس باشند. صف پایدار آفلاین فعال نیست.",
+    "retry_button": "تلاش دوباره برای اتصال"
+  },
+  "errors": {
+    "not_found_title": "صفحه پیدا نشد",
+    "not_found_description": "صفحه درخواستی در این پوسته زیرساختی وجود ندارد.",
+    "not_found_button": "بازگشت به خانه",
+    "server_error_title": "خطایی رخ داد",
+    "server_error_description": "نمایش صفحه ممکن نشد. لطفاً دوباره تلاش کنید."
+  },
+  "placeholders": {
+    "athlete_today_title": "تمرین امروز",
+    "athlete_today_desc": "پوسته زیرساختی برای تجربه آینده تمرین ورزشکار.",
+    "coach_programs_title": "برنامه‌های تمرینی",
+    "coach_programs_desc": "پوسته زیرساختی برای فضای کاری آینده مربی.",
+    "org_settings_title": "تنظیمات مجموعه",
+    "org_settings_desc": "پوسته زیرساختی برای تنظیمات آینده مجموعه."
+  }
+}

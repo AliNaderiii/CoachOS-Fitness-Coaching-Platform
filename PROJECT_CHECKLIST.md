@@ -10,7 +10,7 @@
 | `[!]` | Blocked |
 | `[-]` | Deferred by decision |
 
-**Last updated:** 2026-08-10 (UTC)
+**Last updated:** 2026-08-11 (UTC)
 
 Evidence links point to repository paths, commits, or GitHub artifacts. Update after every meaningful task and at phase end.
 
@@ -95,16 +95,23 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 - [x] Local development setup works — evidence: `docker-compose.yml`, `compose.yaml`, `infra/docker/`, `docs/architecture/LOCAL_DEVELOPMENT.md`
 - [x] Environment configuration documented — evidence: `.env.example`, `docs/architecture/LOCAL_DEVELOPMENT.md`, `backend/config/settings/`
-- [x] Frontend scaffold works (Next.js + TypeScript + Tailwind) — evidence: `frontend/` Next.js 14 App Router, `tailwind.config.js`, 29 Vitest tests passing, static build verified
-- [x] Backend scaffold works (Django + DRF) — evidence: `backend/` Django 5.2 + DRF 3.18, 21 Pytest tests passing, middleware pipeline, RFC 7807 problem details
+- [x] Frontend scaffold works (Next.js + TypeScript + Tailwind) — evidence: `frontend/` Next.js 14 App Router, `tailwind.config.js`, 49 Vitest tests passing, 18-page static build verified from clean tracked implementation commit `8c268db973530157fb1468bc1838f8bca59f7310`
+- [x] Backend scaffold works (Django + DRF) — evidence: `backend/` Django 5.2 + DRF 3.18, 37 Pytest tests passing, middleware pipeline, RFC 7807 problem details
 - [x] PWA foundation (Manifest, installable shell, Service Worker) works — evidence: `frontend/public/manifest.json`, `frontend/public/sw.js`, `frontend/public/icons/`, `frontend/app/[locale]/offline/page.tsx`, `frontend/components/pwa/`
 - [x] Database and migrations work — evidence: PostgreSQL 16 connection config, initial foundation syncdb/migrations tested in test/dev
-- [x] CI pipeline works — evidence: `.github/workflows/ci.yml`, `.github/workflows/security-scan.yml`, `infra/scripts/check-secrets.sh`
-- [x] Lint/type/test commands work — evidence: Ruff lint + format (clean), ESLint (clean), TypeScript `tsc --noEmit` (clean), Pytest (21 passed), Vitest (29 passed)
+- [!] GitHub Actions activation — not active on `main`; `infra/ci/ci.yml`, `infra/ci/security-scan.yml`, and `infra/scripts/check-secrets.sh` are local command references only; workflow activation is blocked to a later separate PR
+- [x] Local lint/type/test commands work — evidence: Ruff lint + format (clean), ESLint (clean), TypeScript `tsc --noEmit` (clean), Pytest (37 passed), Vitest (49 passed)
 - [x] Health checks work — evidence: `GET /healthz` (200 OK liveness), `GET /readyz` (DB + Redis readiness), `GET /api/v1/meta` (public system metadata)
 - [x] Phase 04 report committed — evidence: `docs/reports/PHASE-04-FOUNDATION-REPORT.md`
+- [x] Post-merge source audit completed — authoritative original source for the nine missing `frontend/lib/` files was unrecoverable; no restoration claim is made
+- [x] Founder-authorized specification-based frontend reimplementation completed — evidence: exactly nine tracked files under `frontend/lib/` at implementation commit `8c268db973530157fb1468bc1838f8bca59f7310`
+- [x] Narrow `.gitignore` correction applied — general `lib/` rule retained; only `/frontend/lib/` and `/frontend/lib/**` explicitly unignored
+- [x] Focused remediation tests added without weakening existing tests — API client, service-worker registration, public configuration, date boundaries, Persian normalization, exact locale metadata, and 54-key bilingual governance
+- [x] Clean tracked-only validation completed — `npm ci`, frontend lint/type-check/49 tests/build, backend Ruff/37 tests, compliance/language/PWA scans, `git diff --check`, `git check-ignore`, and `git ls-files frontend/lib`
+- [x] Separate correction report committed — evidence: `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`; original report retained unchanged
+- [~] Post-merge remediation PR — implementation complete and awaiting remote PR review; do not merge automatically
 
-**Phase 04 status:** `[x]` Complete (2026-08-11)
+**Phase 04 status:** `[~]` Original foundation merged; post-merge frontend remediation clean-validated and awaiting PR review (2026-08-11)
 
 ---
 
@@ -265,7 +272,7 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] No Arabic content, locale files, or requirements
 - [x] No secrets committed to Git repository
 - [x] Synthetic test data only (no real PII/health data)
-- [ ] All user-facing strings via i18n resources (`fa-IR`, `en-US`)
+- [x] Current tracked user-facing strings supplied through matching `fa-IR` and `en-US` resources (54 governed keys)
 - [ ] Server-side authorization for every sensitive action
 - [ ] Immutable audit log for sensitive access/mutations
 - [ ] Phase report + checklist + changelog + prompt log updated per phase
