@@ -1,0 +1,56 @@
+:root {
+  /* Obsidian Dark Theme Baseline (ADR-028) */
+  --color-bg: #0B0F17;
+  --color-surface: #111827;
+  --color-surface-elevated: #1F2937;
+  --color-surface-hover: #374151;
+  --color-border: #1F2937;
+  --color-border-subtle: #374151;
+
+  /* Typography & Contrast */
+  --color-text: #F9FAFB;
+  --color-text-secondary: #E5E7EB;
+  --color-text-muted: #9CA3AF;
+  --color-text-disabled: #6B7280;
+
+  /* Brand Accents (Emerald & Teal) */
+  --color-primary: #10B981;
+  --color-primary-hover: #059669;
+  --color-primary-active: #047857;
+  --color-primary-muted: rgba(16, 185, 129, 0.15);
+
+  --color-secondary: #0D9488;
+  --color-secondary-hover: #0F766E;
+
+  /* Feedback & Semantic States */
+  --color-success: #10B981;
+  --color-success-bg: rgba(16, 185, 129, 0.1);
+  --color-warning: #F59E0B;
+  --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-error: #EF4444;
+  --color-error-bg: rgba(239, 68, 68, 0.1);
+  --color-info: #3B82F6;
+  --color-info-bg: rgba(59, 130, 246, 0.1);
+
+  /* Touch Target Dimensions (WCAG 2.5.5 / Phase 02 UX) */
+  --touch-target-min: 44px;
+  --touch-target-preferred: 48px;
+
+  /* Elevation & Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -2px rgba(0, 0, 0, 0.5);
+
+  /* Border Radii */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Z-Index Hierarchy */
+  --z-header: 40;
+  --z-bottom-nav: 40;
+  --z-modal: 50;
+  --z-banner: 60;
+  --z-toast: 70;
+}

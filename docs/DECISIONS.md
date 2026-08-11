@@ -21,9 +21,9 @@
 | **ADR-007** | Constrained AI Assistance Deferred to Phase 11 | **Accepted** | No | Phase 00 / 01 |
 | **ADR-008** | Exercise Media Rights, Provenance, and Moderation Metadata | **Accepted** | No | Phase 00 / 01 |
 | **ADR-009** | Calendar Strategy: UTC/Gregorian Storage with Persian Jalali UI Display | **Accepted (Conditional — frontend validation required)** | No | Phase 01 / 03 |
-| **ADR-010** | Monorepo Folder Layout & Package Boundaries | **Proposed (Accepted Orientation — Scaffold in Phase04)** | No | Phase 03 / 04 |
+| **ADR-010** | Monorepo Folder Layout & Package Boundaries | **Accepted** | No (Phase 04 Foundation Scaffold) | Phase 03 / 04 |
 | **ADR-011** | PWA Sequencing Correction (Phase 04 Foundation, Phase 07 Mobile Log, Phase 12 Advanced Offline) | **Accepted** | No | Phase 01 / 03 |
-| **ADR-012** | Repository License & Intellectual Property Strategy | **Pending Founder Approval** | **YES (Founder Decision)** | Phase 01 / 03 |
+| **ADR-012** | Repository License & Intellectual Property Strategy | **Accepted (Founder Mandate — Proprietary / All Rights Reserved)** | **YES (Founder Decided)** | Phase 01 / 04 |
 | **ADR-013** | Single-Location-First MVP Strategy | **Accepted** | No | Phase 01 |
 | **ADR-014** | Organization Membership & Role Binding Model (Multi-Role per Org Allowed) | **Accepted (Conditional — membership multi-role model affirmed)** | No | Phase 01 / 03 |
 | **ADR-015** | Program Versioning & Assignment Snapshot Strategy (Immutable JSONB Snapshot) | **Accepted (Conditional — snapshot immutability affirmed)** | No | Phase 01 / 03 |
@@ -55,6 +55,12 @@
 | **ADR-041** | OpenAPI 3.1 Contract Structure (/api/v1 versioned, endpoint groups P0, RFC7807 error) | **Proposed (Accepted as Provisional)** | No | Phase 03 |
 | **ADR-042** | Threat Model & Security Control Matrix (STRIDE + OWASP mapping, 21 threats, negative authorization controls) | **Accepted** | No | Phase 03 |
 | **ADR-043** | Privacy & Data Lifecycle (11 lifecycle stages, Tier0-8, consent, export/erasure, pre-DPIA checklist, retention questions) | **Accepted** | No | Phase 03 |
+| **ADR-044** | Monorepo Structure & Local Workspace Scaffolding | **Accepted** | No | Phase 04 |
+| **ADR-045** | Frontend Foundation Architecture & Public Runtime Configuration Boundary | **Accepted** | No | Phase 04 |
+| **ADR-046** | PWA Baseline Architecture, App-Shell Caching, and Offline Fallback Strategy | **Accepted** | No | Phase 04 |
+| **ADR-047** | Bilingual RTL/LTR Execution & Persian Search Normalization Architecture | **Accepted** | No | Phase 04 |
+| **ADR-048** | Backend Foundation, Error Sanitization Envelope, Middleware Pipeline, and Health Endpoints | **Accepted** | No | Phase 04 |
+| **ADR-049** | Hosting and Dual-Region Deployment Strategy (Evaluation & Phase 04 Baseline) | **Accepted (Decision Gate Defined)** | Yes (Production Gate) | Phase 04 |
 
 ---
 
@@ -155,9 +161,15 @@
 ---
 
 ### ADR-010 — Monorepo Layout & Package Boundaries
-- **Status:** **Deferred to Phase 04**
-- **Context:** Structuring repository code directories for backend, frontend, documentation, and tooling.
-- **Candidates:** `backend/` (Django) + `frontend/` (Next.js) + `docs/` + `.github/`. Scaffolding to occur in Phase 04.
+- **Status:** **Accepted** (Phase 04 Scaffolding Layout Finalized)
+- **Context:** Structuring repository code directories for backend, frontend, documentation, infrastructure, and tooling.
+- **Decision:** Scaffold a clean monorepo structure:
+  - `frontend/`: Next.js 14 App Router + React + TypeScript + Tailwind CSS (configured for RTL logical properties) + Vitest tests.
+  - `backend/`: Django 5 + Django REST Framework + Python 3.12 target + Pytest tests.
+  - `infra/`: Docker compose orchestration, container definitions (`infra/docker/`), utility scripts (`infra/scripts/`).
+  - `docs/`: Architecture specifications, requirements, UX designs, reports, and threat models.
+  - `.github/workflows/`: CI/CD automation for linting, typing, testing, security scanning, manifest validation, and no-Arabic verification.
+- **Consequences:** Clear separation of concerns, independent frontend and backend dependency trees, unified CI/CD, and strict security boundaries.
 
 ---
 
@@ -173,26 +185,16 @@
 ---
 
 ### ADR-012 — Repository License & Intellectual Property Strategy
-- **Status:** **Pending Founder Approval (YES)**
-- **Context:** The repository was initialized with an open-source MIT license. As a commercial B2B2C SaaS product, the intellectual property strategy requires formal founder evaluation.
-- **Options Analyzed:**
-  1. **Keep MIT License (Open Source):**
-     - *Monetization:* Relies on hosted SaaS offering and services.
-     - *Competitor Risk:* **Extremely High.** Any competitor can clone the entire codebase, branding, and workflows without restriction.
-     - *Contributions & Portfolio:* Maximum public visibility and community contributions.
-     - *Investors & White-Label:* Lower enterprise enterprise valuation; difficult to enforce proprietary white-label licensing.
-  2. **Proprietary / All Rights Reserved (Commercial Closed Source):**
-     - *Monetization:* Full protection of SaaS IP, enterprise licensing, and white-label deployments.
-     - *Competitor Risk:* Zero legal reuse of proprietary software.
-     - *Contributions & Portfolio:* Code remains private or source-available with commercial restrictions.
-     - *Investors & White-Label:* Optimal for institutional investment and SaaS valuation.
-  3. **Open-Core Model (e.g., AGPLv3 / Business Source License BSL):**
-     - *Monetization:* Core engine open-source; enterprise multi-tenant, billing, and AI features closed-source.
-     - *Competitor Risk:* Moderate; prevents cloud vendors from reselling without paying or contributing back.
-  4. **Private Repository with Commercial License:**
-     - *Monetization:* Traditional high-growth B2B SaaS posture.
-- **Recommendation:** Recommend transitioning the commercial codebase to **Proprietary / All Rights Reserved** (Option 2) or **Open-Core with BSL** (Option 3) prior to Phase 04 scaffolding.
-- **Action:** **Flagged for Founder Decision.** The `LICENSE` file remains MIT in Phase 01 and will not be modified until the founder provides written confirmation.
+- **Status:** **Accepted (Founder Mandate — Proprietary / All Rights Reserved)**
+- **Context:** The repository was initialized with an open-source MIT license during early prototyping. As a commercial B2B2C SaaS product, the intellectual property strategy was reviewed by the founder in Phase 04.
+- **Decision:**
+  - The commercial codebase and all proprietary assets transition to **Proprietary / All Rights Reserved**.
+  - Copyright is formally asserted: `Copyright (c) 2026 CoachOS Technologies / Ali Naderi. All rights reserved.`
+  - Unauthorized copying, reproduction, distribution, redistribution, modification, reverse engineering, decompilation, public display, sublicensing, or commercial reuse is strictly prohibited.
+  - The repository `LICENSE` file is replaced with a clear proprietary license notice.
+  - The wording serves as an operational placeholder; formal legal review by qualified IP counsel in relevant jurisdictions is recommended before commercial launch and customer deployment.
+  - No Open-Core, BSL, or dual-license model is introduced unless explicitly mandated in the future by the founder.
+- **Consequences:** Protects proprietary software, data models, UX workflows, and competitive advantages while maintaining clear ownership boundaries.
 
 ---
 
@@ -597,4 +599,90 @@
 
 - **Status:** **Accepted**
 - **Decision:** Lifecycle stages 11: collection, consent, storage, use, sharing, export, retention, revocation, deletion, anonymization, backup destruction. Classification Tier0 public metadata, Tier1 account/identity, Tier2 coaching operational, Tier3 sensitive health-adjacent pain flags body metrics, Tier4 progress media most sensitive, Tier5 audit immutable, Tier6 secrets, Tier7 payment future P1 Phase10, Tier8 AI future Phase11. For each class purpose legal/privacy assumption owner/controller assumption access rules encryption logging restriction retention question export/deletion behavior consent requirement documented. No legal compliance claim — privacy-aligned engineering design requires jurisdiction-specific legal review. Explicit consent model for progress photos + nutrition P1 multi-prof, revocation immediate, export ZIP via Celery tmp S3 24h link, erasure pipeline hard delete PII + anonymized aggregates. Pre-DPIA checklist large-scale sensitive, systematic monitoring, automated profiling, multi-prof sharing, progress-photo processing, wearable future, AI.
+
+---
+
+### ADR-044 — Monorepo Structure & Local Workspace Scaffolding
+- **Status:** **Accepted** (Phase 04 Baseline)
+- **Context:** Establishing an executable, reproducible, and secure monorepo structure separating frontend, backend, infrastructure, and CI workflows without coupling independent runtime dependencies.
+- **Decision:** Adopt the standard modular monorepo layout:
+  - `frontend/`: Next.js 14 App Router, TypeScript strict mode, Tailwind CSS with logical properties, Vitest test suite.
+  - `backend/`: Django 5 + Django REST Framework, Python 3.12 target, Pytest test suite.
+  - `infra/`: Docker compose orchestration, container definitions (`infra/docker/`), utility scripts (`infra/scripts/`).
+  - `.github/workflows/`: GitHub Actions CI pipeline running lint, type-check, tests, manifest validation, secret scanning, and no-Arabic verification.
+- **Consequences:** Provides clean isolation between client and server dependencies, enables independent container builds, and preserves straightforward local development ergonomics.
+
+---
+
+### ADR-045 — Frontend Foundation Architecture & Public Runtime Configuration Boundary
+- **Status:** **Accepted** (Phase 04 Baseline)
+- **Context:** Need strict client-side security boundaries preventing private server secrets from leaking into client JavaScript bundles or runtime memory.
+- **Decision:**
+  - All client-side runtime variables must start with the `NEXT_PUBLIC_` prefix (e.g., `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_SENTRY_DSN_PUBLIC`).
+  - A strict runtime environment validator (`lib/config/env.ts`) throws runtime errors if private secret patterns (e.g., database URLs, secret keys, AWS private keys) are accessed or detected on the client.
+  - Client-side code never communicates directly with Secrets Manager or internal database services.
+  - No long-lived authentication tokens are stored in `localStorage` or `sessionStorage`.
+- **Consequences:** Eliminates client-side secret exposure risk (T02) and guarantees clear separation between public and private configuration.
+
+---
+
+### ADR-046 — PWA Baseline Architecture, App-Shell Caching, and Offline Fallback Strategy
+- **Status:** **Accepted** (Phase 04 Baseline)
+- **Context:** Phase 04 must deliver a fully installable, mobile-responsive PWA foundation without prematurely implementing Phase 12 durable offline queuing or background sync.
+- **Decision:**
+  - Implement a standard Web App Manifest (`manifest.json`) supporting `standalone` display mode, dark theme `#0B0F17`, and original 192x192 / 512x512 maskable icons.
+  - Deploy a resilient Service Worker (`sw.js`) utilizing:
+    - Cache-First strategy for static immutable assets (fonts, icons, CSS, JS).
+    - Network-First strategy for navigational document requests, gracefully falling back to a dedicated bilingual Offline Fallback Page (`/offline` or cached offline shell).
+  - Implement a network status indicator hook and UI banner (`NetworkStatusBanner.tsx`) warning users when offline that unsaved input is retained temporarily in memory only and requires reconnection to save.
+  - Explicitly document iOS and Android PWA limitations (WebKit 7-day storage eviction on inactive non-installed web apps, iOS push notifications requiring standalone mode in iOS 16.4+).
+  - Do not claim that durable offline workout queues or IndexedDB synchronization exist in Phase 04 (deferred to Phase 12).
+- **Consequences:** Delivers rock-solid installability and offline resilience while maintaining accurate architectural truth.
+
+---
+
+### ADR-047 — Bilingual RTL/LTR Execution & Persian Search Normalization Architecture
+- **Status:** **Accepted** (Phase 04 Baseline)
+- **Context:** Delivering an uncompromising bilingual user experience supporting Persian (`fa-IR`, RTL) and English (`en-US`, LTR) with zero Arabic resources or conflation.
+- **Decision:**
+  - Dynamically inject `lang` (`fa-IR` | `en-US`) and `dir` (`rtl` | `ltr`) on the root HTML document.
+  - Enforce CSS logical properties (`margin-inline-start`, `padding-inline-end`, `border-start-start-radius`) across all UI styling.
+  - Directional icons (arrows, chevrons, navigation flows) mirror automatically in RTL, while non-directional physical icons (dumbbells, weights, timers) remain unmirrored.
+  - Mixed Persian and Latin text (e.g., "ست 1: 100 kg x 5 reps") uses BiDi isolation (`<bdi>` / unicode-bidi) to prevent visual punctuation distortion.
+  - Provide a reusable `PersianNormalizer` utility in both frontend (`lib/i18n/normalizer.ts`) and backend (`apps/core/utils/persian_normalizer.py`) that folds Perso-Arabic script keyboard variants (`ي`/`ى` → `ی`, `ك` → `ک`, Arabic-Indic digits `٠-٩` → `۰-۹` / `0-9`, and strips zero-width non-joiners where appropriate for search indexing).
+  - Separate Jalali UI presentation from UTC/Gregorian storage: API and database store timestamps in UTC ISO 8601; frontend formatters render Solar Hijri (Jalali) when `locale == 'fa-IR'`.
+  - CI test fails build if any Arabic locale file, translation, or fixture is introduced.
+- **Consequences:** Flawless RTL/LTR rendering, crisp Persian typography via Vazirmatn, and robust search preparation for Phase 06.
+
+---
+
+### ADR-048 — Backend Foundation, Error Sanitization Envelope, Middleware Pipeline, and Health Endpoints
+- **Status:** **Accepted** (Phase 04 Baseline)
+- **Context:** Establishing the core Django 5 / DRF foundation with enterprise security headers, correlation IDs, error sanitization, and health check endpoints without building Phase 05 domain entities prematurely.
+- **Decision:**
+  - Implement modular settings (`config.settings.base`, `development`, `staging`, `production`, `test`) reading from environment variables.
+  - Establish a secure middleware stack:
+    - `CorrelationIDMiddleware`: generates/propagates `X-Request-ID` (UUIDv7/UUIDv4) across requests, responses, and log records.
+    - `SecurityHeadersMiddleware`: enforces strict HSTS, CSP baseline, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy.
+    - `LoggingRedactionMiddleware`: automatically scrubs passwords, tokens, authorization headers, and health data from logs.
+    - `TenantContextMiddleware`: foundation interface for tenant context extraction.
+  - Standardize error responses to RFC 7807 problem details with `type`, `title`, `status`, `detail`, `instance`, `message_key`, and `field_errors`.
+  - Provide safe foundation endpoints:
+    - `GET /healthz`: Public liveness endpoint returning HTTP 200 `{"status": "pass"}` without leaking infrastructure secrets.
+    - `GET /readyz`: Dependency readiness check validating PostgreSQL database and Redis connectivity.
+    - `GET /api/v1/meta`: Safe public API metadata (version, supported locales, auth strategy).
+- **Consequences:** Robust, observable, secure backend shell ready for Phase 05 identity and tenancy.
+
+---
+
+### ADR-049 — Hosting and Dual-Region Deployment Strategy (Evaluation & Phase 04 Baseline)
+- **Status:** **Accepted (Decision Gate Defined)**
+- **Context:** Founder mandated dual-region capability for Persian/Iran-related users and European/international users without prematurely provisioning duplicate production cloud infrastructure in Phase 04.
+- **Decision:**
+  - Build a strictly provider-neutral containerized architecture (`Dockerfile` + `docker-compose.yml`).
+  - Compare Managed PaaS, EU Cloud (Hetzner/AWS EU), Bare VPS, Dual-Region Active-Passive (Iran Edge Proxy + EU Core), and Dual-Region Active-Active across 10 evaluation dimensions in `docs/architecture/HOSTING_AND_DATA_RESIDENCY_DECISION.md`.
+  - Establish Phase 04 baseline: Local Docker Compose + EU Staging Container Environment.
+  - Production deployment and multi-region routing remain behind an explicit founder decision gate prior to commercial launch.
+  - Zero real cloud credentials or sensitive data duplicated across regions in Phase 04.
+- **Consequences:** Preserves maximum architectural agility, avoids premature infrastructure expenditure, and maintains strict GDPR/data residency compliance.
 

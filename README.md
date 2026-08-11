@@ -3,130 +3,113 @@
 Bilingual, mobile-first fitness coaching operating system for coaches, gyms, and athletes.
 
 > **Product name:** not finalized. Working codename: **CoachOS**.  
-> **License:** MIT (Review Pending Founder Decision — see `docs/DECISIONS.md` ADR-012)  
-> **Status:** Phase 02 complete — UX, Information Architecture, and Design System. No application code yet.
+> **License:** Proprietary / All Rights Reserved (ADR-012 — Copyright (c) 2026 CoachOS Technologies / Ali Naderi)  
+> **Status:** Phase 04 complete — Project Foundation & PWA Baseline. Runnable monorepo with Next.js 14, Django 5, PostgreSQL 16, Redis 7, PWA shell, and bilingual RTL/LTR engine.
 
-## Vision
+---
 
-CoachOS is a B2B2C SaaS platform that connects training programming, athlete logging, progress tracking, coach–athlete communication, and (later) nutrition, billing, and carefully governed AI assistance.
+## 1. Vision and Architecture
 
-**Paying customers:** coaches, gyms, and professional teams.  
-**Athletes/clients:** free or included in the coach’s plan.
+CoachOS is a B2B2C SaaS platform that connects training periodization, workout execution, athlete telemetry, coach–athlete communication, and (later) nutrition, monetization, and carefully governed AI assistance.
 
-Long-term differentiation:
+- **Paying Customers:** Gym organizations and independent strength coaches.
+- **Athletes / Clients:** Free/included via coach invitations.
+- **Architecture:** Modular monolith with Next.js 14 App Router frontend, Django 5 REST Framework backend, PostgreSQL 16 relational database, Redis 7 task cache/broker, and a PWA-first mobile delivery engine.
 
-- Shared athlete profile with permissioned multi-professional collaboration
-- Excellent **Persian (`fa-IR`, RTL)** and **English (`en-US`, LTR)** support
-- Localized training and nutrition content
-- Low-bandwidth and PWA-first delivery
-- Coach business tools and monetization
-- Safe, explainable, human-reviewed AI assistance
-- Strong data ownership, consent, and portability
+---
 
-## Language policy (non-negotiable)
+## 2. Language Policy (Non-Negotiable)
 
 | Locale | Direction | Status |
-|--------|-----------|--------|
-| `fa-IR` (Persian) | RTL | In scope |
-| `en-US` (English) | LTR | In scope |
-| Arabic and all other languages | — | **Out of scope** until explicitly requested |
+|---|---|---|
+| `fa-IR` (Persian) | RTL | **In scope** (Primary) |
+| `en-US` (English) | LTR | **In scope** (International) |
+| Arabic and all other languages | — | **Strictly out of scope** (ADR-003) |
 
-Do not add Arabic translation, locale, seed data, or UI. Architecture may remain extensible for future locales.
+---
 
-## Current phase
+## 3. Quick Start (Local Development)
 
-| Phase | Name | Status |
-|-------|------|--------|
-| 00 | Discovery and Repository Audit | **Complete** (PR #3 merged) |
-| 01 | Product Requirements and Scope | **Complete** (PR #4 merged) |
-| 02 | UX, Information Architecture, and Design System | **Complete** |
-| 03 | Architecture, Data, Security, and Privacy | Next |
-| 04–14 | See [`PROJECT_CHECKLIST.md`](./PROJECT_CHECKLIST.md) | Not started |
+### 3.1 Start with Docker Compose
+```bash
+# 1. Copy template environment variables
+cp .env.example .env
 
-## Repository state
+# 2. Build and run all services (DB, Redis, Backend, Celery, Frontend)
+docker compose up --build
+```
 
-This repository is currently in the documentation, requirements, and UX design specification stage:
+### 3.2 Access Services
+| Service | URL / Host | Health / Status |
+|---|---|---|
+| **Frontend PWA** | `http://localhost:3000` | Browse `http://localhost:3000/fa-IR` |
+| **Backend REST API** | `http://localhost:8000` | `curl http://localhost:8000/healthz` |
+| **API Metadata** | `http://localhost:8000/api/v1/meta` | `curl http://localhost:8000/api/v1/meta` |
+| **Readiness Check** | `http://localhost:8000/readyz` | `curl http://localhost:8000/readyz` |
 
-- PR #3 and PR #4 merged into `main` (commit `392108372450dc8a40fe79c6201144733955b7c0`)
-- Phase 02 complete on working branch `arena/019febfc-coachos-fitness-coaching-platf`
-- No application source, dependencies, CI, tests, or deployment config (by design)
-- Complete Product Requirements Package and UX Design System authored in `docs/`
+See [`docs/architecture/LOCAL_DEVELOPMENT.md`](./docs/architecture/LOCAL_DEVELOPMENT.md) for direct host (non-Docker) setup.
 
-## Documentation map
+---
 
-| Document | Purpose |
-|----------|---------|
-| [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) | Living project status |
-| [`PROJECT_CHECKLIST.md`](./PROJECT_CHECKLIST.md) | Phase checklist with evidence |
-| [`CHANGELOG.md`](./CHANGELOG.md) | Human-readable change log |
-| [`docs/MASTER_PRODUCT_BRIEF.md`](./docs/MASTER_PRODUCT_BRIEF.md) | Product vision and principles |
-| [`docs/PRD.md`](./docs/PRD.md) | Full product requirements document (P0 stories, ACs, NFRs) |
-| [`docs/PERSONAS.md`](./docs/PERSONAS.md) | 6 comprehensive user personas |
-| [`docs/USER_JOURNEYS.md`](./docs/USER_JOURNEYS.md) | 5 end-to-end user journeys |
-| [`docs/DOMAIN_GLOSSARY.md`](./docs/DOMAIN_GLOSSARY.md) | Bilingual domain terminology glossary (English & Persian) |
-| [`docs/COMPETITIVE_LANDSCAPE.md`](./docs/COMPETITIVE_LANDSCAPE.md) | Competitive benchmarking (10 platforms) & differentiation |
-| [`docs/DECISIONS.md`](./docs/DECISIONS.md) | Architecture and product decision log (28 ADRs) |
-| [`docs/DATA_MODEL.md`](./docs/DATA_MODEL.md) | Conceptual and logical domain entity models |
-| [`docs/API_CONTRACT.md`](./docs/API_CONTRACT.md) | Versioned REST API specifications and error contracts |
-| [`docs/SECURITY_AND_PRIVACY.md`](./docs/SECURITY_AND_PRIVACY.md) | Security baseline, data classification taxonomy, and privacy lifecycle |
-| [`docs/TRACEABILITY_MATRIX.md`](./docs/TRACEABILITY_MATRIX.md) | End-to-end requirements traceability matrix |
-| [`docs/RELEASE_PLAN.md`](./docs/RELEASE_PLAN.md) | Phased release plan and milestone backlogs |
-| [`docs/PROMPT_LOG.md`](./docs/PROMPT_LOG.md) | Founder/agent prompt history |
-| **UX & Design System Suite** | |
-| [`docs/ux/INFORMATION_ARCHITECTURE.md`](./docs/ux/INFORMATION_ARCHITECTURE.md) | Role-based IA, site map, and routing hierarchy |
-| [`docs/ux/NAVIGATION_MODEL.md`](./docs/ux/NAVIGATION_MODEL.md) | Multi-device navigation patterns & dual-pane builder |
-| [`docs/ux/SCREEN_INVENTORY.md`](./docs/ux/SCREEN_INVENTORY.md) | Full specifications for 34 P0 screens |
-| [`docs/ux/USER_FLOWS.md`](./docs/ux/USER_FLOWS.md) | Step-by-step user flows with Mermaid sequence/flow diagrams |
-| [`docs/ux/WIREFRAMES.md`](./docs/ux/WIREFRAMES.md) | Bidirectional ASCII wireframes for core screens (LTR & RTL) |
-| [`docs/ux/DESIGN_SYSTEM.md`](./docs/ux/DESIGN_SYSTEM.md) | Component library specifications, states, and accessibility |
-| [`docs/ux/DESIGN_TOKENS.md`](./docs/ux/DESIGN_TOKENS.md) | Visual tokens (colors, type, spacing, elevation, motion) with contrast checks |
-| [`docs/ux/RTL_LTR_SPECIFICATION.md`](./docs/ux/RTL_LTR_SPECIFICATION.md) | CSS logical properties, bidirectional mirroring & Persian BiDi |
-| [`docs/ux/RESPONSIVE_BEHAVIOR.md`](./docs/ux/RESPONSIVE_BEHAVIOR.md) | Breakpoints, one-handed mobile gym ergonomics & thumb zones |
-| [`docs/ux/ACCESSIBILITY_SPEC.md`](./docs/ux/ACCESSIBILITY_SPEC.md) | WCAG 2.2 AA accessibility specifications & verification checklist |
-| [`docs/ux/STATE_AND_ERROR_MATRIX.md`](./docs/ux/STATE_AND_ERROR_MATRIX.md) | 8-state handling & progressive offline PWA matrix |
-| [`docs/ux/UX_COPY.md`](./docs/ux/UX_COPY.md) | Non-clinical bilingual microcopy dictionary (EN & FA) |
-| [`docs/ux/UX_TRACEABILITY_MATRIX.md`](./docs/ux/UX_TRACEABILITY_MATRIX.md) | 1:1 mapping from P0 user stories to UX specifications |
-| [`docs/ux/UX_RESEARCH_AND_ASSUMPTIONS.md`](./docs/ux/UX_RESEARCH_AND_ASSUMPTIONS.md) | Hypothesis categorization, research questions & usability plan |
-| **Phase Reports** | |
-| [`docs/reports/PHASE-00-DISCOVERY-REPORT.md`](./docs/reports/PHASE-00-DISCOVERY-REPORT.md) | Phase 00 completion report |
-| [`docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`](./docs/reports/PHASE-01-REQUIREMENTS-REPORT.md) | Phase 01 completion report |
-| [`docs/reports/PHASE-02-UX-DESIGN-REPORT.md`](./docs/reports/PHASE-02-UX-DESIGN-REPORT.md) | Phase 02 completion report |
+## 4. Running Quality Gates and Tests
 
-## Proposed technical stack (pending Phase 03 confirmation)
+### 4.1 Backend Tests & Linting
+```bash
+cd backend
+source .venv/bin/activate
+ruff check .
+pytest --cov=apps --cov=config
+```
 
-| Layer | Preferred choice | Notes |
-|-------|------------------|-------|
-| Frontend | React / Next.js + TypeScript | Coach desktop + athlete mobile-first PWA |
-| Backend | Django + Django REST Framework | Modular monolith, strong auth/admin/ORM |
-| Database | PostgreSQL 16 | Primary system of record (pg_trgm for search) |
-| Jobs | Redis 7 + Celery | Async email, notifications, exports |
-| Media | S3-compatible object storage | Signed URLs; rights metadata required |
-| API docs | OpenAPI (DRF spectacular or equivalent) | API-first |
-| PWA | Web App Manifest + Service Worker | Phase 04 shell, Phase 07 mobile, Phase 12 sync |
-| Tests | Pytest, frontend unit/component, Playwright E2E | RTL and LTR visual testing |
-| CI | GitHub Actions | Lint, typecheck, security scanning |
-| Architecture | Modular monolith | No microservices for MVP |
+### 4.2 Frontend Tests & Linting
+```bash
+cd frontend
+npm run lint
+npm run type-check
+npm test
+```
 
-## MVP (P0) summary
+### 4.3 Security & Arabic Exclusion Scanner
+```bash
+bash infra/scripts/check-secrets.sh
+```
 
-1. Identity, organizations/tenancy, roles, invitations (single-location MVP)  
-2. Bilingual UI (`fa-IR` RTL / `en-US` LTR) with Persian font (`Vazirmatn`)  
-3. Exercise library with i18n names, Persian search normalization, and media rights metadata  
-4. Training program builder, templates, version snapshots, assignment  
-5. Athlete today-view, mobile set logging, rest timer, pain/fatigue feedback  
-6. Coach–athlete messaging and in-app notifications  
-7. Admin moderation, immutable audit events, basic analytics  
-8. Security/privacy baseline (export/deletion design, consent hooks)  
-9. PWA foundation (Web App Manifest, installable shell)
+---
 
-**Out of MVP:** Arabic locale, marketplace, payments, nutrition professional workflows, wearables, advanced AI, native apps.
+## 5. Repository Structure
 
-## Security notice
+```
+CoachOS-Fitness-Coaching-Platform/
+├── frontend/                     # Next.js 14 App Router, TypeScript, PWA, Tailwind CSS
+├── backend/                      # Django 5 + DRF, Python 3.12 target, modular settings
+├── infra/                        # Dockerfiles, scripts, container configurations
+├── docs/                         # Specifications, architecture, UX, reports, threat models
+│   ├── architecture/             # Architecture specifications (ADRs, C4, PWA, CI/CD, Hosting)
+│   ├── reports/                  # Phase execution reports
+│   └── ux/                       # UX design system, wireframes, and design tokens
+├── .github/workflows/            # GitHub Actions CI quality gates
+├── docker-compose.yml            # Multi-container orchestration
+├── .env.example                  # Environment variable template
+└── LICENSE                       # Proprietary / All Rights Reserved notice
+```
 
-- Never commit secrets, production credentials, or real personal health data.
-- Treat body composition, injury notes, nutrition, sleep, and progress photos as sensitive.
-- See [`docs/SECURITY_AND_PRIVACY.md`](./docs/SECURITY_AND_PRIVACY.md).
+---
 
-## License
+## 6. Phase Status
 
-MIT — see [`LICENSE`](./LICENSE). Copyright (c) 2026 Ali Naderi. (Review pending founder approval per ADR-012).
+| Phase | Description | Status | Evidence Link |
+|---|---|---|---|
+| **00** | Discovery & Audit | **Complete** | [`docs/reports/PHASE-00-DISCOVERY-REPORT.md`](./docs/reports/PHASE-00-DISCOVERY-REPORT.md) |
+| **01** | Requirements & PRD | **Complete** | [`docs/reports/PHASE-01-REQUIREMENTS-REPORT.md`](./docs/reports/PHASE-01-REQUIREMENTS-REPORT.md) |
+| **02** | UX & Design System | **Complete** | [`docs/reports/PHASE-02-UX-DESIGN-REPORT.md`](./docs/reports/PHASE-02-UX-DESIGN-REPORT.md) |
+| **03** | Architecture & Security | **Complete** | [`docs/reports/PHASE-03-ARCHITECTURE-REPORT.md`](./docs/reports/PHASE-03-ARCHITECTURE-REPORT.md) |
+| **04** | Project Foundation & PWA | **Complete** | [`docs/reports/PHASE-04-FOUNDATION-REPORT.md`](./docs/reports/PHASE-04-FOUNDATION-REPORT.md) |
+| **05** | Identity, Tenancy & Roles | **Next** | Awaiting explicit founder authorization |
+
+---
+
+## 7. License & Intellectual Property
+
+Proprietary / All Rights Reserved.  
+Copyright (c) 2026 CoachOS Technologies / Ali Naderi. All rights reserved.  
+See [`LICENSE`](./LICENSE) and [`docs/DECISIONS.md`](./docs/DECISIONS.md) ADR-012.

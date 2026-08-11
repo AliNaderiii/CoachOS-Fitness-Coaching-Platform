@@ -1,155 +1,37 @@
 # Project Status — CoachOS
 
-**Last updated:** 2026-08-10 (UTC)  
-**Current phase:** Phase 03 — Architecture, Data, Security, and Privacy (**complete**)  
-**Next phase:** Phase 04 — Project Foundation and PWA Baseline (awaiting explicit instruction)  
-**Working branch:** `arena/019fed02-coachos-fitness-coaching-platf`  
-**Base commit (main):** `771afa668e71b0b181218be2e4d768e60f4f36f9` (PR #5 merged)  
+**Last updated:** 2026-08-11 (UTC)  
+**Current phase:** Phase 04 — Project Foundation and PWA Baseline (**complete**)  
+**Next phase:** Phase 05 — Identity, Tenancy, and Roles (awaiting explicit founder instruction)  
+**Working branch:** `arena/019fefbf-coachos-fitness-coaching-platf`  
+**Base commit (main):** `692b2b02ac23d8ad433270fa9ea585f5dc860768` (PR #6 merged)  
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform  
-**License:** MIT (Review Pending Founder Decision — see ADR-012)
+**License:** Proprietary / All Rights Reserved (ADR-012 — Copyright (c) 2026 CoachOS Technologies / Ali Naderi)
 
 ---
 
 ## 1. One-Line Status
 
-Phase 03 architecture complete: C4 system context + container diagrams, 20 domain modules (M01-M20) with boundaries, ERD with 30+ entities + tenant isolation + snapshot immutability + consent revocation, RBAC+ABAC+consent authorization matrix, P0 provisional OpenAPI 3.1 `/api/v1` catalog (25+ groups) with RFC7807 error + message_key, STRIDE threat model 21 threats + OWASP mapping + security control matrix with negative authorization tests, privacy lifecycle Tier0-8 11 stages + pre-DPIA checklist, media storage private buckets no listing signed URLs TTL≤15min MIME whitelist thumbnail rights metadata takedown, PWA three-level strategy Phase04/07/12 with offline durability boundary wording normalized, observability structured JSON logs + redaction + request_id + metrics + Sentry + healthz/readyz + alerting, backup/DR PITR 15min RPO proposed 1h RTO versioned S3 Redis loss acceptable + restore runbooks + incident/breach response + rollback, 43 ADRs (ADR-012 license pending founder approval, ADR-017 UUIDv7 proposed requires validation). **Zero application code, dependencies, migrations created — specification only.** Phase 02 verified 34 screens exact, 14 UX spec docs (+README), 27 P0 stories, no invalid story IDs, Persian terminology precise Perso-Arabic script keyboard-variant normalization for Persian search, no Arabic product scope.
-
-## 1.1 Phase 02 Verification (Post PR #5 Merge) — Preflight Review Details in Phase03 Report §3
-
-- PR #5 merged: `771afa668e71b0b181218be2e4d768e60f4f36f9` — Phase 02 package now in `main`.
-- Screen count verified: 34 unique P0 screen IDs in SCREEN_INVENTORY.md — exact count, no 28+.
-- UX document count verified: 14 specification documents under `docs/ux/` (+ README = 15 files).
-- Story traceability verified: 27 P0 stories (US-AUTH-001..US-PWA-001 including US-I18N-001/002) — no invalid IDs (US-ATH-006 etc corrected in Phase02 report).
-- Offline wording verified: Phase04 cached shell only offline fallback; Phase07 temporary in-memory preservation unsaved input retained temporarily retry required after reconnection no durable queue; Phase12 durable IndexedDB queue. Wording normalized per preflight.
-- Persian terminology verified: "Perso-Arabic script keyboard-variant normalization for Persian search" / "Persian Unicode character-variant folding" used; no "Arabic Yeh/Kaf variant folding" as product scope — variant examples only to explain keyboard-variant input, no Arabic localization.
-- Design-system consistency verified: 44px minimum per WCAG 2.5.5, 48px preferred design target for primary CTAs — requires implementation testing — consistent across DESIGN_SYSTEM, NAVIGATION_MODEL, RESPONSIVE_BEHAVIOR, ACCESSIBILITY_SPEC.
-- Color tokens, Persian font Vazirmatn + Inter, breakpoints 6-tier xs-2xl, mobile 5-tab bottom nav Today/Calendar/Progress/Messages/Profile, Jalali/Gregorian UTC storage + Jalali UI display fa-IR, modal focus trapping Escape dismiss, dark-theme proposal not proven glare reduction benefit — design target requires user testing.
-- Corrections made before architecture work: CHANGELOG story count 29→27, PROJECT_STATUS branch/base commit updated to 771afa6 and arena/019fed02, PRD scenario title "Search query with Arabic Yeh" → "Search query with Perso-Arabic variant (Yeh) — Perso-Arabic script keyboard-variant normalization for Persian search" with clarification no Arabic product support implied, preflight section added to Phase03 report.
-- Working branch for Phase 03: `arena/019fed02-coachos-fitness-coaching-platf` from updated `main`.
-- No application code created in preflight.
-
-## 1.2 Phase 03 Architecture Review Corrections (PR #6 Review — Correction-Only Task)
-
-**Commit:** Correction commit on Phase03 branch `arena/019fed02-coachos-fitness-coaching-platf` after `ddbdceb` — addressing critical review items, no app code.
-
-**1. Critical secret-manager boundary correction (Task 1):**
-- Removed forbidden `FE --> SecretMgr` relationship from `DEPLOYMENT_ARCHITECTURE.md` topology diagram and clarified forbidden.
-- Updated diagrams: only `BE --> SecretMgr` and `Worker --> SecretMgr` allowed, plus `FE -->|Public runtime config only NEXT_PUBLIC_* vars NO private secrets| BE`.
-- Updated `CONTAINER_ARCHITECTURE.md` 3.1 Frontend: Frontend MUST NEVER access Secrets Manager directly — private secrets only to backend/worker via server-side injection, frontend only public `NEXT_PUBLIC_*` runtime config, no private secrets in bundle/render/proxy, bundle secret scan CI.
-- Updated `CONTAINER_ARCHITECTURE.md` 3.2 Backend: Only backend/worker may access Secrets Manager via server-side injection, private secrets never exposed to frontend.
-- Updated `SYSTEM_CONTEXT.md` Trust Boundaries: Frontend trust boundary untrusted, never accesses Secrets Manager, only public config, private secrets only backend/worker, explicit prohibition no long-lived tokens in localStorage.
-- Updated `COMPONENT_BOUNDARIES.md` §5 Security Boundaries: Secret Manager boundary critical correction, frontend never accesses, public NEXT_PUBLIC_* only, plus auth transport consistency.
-- Updated `THREAT_MODEL.md` T02 preventive: added secret boundary correction FE --> SecretMgr forbidden + bundle secret scan.
-- Updated `SECURITY_CONTROL_MATRIX.md` T02 row: added secret boundary correction + bundle secret scan verification.
-
-**2. CSP correction (Task 2):**
-- Replaced placeholder `script-src 'self' 'unsafe-inline' ?` with clear proposed strategy: production preferred nonce- or hash-based `script-src 'self' 'nonce-{random}' 'strict-dynamic' https:`, no `unsafe-inline` as accepted production control.
-- Temporary exception if Next.js requires `unsafe-inline` during Phase04: explicitly marked temporary, documented risk XSS inline injection bypasses CSP, defines hardening task TODO-CSP-001 migrate to nonce before pilot, not presented as accepted production control, do not claim CSP finalized before implementation validation.
-- Updated `DEPLOYMENT_ARCHITECTURE.md` §7 CSP Proposed Strategy (Correction) with example policy `default-src 'self'; img-src ...; script-src 'self' 'nonce-{random}' 'strict-dynamic' https:` etc, nonce generation per request, hash alternative, additional headers X-Frame-Options DENY etc, implementation note via middleware.
-- Updated `CONTAINER_ARCHITECTURE.md` security: CSP headers prefer nonce/hash-based, no unsafe-inline as accepted production unless temporary exception documented with risk and TODO-CSP-001.
-- Updated `THREAT_MODEL.md` T02 and T09 preventive: CSP production preferred nonce/hash-based, temporary unsafe-inline marked temporary with risk + TODO-CSP-001.
-
-**3. Authentication transport consistency (Task 3):**
-- Reconciled docs mentioning both cookies and Bearer tokens: defined one recommended MVP strategy and one optional alternative.
-- Recommended MVP: HttpOnly/Secure/SameSite cookie sessions (sessionid): HttpOnly true (JS inaccessible), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation), no long-lived tokens in localStorage explicit prohibition, CSRF double-submit or Django CSRF middleware backend sets csrftoken cookie readable + X-CSRFToken header for POST/PATCH/DELETE, trust boundary browser untrusted backend authoritative.
-- Optional alternative Bearer/JWT: short-lived access ≤15min in memory (not localStorage) + rotating refresh in HttpOnly Secure SameSite cookie with reuse detection revoking all sessions on reuse, explicit prohibition never store long-lived tokens in localStorage/sessionStorage, Authorization header Bearer intrinsically CSRF-resistant but still need XSS protections.
-- Final choice for first implementation: cookie sessions (simpler Django built-in), JWT alternative optional proposed/conditional requiring Phase04 validation.
-- Updated `CONTAINER_ARCHITECTURE.md` 3.2 Backend Auth, `COMPONENT_BOUNDARIES.md` §5 Security Boundaries, `SYSTEM_CONTEXT.md` Trust Boundaries, `DECISIONS.md` ADR-005 and ADR-032 with corrected transport consistency, `OPENAPI.yaml` info description + securitySchemes descriptions + x-auth-strategy recommended cookieAuth optional bearerAuth notes + security top-level order cookieAuth first.
-
-**4. Data-model integrity corrections (Task 4):**
-- **4.1 Organization owner source of truth:** Defined invariant in `ERD.md` Organization section: owner_user_id authoritative source of truth for single owner MVP, exactly one active Membership role=owner per org must exist and its user_id must equal owner_user_id, Membership owner row derived automatically managed not independently mutable, creation transaction creates both, transfer via `OrganizationService.transferOwnership()` updating owner_user_id and swapping Memberships atomically audit `org.owner_transferred`, drift prevention via service + periodic check, future multi-owner would make owner_user_id nullable or removed Membership set authoritative. No migrations in Phase03 — conceptual invariant only. Updated `DATA_MODEL.md` Organization and `DECISIONS.md` ADR-014.
-- **4.2 Membership multi-role behavior:** Defined in `ERD.md` Membership section: schema allows multi-role via UNIQUE(user_id, organization_id, role), MVP policy single primary role recommended but multi-role allowed explicitly enabled, effective permissions = union of all active roles (most permissive, priority owner>coach>support>athlete for UI), role elevation audited membership.created/status_changed/role_changed, active org + active role via session active_organization_id + optional active_role, frontend receives memberships array + effective_permissions computed server-side union, UI role switcher if multiple roles default highest privilege, no privilege escalation via client. Updated `DATA_MODEL.md` Membership and `DECISIONS.md` ADR-014.
-- **4.3 Assignment reactivation/reassignment:** Defined invariant in `ERD.md` CoachAthleteAssignment: previous permanent unique prevented recreation after archival, corrected to partial unique for active only `UNIQUE(organization_id, coach_user_id, athlete_user_id) WHERE status='active'` (or WHERE archived_at IS NULL) — allows historical archived rows + recreation, only one active per triple. Added fields archived_at ended_at, workflow archival sets status archived + timestamps audit, reactivation creates new row preserving history (preferred) or reactivates if no active exists, reassignment archives old + creates new, idempotent assign returns existing if active. No migrations — conceptual invariant proposed Phase04/05. Updated `DATA_MODEL.md` CoachAthleteAssignment.
-
-**5. Backup and disaster-recovery wording (Task 5):**
-- Corrected `BACKUP_AND_DISASTER_RECOVERY.md` 1.2 Object Storage Backups: clarified versioning ≠ independent backup nor cross-region DR, versioning provides recovery within same bucket/region via noncurrent versions/delete markers but does not protect against region failure/b bucket deletion/account compromise unless combined with CRR and MFA Delete, versioning does not automatically satisfy deletion/erasure requirements — erasure must permanently delete all versions and delete markers, versioning is one layer not full backup, independent backup/replication considerations, CRR optional requires cost/legal approval, lifecycle retention proposed not guarantee balanced with erasure.
-- Corrected 1.3 Redis: Redis not source of truth but important async jobs must have durable DB state or outbox/retry — create DB record first (ExportRequest, ErasureRequest, Invitation, Notification) then enqueue Celery, reconciliation job re-enqueues pending.
-- Corrected 3 RPO/RTO targets: labeled proposed targets not guarantees, require validation via restore drills, depend on WAL frequency, operational readiness, not SLA commitments, added notes multi-AZ requires cost approval, S3 durability 11 9s but versioning alone not cross-region DR, versioning ≠ erasure compliance must delete all versions on erasure, Redis queue must have durable DB state via outbox pattern.
-- Corrected 4 Disaster Scenarios: clarified versioning ≠ backup nor cross-region DR, not automatic erasure compliance, CRR requires cost/legal approval, Redis failure needs durable DB state outbox/retry.
-- Updated `DEPLOYMENT_ARCHITECTURE.md` §8 Backup & Restore Hooks and §9 RPO/RTO targets similarly: clarified versioning ≠ independent backup nor cross-region DR, versioning ≠ erasure compliance, RPO/RTO proposed targets not guarantees, cross-region replication multi-AZ retention residency require cost/legal approval, Redis not source of truth but important jobs must have durable DB state or outbox/retry.
-
-**6. API specification validation (Task 6):**
-- Validated `OPENAPI.yaml` as specification artifact via regex checks (yaml module not available per no-install rule, used manual parsing):
-  - openapi version 3.1.0 OK, YAML parses via Ruby? Attempted python yaml not available, used regex validation.
-  - All local $ref references resolve: 135 total $ref, 135 local, missing schema refs [] (checked against 59 defined schemas).
-  - Security schemes consistent with corrected auth strategy: bearerAuth description corrected to optional alternative short-lived ≤15min memory + rotating refresh HttpOnly cookie reuse detection explicit prohibition localStorage, cookieAuth description corrected to recommended MVP HttpOnly Secure SameSite Lax CSRF double-submit, frontend never accesses Secrets Manager.
-  - Error responses RFC7807-compatible with localized message_key extension: ErrorEnvelope contains type (URI), title, status, detail, instance + message_key + field_errors — present true.
-  - P0 endpoint groups align with API_CONTRACT, PRD story IDs, authorization rules: tags list includes Authentication, Organizations, Locations, Memberships, Invitations, Exercise Catalog, Exercise Moderation, Programs, Templates, Assignments, Athlete Today, Workout Sessions, Set Logs, Progress, Consent, Messages, Notifications, Audit Events, Privacy, Media — no Payment/AI/Wearable as P0 implemented (forbidden tags check false, /webhooks/payments not present).
-  - No future payment, AI, wearable endpoint presented as implemented P0 functionality — verified no /payments, /ai, /wearable paths.
-  - Documented as provisional until Phase04 implementation validation — version updated to 1.0.1-provisional-corrected, info description includes correction notes for secret boundary, CSP, auth transport consistency, OpenAPI validity.
-- If issue found, corrected spec and documented remains provisional until Phase04 implementation validation — done via info description + version bump.
-
-**Files Changed in Correction Commit:** DEPLOYMENT_ARCHITECTURE, CONTAINER_ARCHITECTURE, SYSTEM_CONTEXT, COMPONENT_BOUNDARIES, THREAT_MODEL, SECURITY_CONTROL_MATRIX, OPENAPI.yaml, ERD, DATA_MODEL, DECISIONS, BACKUP_AND_DISASTER_RECOVERY, PHASE-03-ARCHITECTURE-REPORT, PROJECT_STATUS, CHANGELOG, PROMPT_LOG (upcoming).
-
-**No Application Code Created:** Verified via find backend frontend package.json requirements.txt migrations — none beyond docs — spec only.
-
-## 1.3 Final Phase 03 Review Fixes (PR #6 — Final Review, Correction-Only Task 2)
-
-**Commit:** Final review correction commit on Phase03 branch `arena/019fed02-coachos-fitness-coaching-platf` after `b6ea570` — addressing final review items, no app code, no dependencies, no migrations, no secrets.
-
-**1. Remove misleading public-config frontend-to-backend arrow (Task 1 Final):**
-- Previous correction removed forbidden `FE --> SecretMgr` correctly, but introduced misleading `FE -->|Public runtime config only NEXT_PUBLIC_* NO private secrets| BE` — public frontend runtime config is not a secret request from frontend to backend.
-- **Corrected Diagrams and Text to:**
-  - Frontend receives public runtime config from its deployment/build configuration (PublicConfigProvider), not via secret request to backend.
-  - Backend and worker receive private secrets through server-side secret injection (Secrets Manager).
-  - Browser/frontend does not access Secrets Manager.
-  - Frontend does not send public runtime config to backend as secret-management flow.
-  - Normal frontend-to-backend relationship remains API request relationship only.
-  - **Clear notation used:**
-    - `PublicConfigProvider --> FE` (public config only)
-    - `BE --> SecretMgr` (private secrets)
-    - `Worker --> SecretMgr` (private secrets)
-    - `FE --> BE : HTTPS /api/v1 requests only` (normal API, no secret-management flow)
-- Applied to: `DEPLOYMENT_ARCHITECTURE.md` (topology diagram updated to include Config subgraph with PublicConfigProvider and SecretMgr, correct arrows), `CONTAINER_ARCHITECTURE.md` (fallback generic flow updated with PublicConfig and SecretMgr nodes and correct notation), `SYSTEM_CONTEXT.md` (fallback generic flow updated with Config subgraph, PublicConfig --> Web public runtime config only, Web --> API HTTPS /api/v1 only, API --> SecretMgr private secrets only, no frontend access), `COMPONENT_BOUNDARIES.md` (security boundaries text already corrected, no FE --> SecretMgr, no misleading public config arrow — verified via grep).
-- Also verified `THREAT_MODEL.md` and `SECURITY_CONTROL_MATRIX.md` do not contain misleading flow — only contain explanatory text about forbidden `FE --> SecretMgr` being forbidden and removed, which is acceptable as documentation of correction, not as diagram relationship.
-
-**2. Make OpenAPI auth response consistent with recommended cookie-session MVP (Task 2 Final):**
-- `OPENAPI.yaml` correctly recommends `cookieAuth` for MVP and keeps bearer/JWT as optional alternative, but `AuthResponse` previously presented `access_token` and `refresh_token` as ordinary response properties without conditional nature.
-- **Corrected OpenAPI spec so that:**
-  - Cookie-session registration/login responses do NOT imply access and refresh tokens are returned to frontend — recommended MVP uses HttpOnly session cookie (sessionid) via Set-Cookie header and CSRF mechanism (csrftoken cookie + X-CSRFToken header).
-  - `access_token` and `refresh_token` are now explicitly marked optional/nullable (`nullable: true`) and clearly documented as present only when optional bearer strategy is selected.
-  - Added `csrf_token` optional/nullable field present only when cookieAuth MVP is used, with description about CSRF double-submit.
-  - Added separate schemas `CookieAuthResponse` (recommended MVP — no tokens in body, HttpOnly cookie via Set-Cookie, CSRF token) and `BearerAuthResponse` (optional alternative — short-lived access ≤15min memory + rotating HttpOnly refresh cookie).
-  - Updated `AuthResponse` description block with corrected auth transport consistency final fix details: recommended MVP cookieAuth no tokens in body, optional bearer tokens optional/nullable only when bearer selected, explicit prohibition no long-lived tokens in localStorage/sessionStorage, frontend never accesses Secrets Manager, provisional until Phase04.
-  - Updated `/auth/register` and `/auth/login` endpoint descriptions to clarify MVP cookieAuth issues session via Set-Cookie + CSRF, no tokens in body for MVP, tokens optional only when bearer optional alternative, rate-limited, no long-lived tokens in localStorage, FE --> SecretMgr forbidden, public config PublicConfigProvider --> FE, private secrets BE/Worker --> SecretMgr, FE --> BE HTTPS /api/v1 only, provisional until Phase04.
-  - `security`, `securitySchemes`, `AuthResponse`, registration, login, ADR-032 remain consistent: security top-level order cookieAuth first (recommended), bearerAuth second (optional alternative), securitySchemes descriptions updated to reflect corrected transport consistency, x-auth-strategy notes updated.
-  - No long-lived token may be stored in localStorage or sessionStorage — explicit prohibition in AuthResponse and securitySchemes.
-  - Kept `OPENAPI.yaml` provisional until Phase04 implementation validation — version bumped to `1.0.1-provisional-corrected` previously, now remains provisional with additional correction note version stays same but content corrected, or bump to `1.0.2-provisional-final-review`? Keep as `1.0.1-provisional-corrected` with additional final review correction notes — document as provisional.
-
-**3. Validation after correction (Task 3):**
-- Parse `OPENAPI.yaml` as YAML if parser available — yaml module not available per no-install rule (attempted `import yaml` failed), used manual regex validation.
-- Confirm it is OpenAPI 3.1: openapi version 3.1.0 OK.
-- Confirm all local $ref references resolve: total $ref 137 local 137 missing schema refs [] (61 defined schemas after adding CookieAuthResponse and BearerAuthResponse).
-- Confirm no frontend-to-Secrets-Manager relationship remains in architecture diagrams: grep -Rn "FE --> SecretMgr" in docs/architecture/ shows only in explanatory text about forbidden/removed, not in actual mermaid diagram arrow (checked via grep -v forbidden/removed). Correct notation present: PublicConfigProvider --> FE, BE --> SecretMgr, Worker --> SecretMgr, FE --> BE HTTPS /api/v1 requests only — verified via grep.
-- Confirm no application source code, dependencies, migrations, secrets, real health data added: find backend frontend package.json requirements.txt Dockerfile .github/workflows/migrations — none beyond docs — spec only — verification passed.
-
-**Files Changed in Final Review Correction Commit (Expected):**
-- `docs/architecture/DEPLOYMENT_ARCHITECTURE.md` — remove misleading FE -->|Public runtime config| BE arrow, replace with correct notation PublicConfigProvider --> FE, BE --> SecretMgr, Worker --> SecretMgr, FE --> BE HTTPS /api/v1 requests only
-- `docs/architecture/CONTAINER_ARCHITECTURE.md` — update fallback generic flow to include PublicConfigProvider and SecretMgr nodes, correct arrows, update Boundaries text to reflect final fix removes misleading arrow and uses correct notation
-- `docs/architecture/SYSTEM_CONTEXT.md` — update fallback generic flow to include Config subgraph PublicConfigProvider and SecretMgr, correct arrows PublicConfig --> Web, Web --> API HTTPS /api/v1 only, API --> SecretMgr private secrets only
-- `docs/OPENAPI.yaml` — make AuthResponse tokens optional/nullable, document conditional presence only when optional bearer strategy selected, add csrf_token optional, add CookieAuthResponse and BearerAuthResponse schemas, update /auth/register and /auth/login descriptions to clarify MVP cookie session no tokens in body, optional bearer tokens optional, explicit prohibitions, keep security schemes consistent, remain provisional
-- `docs/reports/PHASE-03-ARCHITECTURE-REPORT.md` — add Section 36 final review fixes, update validation results
-- `PROJECT_STATUS.md` — add Section 1.3 final review fixes
-- `PROJECT_CHECKLIST.md` — note final review fixes applied (if needed)
-- `CHANGELOG.md` — add final review correction entry
-- `docs/PROMPT_LOG.md` — append Prompt 006 final review fixes
-- `docs/DECISIONS.md` — update ADR-032 and ADR-005 if auth/API decision clarified (AuthResponse correction)
-
-**No Application Code Created:** Verified via find backend frontend package.json requirements.txt migrations Dockerfile CI workflows — none beyond docs.
+Phase 04 foundation complete: Modular monorepo established (`frontend/` Next.js 14 App Router + `backend/` Django 5 DRF + `infra/` Docker Compose + `.github/workflows/`), runnable bilingual PWA shell (`fa-IR` RTL / `en-US` LTR with dynamic HTML attributes and zero Arabic resources), Web App Manifest + Service Worker app-shell caching with offline fallback page, 21 backend Pytest tests passing (100%), 29 frontend Vitest tests passing (100%), safe health endpoints (`/healthz`, `/readyz`, `/api/v1/meta`), RFC 7807 problem details error envelopes with localized message keys, Correlation ID (`X-Request-ID` UUIDv7), Security Headers, Logging Redaction, strict frontend secret boundary (`NEXT_PUBLIC_*` only), ADR-012 Proprietary license applied, and comprehensive Hosting & Data Residency evaluation documented with pre-pilot decision gate. **Zero Phase 05 domain features (users, orgs, programs, workouts) created prematurely — foundation only.**
 
 ---
 
-## 2. Post-Merge Repository State & Artifact Verification (Phase03 Complete + Correction + Final Review Fixes)
+## 2. Phase 04 Implementation Summary
 
-| Area | Post-Merge State | Evidence / Artifact Link |
-|------|------------------|--------------------------|
-| Main Base Commit | `771afa668e71b0b181218be2e4d768e60f4f36f9` | PR #5 merged into `main` (Phase 02) — Phase 03 branch from updated main |
-| Working Branch | `arena/019fed02-coachos-fitness-coaching-platf` | Phase 03 complete, pending review |
-| Application Source (Frontend/Backend) | None (by design) | Verified via `find` no backend/frontend dirs, no package.json, no .py/.tsx app source, no migrations — spec only |
-| Dependencies / Lockfiles | None (by design) | Verified no package-lock, requirements.txt added |
-| Database Migrations | None (by design) | Verified no migrations folder |
-| Documentation Suite | Phase 02 complete (34 screens, 14 UX specs, 27 P0 stories) + Phase 03 complete (43 ADRs, SYSTEM_CONTEXT, CONTAINER_ARCHITECTURE, COMPONENT_BOUNDARIES, DATA_FLOW, DEPLOYMENT_ARCHITECTURE, ERD, DOMAIN_MODULES, AUTHORIZATION_ARCHITECTURE, PWA_ARCHITECTURE, MEDIA_STORAGE, OBSERVABILITY, BACKUP_AND_DISASTER_RECOVERY, README, OPENAPI.yaml, JSON_SCHEMAS, THREAT_MODEL, PRIVACY_DATA_LIFECYCLE, SECURITY_CONTROL_MATRIX, ARCHITECTURE_VALIDATION_CHECKLIST, PHASE-03 report) | See section 4 inventory |
-| LICENSE | MIT (pre-existing) | ADR-012 pending founder approval — MIT vs Proprietary vs Open-Core vs Private commercial |
+| Area | Implemented Artifacts | Verification / Tests |
+|---|---|---|
+| **Monorepo Architecture** | `frontend/`, `backend/`, `infra/`, `.github/`, `docker-compose.yml`, `compose.yaml`, `.env.example`, `.gitignore` | Local development verified via Docker & direct runtime |
+| **Frontend Shell** | Next.js 14.2 App Router, TypeScript strict, Tailwind logical CSS, dark obsidian theme (`#0B0F17`), placeholder dashboard screens clearly marked as foundation-only | 29 Vitest tests passing; Next.js static build verified (17 pages generated) |
+| **PWA Baseline** | `manifest.json`, `manifest.webmanifest`, `sw.js` (Cache-First static, Network-First navigation), 192px/512px maskable PNG icons, `/offline` page, `NetworkStatusBanner`, `InstallPromptBanner` | Manifest validation test passing; PWA icon dimension test passing; Service worker caching verified |
+| **Bilingual RTL/LTR Engine** | Dynamic `lang` and `dir` on HTML root, `fa-IR` RTL, `en-US` LTR, BiDi text isolation (`<bdi>`), Persian search normalizer (`PersianNormalizer`), Jalali date conversion | i18n tests passing; dictionary 100% key parity; Jalali converter test passing |
+| **Language Governance** | Strict exclusion of Arabic locale files (`ar-*.json`, `ar.json`, `ar.po`) across frontend and backend | `test_no_arabic.py` passing; `no-arabic.test.ts` passing; CI check-secrets scanner passing |
+| **Backend REST API** | Django 5.2 + DRF 3.18, modular settings (`base`, `dev`, `staging`, `prod`, `test`), `CorrelationIDMiddleware`, `SecurityHeadersMiddleware`, `LoggingRedactionMiddleware`, `TenantContextMiddleware` | 21 Pytest tests passing; 79% overall test coverage (90%+ core) |
+| **Safe Health Endpoints** | `GET /healthz` (200 OK liveness), `GET /readyz` (DB + Redis check), `GET /api/v1/meta` (safe public metadata) | `test_health.py`, `test_readyz.py`, `test_meta.py` passing |
+| **Error Handling & Security** | RFC 7807 Problem Details envelope with `message_key`, zero internal stack traces in client responses, log redaction, HttpOnly session cookie config | `test_errors.py`, `test_drf_exceptions.py`, `test_security_headers.py`, `test_secret_leakage.py` passing |
+| **Entity Identifiers** | Time-ordered UUIDv7 generator (`id_generator.py`) with fallback | `test_uuidv7.py` passing; verified time-ordering trend |
+| **CI/CD Quality Gates** | `.github/workflows/ci.yml`, `.github/workflows/security-scan.yml`, `infra/scripts/check-secrets.sh` | Lint (Ruff + ESLint), Type-check (tsc), Unit tests (Vitest + Pytest), Secret scanning, Arabic exclusion |
+| **License & IP** | Transitioned to Proprietary / All Rights Reserved notice in `LICENSE` and ADR-012 | `LICENSE` file updated; ADR-012 accepted per founder mandate |
+| **Hosting & Data Residency** | Comprehensive 10-dimension evaluation of PaaS, EU Cloud, Bare VPS, Dual-Region in `HOSTING_AND_DATA_RESIDENCY_DECISION.md` | Decision gate established; zero cloud credentials in Git |
 
 ---
 
@@ -157,111 +39,31 @@ Phase 03 architecture complete: C4 system context + container diagrams, 20 domai
 
 1. **Languages:** Persian (`fa-IR`, RTL) and English (`en-US`, LTR) **only**.
 2. **Arabic is strictly out of scope:** No Arabic locale files, translations, UI text, or requirements.
-3. **No Marketplace, Payments, or Autonomous AI in P0:** Deferred to P1/P2 backlogs (Marketplace P2, Payments Phase10 P1, AI Phase11 P2).
+3. **No Marketplace, Payments, or Autonomous AI in P0:** Deferred to P1/P2 backlogs.
 4. **B2B2C SaaS Model:** Organizations/coaches are paying customers; athlete accounts are free/included.
-5. **PWA-First Delivery:** Foundation in Phase 04, athlete validation in Phase 07, advanced offline in Phase 12.
+5. **PWA-First Delivery:** Level 1 Foundation (Phase 04 complete), Level 2 Athlete Execution (Phase 07), Level 3 Advanced Offline Sync (Phase 12).
 6. **Single-Location MVP:** Organizations have a single primary facility in P0; multi-location in P1.
-7. **Calendar Strategy:** UTC/Gregorian backend storage with Jalali UI rendering in `fa-IR` locale (ADR-009 accepted conditional).
-8. **No Secrets or Real Health Data in Repository:** Synthetic data only, verification via gitleaks proposed in CI.
-9. **No Application Code in Phase 03:** Mermaid, OpenAPI YAML, JSON Schema, SQL-like conceptual DDL, threat-model tables allowed as spec artifacts.
+7. **Calendar Strategy:** UTC/Gregorian backend storage with Jalali UI rendering in `fa-IR` locale (ADR-009).
+8. **No Secrets or Real Health Data in Repository:** Synthetic data only; verified via automated CI security scanner.
+9. **License:** Proprietary / All Rights Reserved (ADR-012).
 
 ---
 
-## 4. Documentation Inventory (Phase 03 Final)
+## 4. Risks, Blockers & Open Items
 
-### Product & Requirements (Phase 00–01)
-- `README.md`: Project overview and documentation index.
-- `PROJECT_STATUS.md`: Active living status (this file) — Phase 03 complete.
-- `PROJECT_CHECKLIST.md`: Master phase checklist — Phase 03 [x] complete.
-- `CHANGELOG.md`: Keep-a-Changelog — Phase 03 preflight corrections + architecture additions.
-- `docs/MASTER_PRODUCT_BRIEF.md`: Core product brief.
-- `docs/PRD.md`: Full PRD with P0 stories (27 exact), acceptance criteria, permissions matrix, NFRs, P1/P2 backlogs — preflight correction Persian terminology.
-- `docs/PERSONAS.md`: 6 personas.
-- `docs/USER_JOURNEYS.md`: 5 journeys.
-- `docs/DOMAIN_GLOSSARY.md`: Bilingual domain glossary with Persian normalization definition.
-- `docs/COMPETITIVE_LANDSCAPE.md`: Benchmark 10 competitors.
-- `docs/DECISIONS.md`: 43 ADRs (ADR-001..ADR-043) — license pending founder approval, UUIDv7 proposed requires validation, backup RTO/RPO proposed requires cost approval.
-- `docs/DATA_MODEL.md`: v2.0 Phase03 finalized pointing to ERD authoritative, UUIDv7 proposed, snapshot immutability, consent revocation, private photo storage.
-- `docs/API_CONTRACT.md`: v2.0 Phase03 finalized provisional pointing to OPENAPI.yaml, RFC7807 + message_key.
-- `docs/SECURITY_AND_PRIVACY.md`: v2.0 Phase03 pointing to threat model, control matrix, privacy lifecycle Tier0-8, pre-DPIA.
-- `docs/TRACEABILITY_MATRIX.md`: End-to-end RTM.
-- `docs/RELEASE_PLAN.md`: v2.0 Phase03 finalized Milestone M3 complete.
-- `docs/PROMPT_LOG.md`: Append-only history — Prompt 004 Phase03.
-- `docs/reports/PHASE-00-DISCOVERY-REPORT.md`, `PHASE-01-REQUIREMENTS-REPORT.md`, `PHASE-02-UX-DESIGN-REPORT.md` (34 screens, 14 UX docs, 27 stories verified).
-
-### Architecture, Data, Security, Privacy (Phase 03)
-- `docs/architecture/SYSTEM_CONTEXT.md`: C4 context actors P0/P1/P2, external services, trust boundaries, sensitive-data boundaries, Mermaid C4Context + fallback flowchart.
-- `docs/architecture/CONTAINER_ARCHITECTURE.md`: C4 container Next.js frontend + Django modular monolith + PG16 + Redis7 Celery + private S3 + email abstraction + future push/payment/AI/wearable dashed, deployment topology, failure modes, NFR targets proposed.
-- `docs/architecture/COMPONENT_BOUNDARIES.md`: Frontend Next.js app structure [locale]/(auth)/(app)/(coach)/(org)/(admin) 34 screens mapping + backend Django apps 20 modules + middleware stack RequestID/SecurityHeaders/OrgScope/AuthZ/Audit + dependency rules import-linter + sequence diagram assignment.
-- `docs/architecture/DATA_FLOW.md`: Flows auth/invite, exercise search Persian normalization pg_trgm, assignment snapshot JSONB immutable, workout logging offline boundary Phase04/07/12, progress photo consent + signed URL gated, messaging, privacy export/erasure sequence.
-- `docs/architecture/DEPLOYMENT_ARCHITECTURE.md`: Logical deployment PaaS vs K8s options, env local/staging/prod distinct VPC/DB/buckets/secrets, Docker + GitHub Actions CI/CD lint/type/unit/integration/security scan Playwright E2E staging auto prod manual gate, TLS HSTS CSP, secrets manager, backup hooks, RPO/RTO proposed table.
-- `docs/architecture/ERD.md`: erDiagram 30+ entities relationship, detailed entity specs PK/FK/tenant ownership/sensitive fields/indexes/unique constraints/state machines/soft-delete/archive policy/audit/retention/localization, identifier UUIDv7 proposed not authz substitute, soft-delete archived_at, conceptual DDL illustrative, legend, rendering validation.
-- `docs/architecture/DOMAIN_MODULES.md`: 20 modules M01-M20 responsibility owned entities public interfaces read/write deps security boundary events emitted/consumed sensitivity test boundary extraction risk + dependency hierarchy + event bus in-process.
-- `docs/architecture/AUTHORIZATION_ARCHITECTURE.md`: RBAC P0 roles platform_admin/owner/coach/athlete/support + future nutritionist P1 consent-gated, org boundaries active context request.org_id, object-level assignment CoachAthleteAssignment, owner aggregate vs raw distinction no automatic raw photo/message, break-glass admin MFA+reason+audit, P1 nutritionist consent, photo consent, export/erasure self-only, audit visibility owner own org only coach/athlete forbidden, suspension immediate 403, invitation permissions owner any coach athlete-only, detailed matrix per sensitive resource create/read/update/archive/export/share/revoke/consent/audited, negative controls.
-- `docs/architecture/PWA_ARCHITECTURE.md`: Three-level strategy Phase04 manifest/icons/standalone/SW registration/app-shell caching/offline fallback/install guidance, Phase07 athlete mobile execution touch-optimized 44/48px form-state temp memory network indicator retry no durable queue promise, Phase12 IndexedDB durable queue sync status retry/backoff conflict resolution background sync push limitations HealthKit eval native bridge decision, browser limitations table Security, file structure.
-- `docs/architecture/MEDIA_STORAGE.md`: Media types Tier0/2/4 classification buckets private no listing BlockPublicAcls true versioning SSE-S3, signed URL TTL≤15min no caching Tier4 in SW, upload validation MIME magic bytes size limits checksum, thumbnail strategy Pillow ffmpeg, malware scan ClamAV proposed quarantine, provenance/license metadata mandatory, takedown workflow, photo access control matrix, future transcoding CDN rules, retention.
-- `docs/architecture/OBSERVABILITY.md`: Structured logging json structlog required fields timestamp level service request_id org_id actor_user_id action entity/id duration status message version redaction processor removes password token Authorization message content health details photo keys signed URLs IP hash, correlation request_id middleware X-Request-ID, audit vs debug separation ELK 30d vs audit PG 1y+, metrics Prometheus counters/histograms http_requests_total duration auth failures program_assignments workout_sessions set_logs media uploads signedURL notifications celery audit export db_connections cache_hit_ratio, error tracking Sentry, healthz/readyz checks DB Redis S3 Celery, alerting categories auth anomaly cross-tenant 403 spike photo 403 spike 5xx>1% latency p95 DB connections Redis S3 Celery queue export fail backup fail disk cert expiry.
-- `docs/architecture/BACKUP_AND_DISASTER_RECOVERY.md`: PG daily snapshot 30d retention proposed + WAL PITR RPO 15min RTO 1h restore+30m validation manual pre-migration snapshot, S3 versioning noncurrent expire 30d exports-tmp 7d lifecycle, Redis not source loss acceptable, code git, restore runbooks DB/S3, weekly automated restore testing smoke tests, RPO/RTO proposed table, disaster scenarios PG AZ failure corruption S3 delete Redis failure container crash accidental erasure secrets leaked, incident response detect triage contain investigate recover post-mortem communicate, breach response containment audit notification 72h if GDPR legal required, rollback app previous image + migration reverse 2-step add/dual-write/backfill/switch/drop with pre-migration snapshot, env separation distinct VPC/DB/buckets/secrets, open questions multi-AZ cost cross-region replication legal.
-- `docs/architecture/README.md`: Architecture docs index purpose doc index tech decisions summary verification no code rendering notes next phase.
-- `docs/architecture/ARCHITECTURE_VALIDATION_CHECKLIST.md`: V01-V22 checklist P0 domains owning modules sensitive entities access rules API groups boundaries stories→domains/APIs UX routes→frontend boundaries cross-tenant auth strategy media types rights export/deletion paths PWA sequencing consistency no Arabic no AI/payment/wearable P0 open legal/license visible no secrets/health data screen 34 UX doc 14 story 27 offline boundary touch 44/48 Jalali/Gregorian modal focus dark-theme Persian terminology.
-- `docs/OPENAPI.yaml`: OpenAPI 3.1 provisional /api/v1 covering auth, current user, orgs, locations, memberships, invitations, exercise catalog, moderation, programs, templates, assignments, today, sessions, set logs, substitutions, feedback flags, progress photos/metrics, consents, messages, notifications, audit, privacy export/deletion, media signed URLs — each method/path/purpose/auth/required role/object permission/request/response schema/error responses/localization/idempotency/audit/rate-limit/sensitivity, RFC7807 + message_key.
-- `docs/JSON_SCHEMAS.md`: JSON Schema draft 2020-12 snapshot immutable, queue entry offline Phase12, export manifest profile.json workouts.json, notification payload, consent, Persian normalizer pseudocode Perso-Arabic script keyboard-variant normalization.
-- `docs/THREAT_MODEL.md`: STRIDE 21 threats T01-T21 + OWASP Top10 mapping + controls preventive/detective/corrective + test strategy + residual risk.
-- `docs/PRIVACY_DATA_LIFECYCLE.md`: 11 lifecycle stages, Tier0-8 classification detailed per class purpose/legal assumption/owner/controller/access/encryption/logging retention/export/deletion/consent, consent lifecycle progress photo + nutrition P1, export pipeline ZIP via Celery tmp S3 24h link, erasure pipeline anonymization + S3 delete, retention questions, pre-DPIA checklist large-scale sensitive systematic monitoring profiling multi-prof sharing progress-photo wearable AI.
-- `docs/SECURITY_CONTROL_MATRIX.md`: Threat→Requirement→Architecture Control→Phase→Test Type→Evidence→Status including negative controls cross-tenant reads/writes unassigned coach suspended membership unauthorized photo/message/audit/export.
-- `docs/ARCHITECTURE_VALIDATION_CHECKLIST.md`: Copy of architecture validation checklist at docs level (required).
-- `docs/reports/PHASE-03-ARCHITECTURE-REPORT.md`: 31-section Phase 03 comprehensive report (this phase).
+| ID | Item | Severity | Status & Action |
+|---|---|---|---|
+| **ADR-012** | Proprietary License Legal Review | Low | **Founder Decision Applied:** Proprietary notice in place; formal IP counsel review recommended prior to commercial launch. |
+| **ADR-049** | Production Hosting Provider Selection | Medium | **Evaluation Complete:** Comparative matrix in `HOSTING_AND_DATA_RESIDENCY_DECISION.md`; production deployment gated until Phase 13 founder approval. |
+| **TODO-CSP-001** | CSP Strict Nonce Migration | Low | Next.js development uses `'unsafe-inline'`; migration to per-request cryptographic nonce planned before production pilot. |
+| **LEGAL** | Privacy Compliance (GDPR & Iran Data Residency) | High | Formal pre-DPIA documented; jurisdiction-specific legal review required before handling real production health telemetry. |
 
 ---
 
-## 5. Summary of Phase 03 Architecture Decisions
+## 5. Next Step
 
-1. **Modular Monolith Accepted (ADR-001):** Single deployable + strict domain package isolation via import-linter.
-2. **Tech Stack Conditionally Accepted (ADR-002):** Next.js 14 App Router + React + TS + Tailwind logical + next-pwa/Workbox proposed; Django 5 + DRF + Python 3.12; PG16 + pg_trgm + btree_gin + pgcrypto; Redis7 Celery; S3 private signed TTL≤15min; REST /api/v1 OpenAPI 3.1 provisional; PWA three-level; Playwright; GitHub Actions — requires Phase04 POC validation, founder infra choice pending.
-3. **Locales fa-IR/en-US only Arabic out of scope Accepted (ADR-003):** No Arabic locale/files/translations/requirements, CI lint NFR-I18N-04.
-4. **B2B2C Accepted (ADR-004):** Orgs/coaches pay; athletes included.
-5. **Auth Channel Email+Password Proposed Conditional (ADR-005, ADR-032):** Argon2id/bcrypt cost≥12, HttpOnly Secure SameSite Lax cookie, JWT rotating refresh 15min access optional, rate limit 5/15min Redis, reset token 15min single-use, invitation 7d SHA256 hashed single-use.
-6. **Authorization RBAC+ABAC+Consent Accepted (ADR-006):** Server-side 100%, tenant isolation org_id from auth context, CoachAssignment, Consent, break-glass MFA+reason+audit, owner aggregate vs raw distinction.
-7. **AI Deferred Phase11 Accepted (ADR-007):** Human-in-loop copilot, no autonomous medical claims.
-8. **Media Rights Provenance Accepted (ADR-008):** License metadata mandatory, admin moderation queue.
-9. **Calendar UTC Storage + Jalali UI Accepted Conditional (ADR-009):** Timestamptz UTC, ISO8601 API, frontend date-fns-jalali renders Jalali when locale fa-IR.
-10. **Monorepo Proposed (ADR-010):** frontend/ + backend/ + docs/ + .github/ scaffold Phase04.
-11. **PWA Sequencing Accepted (ADR-011):** Phase04 foundation manifest/icons/standalone/SW app-shell offline fallback install guidance, Phase07 athlete mobile execution touch-optimized logging temp preservation retry no durable queue, Phase12 durable IndexedDB queue sync status retry conflict background sync push limitations HealthKit eval.
-12. **License Pending Founder Approval (ADR-012):** MIT vs Proprietary vs Open-Core vs Private commercial — LICENSE remains MIT until written founder confirmation, do not change without explicit authorization.
-13. **Single-Location-First Accepted (ADR-013):** 1 primary location MVP via partial unique index, multi-location P1.
-14. **Membership Multi-Role Accepted Conditional (ADR-014):** Membership join table role owner/coach/athlete/support status invited/active/suspended unique (user_id, organization_id, role) allows multi-role.
-15. **Snapshot Versioning Accepted Conditional (ADR-015):** Immutable JSONB snapshot on assignment, deep copy phases/weeks/days/workouts/items/prescriptions, frozen_at, version, preserves historical integrity.
-16. **Soft-Delete vs Anonymized Hard Delete Accepted Conditional (ADR-016):** Operational entities archived_at soft-archive filtered, user erasure via anonymization pipeline PII wiped photos S3 deleted memberships archived aggregates disassociated, AuditEvent never deleted DB-level REVOKE.
-17. **UUIDv7 vs BigInt Proposed Requires Validation Not Authz Substitute (ADR-017):** Time-ordered 128-bit prevents enumeration supports offline client generation Phase12 queue, not authz substitute, validation required Phase04 python uuid6 + PG + JS support, fallback UUIDv4.
-18. **Persian Search Normalization Accepted Conditional (ADR-018):** Perso-Arabic script keyboard-variant normalization for Persian search — fold ي/ى→ی ك→ک digits ZWNJ, pg_trgm GIN indexes normalized_alias, precise wording not Arabic product support.
-19. **Data Ownership Accepted (ADR-019):** Athlete owns historical logs, org holds revocable operational access.
-20. **Multi-Professional Consent Accepted for P1 (ADR-020):** CoachAssignment + NutritionistAssignment + ConsentRecord per type.
-21. **Payment Gateway Abstraction Deferred Phase10 Accepted (ADR-021):** Shetab domestic / Stripe international abstraction, webhook idempotency verify signature.
-22. **Marketplace Deferred P2 Accepted (ADR-022):** No discovery marketplace in P0.
-23-28. **UX Decisions ADR-023..028 Accepted:** Athlete 5-tab bottom nav modal active canvas, coach dual-pane master-detail, Vazirmatn font, non-clinical UX language, explicit affirmative consent modal, dark obsidian #0B0F17 default design target requires user testing.
-29-43. **Phase03 Additional ADR-029..043 Proposed/Accepted:** Frontend Next.js boundaries, backend 20 modules, PG16 extensions, auth/session strategy, API error RFC7807 + message_key, media storage private signed, PWA three-level, offline boundary explicit, backup/RTO/RPO proposed requires cost approval, env separation, CI/CD GitHub Actions, observability structlog, OpenAPI 3.1 provisional, threat model STRIDE, privacy lifecycle Tier0-8 + pre-DPIA.
-
----
-
-## 6. Risks, Blockers & Open Items
-
-| ID | Risk / Decision Item | Severity | Status & Action |
-|----|----------------------|----------|-----------------|
-| **DEC-01** | Repository License Transition (ADR-012) | Medium | **Pending Founder Approval:** Founder to choose MIT vs Proprietary vs Open-Core before Phase04 scaffold — LICENSE remains MIT until written confirmation. |
-| **ADR-017** | UUIDv7 vs UUIDv4/BigInt identifier strategy | Medium | **Proposed Requires Validation:** Validate PG16 + Python uuid6 + JS support for UUIDv7 time-ordered in Phase04 POC; fallback UUIDv4; never use identifier as authz substitute. |
-| **ADR-037** | Backup/RTO/RPO targets cost | Medium | **Proposed Requires Validation + Founder Cost Approval:** Multi-AZ PG, cross-region replication for Tier4 bucket, retention 30d vs 7d, RPO 15min vs 5min. |
-| **R01** | Brand Legal Name & Trademark | Low | Continue CoachOS codename. |
-| **R06** | Persian Font Web Delivery | Medium | Font subsetting + font-display swap benchmarked Phase04 foundation. |
-| **R13** | Data Residency Region | Medium | Iran-compatible vs EU/international region selection requires legal review for PII residency. |
-| **R14** | Region selection for S3 provider (AWS vs R2 vs MinIO) | Low | Pending founder infra budget. |
-| **LEGAL** | Privacy Compliance (GDPR-adjacent Iran/EU) | High | **Requires jurisdiction-specific legal review before handling real health data — pre-DPIA checklist documented in PRIVACY_DATA_LIFECYCLE.md but formal DPIA required before commercial pilot.** |
-
----
-
-## 7. Next Step
-
-Phase 03 complete. Standing by for founder instruction to begin:
-**Phase 04 — Project Foundation and PWA Baseline**
-- Do not start Phase04 automatically.
-- Await explicit instruction.
-- Next phase will scaffold Next.js + Django modular monolith + PWA manifest + SW + DB migrations + CI pipeline — upon approval.
+Phase 04 complete. Standing by for explicit founder instruction to begin:
+**Phase 05 — Identity, Tenancy, and Roles**
+- Do not start Phase 05 automatically.
+- Await explicit founder instruction.
+- Next phase will implement User model, single-location Organization tenancy, secure invitation tokens, session authentication, and server-side RBAC/ABAC authorization tests.
