@@ -120,3 +120,26 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
   - Total test suite: 32 backend Pytest tests (100% pass), 30 frontend Vitest tests (100% pass), 18 static pages generated in Next.js build.
   - Updated documentation, checklist, changelog, and Phase 04 report.
 
+---
+
+## Prompt 009
+
+- **Date/time:** 2026-08-11 (UTC)
+- **Source:** Founder / supervising agent — Phase 04 Post-Merge Remediation
+- **Phase:** 04 — Project Foundation and PWA Baseline (Post-Merge Correction)
+- **Prompt Summary:**
+  - Audit merged `main` and address the absence of nine documented `frontend/lib/` source files.
+  - Because authoritative original source was unrecoverable, perform an explicitly founder-authorized **specification-based reimplementation**, not a restoration.
+  - Reimplement only the named public configuration, i18n dictionaries/helpers, API client, and service-worker registration files; preserve tracked tests and call sites as hard contracts.
+  - Retain the general `lib/` ignore rule and add only narrow `frontend/lib/` exceptions.
+  - Add focused tests, a separate correction report, and narrow tracking-document updates.
+  - Validate from a clean tracked-only checkout; push one remediation PR to `main` without merging it.
+  - Keep workflow activation separate and do not begin Phase 05.
+- **Actions Taken:**
+  - Verified current `origin/main` and merge base at `1c4a552ab86f6bca7b522492c8488614ae0d97de`.
+  - Reimplemented and tracked exactly nine `frontend/lib/` files from Phase 00–04 documentation, architecture decisions, UX copy, existing tests, and call sites; recorded all behavior assumptions in the correction report.
+  - Added narrow `.gitignore` exceptions, focused API client/service-worker tests, and expanded security, formatter, normalization, locale metadata, and exhaustive 54-key bilingual dictionary governance tests.
+  - Clean-validated implementation commit `8c268db973530157fb1468bc1838f8bca59f7310`: frontend `npm ci`, lint, type-check, 49 tests, and 18-page build passed; backend Ruff and 37 Pytest tests passed; secret/language/PWA/scope/ignore/tracked-file audits passed.
+  - Added `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`; retained the original Phase 04 report unchanged.
+  - Did not add workflow files or Phase 05 domain code.
+

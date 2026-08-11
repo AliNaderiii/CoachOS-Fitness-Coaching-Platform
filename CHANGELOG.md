@@ -7,6 +7,16 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 
 ## [Unreleased] — Phase 05 Identity, Tenancy, and Roles (awaiting founder authorization)
 
+### Fixed — Phase 04 Post-Merge Frontend Reimplementation
+
+- Recorded that the nine `frontend/lib/` files documented by Phase 04 were absent from merged `main`, authoritative original source was unrecoverable, and the founder authorized a specification-based reimplementation. This is not described as restoration or original-source recovery.
+- Reimplemented exactly the missing public-environment, locale metadata/dictionaries, formatter, Persian normalizer, BiDi, API client, and service-worker registration files from tracked Phase 00–04 specifications, tests, UX copy, and call sites.
+- Retained the root Python-oriented `lib/` ignore rule while adding only `/frontend/lib/` and `/frontend/lib/**` exceptions.
+- Added focused API client and service-worker tests and expanded public-config, UTC/date-boundary, normalization, locale-metadata, and exhaustive 54-key bilingual dictionary-governance coverage.
+- Clean-validated implementation commit `8c268db973530157fb1468bc1838f8bca59f7310`: frontend lint/type-check/49 tests/build (18 pages), backend Ruff/37 tests, compliance and scope scans, whitespace/ignore checks, and exact nine-file tracked-source audit all passed.
+- Added `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md` without rewriting the original Phase 04 report.
+- Kept GitHub Actions activation and Phase 05 out of scope; both require later separate authorization/review.
+
 ## [0.4.0] — 2026-08-11 — Phase 04 Project Foundation and PWA Baseline
 
 ### Added
