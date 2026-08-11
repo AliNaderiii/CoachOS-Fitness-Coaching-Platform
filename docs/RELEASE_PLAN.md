@@ -1,8 +1,9 @@
 # Release Plan and Phased Delivery Strategy — CoachOS
 
-**Document version:** 1.0.0 (Phase 01 Baseline)  
+**Document version:** 2.0.0 (Phase 03 Finalized)  
 **Last updated:** 2026-08-10  
-**Delivery Model:** Iterative Phased Delivery (Phases 00–14) with strict P0 / P1 / P2 product scope gates.
+**Delivery Model:** Iterative Phased Delivery (Phases 00–14) with strict P0 / P1 / P2 product scope gates.  
+**Phase 03 Update:** Milestone M3 Architecture & Security now complete — authoritative docs: SYSTEM_CONTEXT, CONTAINER_ARCHITECTURE, COMPONENT_BOUNDARIES, DATA_FLOW, DEPLOYMENT_ARCHITECTURE, ERD, DOMAIN_MODULES, AUTHORIZATION_ARCHITECTURE, PWA_ARCHITECTURE, MEDIA_STORAGE, OBSERVABILITY, BACKUP_AND_DISASTER_RECOVERY, README, OPENAPI.yaml, JSON_SCHEMAS, THREAT_MODEL, PRIVACY_DATA_LIFECYCLE, SECURITY_CONTROL_MATRIX, ARCHITECTURE_VALIDATION_CHECKLIST, PHASE-03-ARCHITECTURE-REPORT.
 
 ---
 
@@ -10,10 +11,10 @@
 
 | Phase | Phase Name | Scope Tier | Core Deliverables & Exit Criteria |
 |---|---|---|---|
-| **Phase 00** | Discovery & Audit | Baseline | Complete repository audit; vision; fa/en-only policy; baseline docs — **COMPLETED** |
-| **Phase 01** | Product Requirements & Scope | P0 Spec | Complete personas, journeys, P0 user stories with Gherkin ACs, NFR targets, updated PRD, RTM — **CURRENT** |
-| **Phase 02** | UX, Information Architecture & Design System | P0 Design | Navigation architecture, wireframes, Persian RTL & English LTR design tokens, WCAG 2.2 AA accessibility specs |
-| **Phase 03** | Architecture, Data, Security & Privacy | P0 Arch | Final ADRs, normalized PostgreSQL ERDs, server-side RBAC/ABAC authorization engine, threat model v1 |
+| **Phase 00** | Discovery & Audit | Baseline | Complete repository audit; vision; fa/en-only policy; baseline docs — **COMPLETED** PR #3 |
+| **Phase 01** | Product Requirements & Scope | P0 Spec | Complete personas, journeys, P0 user stories with Gherkin ACs, NFR targets, updated PRD, RTM — **COMPLETED** PR #4 |
+| **Phase 02** | UX, Information Architecture & Design System | P0 Design | Navigation architecture, wireframes (34 screens exact), 14 UX spec docs, Persian RTL & English LTR design tokens, WCAG 2.2 AA design target, PWA offline boundary documented — **COMPLETED** PR #5 |
+| **Phase 03** | Architecture, Data, Security & Privacy | P0 Arch | Final ADRs (43 ADRs), normalized PostgreSQL ERDs, C4 system/context/container, domain boundaries 20 modules, server-side RBAC/ABAC + consent matrix, threat model STRIDE 21 threats + control matrix, privacy lifecycle Tier0-8 + pre-DPIA, OpenAPI 3.1 provisional /api/v1, media storage private signed TTL≤15min, PWA three-level, observability + backup/DR RPO/RTO proposed — **COMPLETED** (this phase) |
 | **Phase 04** | Project Foundation & PWA Baseline | P0 Eng | Next.js + Django/DRF monorepo scaffold, CI/CD pipeline, health checks, **PWA foundation (Manifest, installable shell, SW)** |
 | **Phase 05** | Identity, Tenancy & Access Control | P0 Core | User auth, single-location MVP orgs, email invites, server-side RBAC/ABAC tests, audit log pipeline |
 | **Phase 06** | Exercise Library & Program Builder | P0 Core | Bilingual exercise catalog, Persian search folding, media rights metadata, hierarchical program builder, templates |
@@ -55,7 +56,7 @@ CoachOS follows a progressive PWA deployment strategy:
 - [x] `DOC-001`: Master brief, status, checklist, security baseline
 - [x] `DOC-002`: Phase 00 Discovery Report committed and merged (PR #3)
 
-### Milestone M1: Requirements & Scope (Phase 01) — `[x] Active`
+### Milestone M1: Requirements & Scope (Phase 01) — `[x] Complete`
 - [x] `REQ-001`: Comprehensive Personas (`docs/PERSONAS.md`)
 - [x] `REQ-002`: Detailed User Journeys (`docs/USER_JOURNEYS.md`)
 - [x] `REQ-003`: P0 MVP User Stories with Gherkin Acceptance Criteria (`docs/PRD.md`)
@@ -78,15 +79,15 @@ CoachOS follows a progressive PWA deployment strategy:
 - [x] `UX-010`: UX research assumptions & validation plan (`docs/ux/UX_RESEARCH_AND_ASSUMPTIONS.md`)
 - [x] `DOC-004`: Phase 02 UX & Design System Report (`docs/reports/PHASE-02-UX-DESIGN-REPORT.md`)
 
-### Milestone M3: Architecture & Security (Phase 03) — `[ ] Planned`
-- [ ] `ARCH-001`: System context and C4 container diagrams
-- [ ] `ARCH-002`: Finalized ADR package (stack, auth, database, caching)
-- [ ] `ARCH-003`: Normalized PostgreSQL physical data model & ERD diagrams
-- [ ] `ARCH-004`: Server-side authorization matrix & ABAC rules
-- [ ] `SEC-001`: Comprehensive threat model & OWASP Top 10 mitigation
-- [ ] `SEC-002`: Privacy lifecycle & data export/erasure pipeline design
-- [ ] `API-001`: Complete OpenAPI 3.1 specification catalog
-- [ ] `DOC-005`: Phase 03 Architecture & Security Report
+### Milestone M3: Architecture & Security (Phase 03) — `[x] Complete`
+- [x] `ARCH-001`: System context and C4 container diagrams — `docs/architecture/SYSTEM_CONTEXT.md`, `CONTAINER_ARCHITECTURE.md`
+- [x] `ARCH-002`: Finalized ADR package (stack, auth, database, caching, monorepo, module boundaries, identifier, search normalization, error model, media, PWA, offline, backup, env, CI/CD, observability, OpenAPI, threat, privacy) — `docs/DECISIONS.md` ADR-002..ADR-043, ADR-012 license pending founder approval
+- [x] `ARCH-003`: Normalized PostgreSQL physical data model & ERD diagrams — `docs/architecture/ERD.md`, `docs/DATA_MODEL.md` v2.0, `docs/architecture/DOMAIN_MODULES.md`
+- [x] `ARCH-004`: Server-side authorization matrix & ABAC rules — `docs/architecture/AUTHORIZATION_ARCHITECTURE.md` RBAC P0 roles + future nutritionist P1 consent-gated + progress-photo consent + break-glass + negative controls
+- [x] `SEC-001`: Comprehensive threat model & OWASP Top 10 mitigation — `docs/THREAT_MODEL.md` STRIDE 21 threats + `docs/SECURITY_CONTROL_MATRIX.md` with negative controls for cross-tenant, unassigned coach, suspended, photo, message, audit, export
+- [x] `SEC-002`: Privacy lifecycle & data export/erasure pipeline design — `docs/PRIVACY_DATA_LIFECYCLE.md` 11 stages Tier0-8, consent lifecycle, export ZIP via Celery tmp S3 24h link, erasure anonymization pipeline, pre-DPIA checklist, retention questions
+- [x] `API-001`: Complete OpenAPI 3.1 specification catalog — `docs/OPENAPI.yaml` /api/v1 provisional covering all P0 groups with purpose/auth/role/object-permission/request/response/error/localization/idempotency/audit/rate-limit/sensitivity + RFC7807 + message_key, `docs/JSON_SCHEMAS.md` snapshot + queue + export manifest
+- [x] `DOC-005`: Phase 03 Architecture & Security Report — `docs/reports/PHASE-03-ARCHITECTURE-REPORT.md` 31 sections
 
 ### Milestones M4–M14 (Future Execution Phases)
 - **M4 (Foundation):** Scaffold backend, frontend, CI, and PWA manifest.

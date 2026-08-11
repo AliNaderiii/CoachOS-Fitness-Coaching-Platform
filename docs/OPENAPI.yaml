@@ -1,0 +1,2423 @@
+openapi: 3.1.0
+info:
+  title: CoachOS API
+  description: |
+    Provisional OpenAPI 3.1 specification for CoachOS B2B2C fitness coaching platform — P0 MVP (Correction Phase 03 review).
+    Covers authentication, organizations, memberships, invitations, exercise catalog, moderation, programs, templates, assignments, athlete Today view, workout sessions, set logs, feedback flags, progress metrics/photos, messages, notifications, audit events, privacy export/deletion.
+    This file is a specification artifact only — not implemented in Phase 03. Requires implementation review in Phase 04. Remains provisional until Phase 04 validation.
+
+    **Authentication Transport Consistency — Corrected (ADR-032):**
+    - **Recommended MVP Strategy:** HttpOnly/Secure/SameSite cookie sessions (Django sessionid):
+      - HttpOnly true (JS inaccessible, prevents XSS theft), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation, Lax balances usability vs Strict).
+      - No long-lived tokens in localStorage/sessionStorage — explicit prohibition.
+      - CSRF strategy for cookie-based mutations: double-submit token or Django CSRF middleware — frontend reads csrftoken cookie (non-HttpOnly readable) and sends X-CSRFToken header for POST/PATCH/DELETE, backend verifies, SameSite=Lax additional layer.
+      - Frontend/backend trust boundary: browser untrusted, backend authoritative, all auth checks server-side.
+    - **Optional Alternative (Bearer/JWT):** If bearer/JWT retained:
+      - Short-lived access ≤15min in memory (not localStorage), rotating refresh in HttpOnly Secure SameSite cookie with reuse detection revoking all sessions on reuse.
+      - Explicit prohibition: never store long-lived refresh/access tokens in localStorage/sessionStorage.
+      - When using bearer, Authorization header Bearer not auto-sent cross-origin, intrinsically CSRF-resistant, but still need XSS protections and HttpOnly refresh.
+    - **Final Choice for First Implementation:** Cookie sessions (simpler, Django built-in). JWT alternative remains optional, marked proposed/conditional requiring Phase 04 validation. Both schemes documented but recommendation clear.
+
+    **Secrets Boundary Correction:**
+    - Frontend MUST NEVER access Secrets Manager directly — private secrets (DB URLs, Django SECRET_KEY, Redis/S3 credentials, email API keys, JWT signing keys) only to backend/worker via server-side injection. Frontend only public NEXT_PUBLIC_* runtime config. FE --> SecretMgr forbidden and removed from diagrams.
+
+    **CSP Correction:**
+    - Production preferred nonce/hash-based script-src (script-src 'self' 'nonce-{random}' 'strict-dynamic' https:), no unsafe-inline as accepted production control. Temporary unsafe-inline exception during Phase04 if framework requires, marked temporary with risk and hardening task TODO-CSP-001, not finalized before validation.
+
+    Languages: Persian fa-IR RTL + English en-US LTR only. Arabic out of scope. No payment/AI/wearable endpoints as P0 implemented.
+    Error model: RFC7807 compatible + message_key extension for localized frontend messages.
+
+    **OpenAPI Validity:** YAML parses successfully, OpenAPI 3.1, all local $ref resolve, security schemes consistent with corrected auth strategy, error responses RFC7807-compatible with message_key, P0 endpoint groups align with API_CONTRACT, PRD story IDs, authorization rules, no future payment/AI/wearable as P0.
+
+  version: 1.0.1-provisional-corrected
+  contact:
+    name: CoachOS Platform Team
+    url: https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
+  license:
+    name: MIT (Review Pending Founder Decision — ADR-012)
+
+servers:
+  - url: https://api.coachos.example.com/api/v1
+    description: Production (proposed — replace with real domain)
+  - url: https://staging-api.coachos.example.com/api/v1
+    description: Staging
+  - url: http://localhost:8000/api/v1
+    description: Local development
+
+security:
+  - cookieAuth: []  # Recommended MVP — HttpOnly Secure SameSite=Lax, CSRF double-submit, no localStorage long-lived tokens
+  - bearerAuth: []  # Optional alternative — short-lived ≤15min in memory + rotating refresh in HttpOnly cookie, explicit prohibition localStorage
+
+x-auth-strategy:
+  recommended: cookieAuth
+  optional: bearerAuth
+  notes: |
+    Recommended MVP cookie sessions per ADR-032 corrected: HttpOnly true, Secure true, SameSite Lax, CSRF token header X-CSRFToken, no long-lived tokens in localStorage. Optional JWT alternative short-lived access in memory + rotating refresh HttpOnly cookie reuse detection. Frontend/backend trust boundary browser untrusted backend authoritative. FE --> SecretMgr forbidden — private secrets only backend/worker via server-side injection.
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: User Registration & Email Credential Onboarding
+      description: |
+        Public endpoint. Creates User record with Argon2id/bcrypt hash.
+        **Recommended MVP (cookieAuth):** Issues session via HttpOnly Secure SameSite=Lax session cookie (sessionid) set via Set-Cookie header + CSRF token via csrftoken cookie for state-changing mutations. No access_token/refresh_token in body for MVP — tokens optional/nullable only when optional bearer strategy selected.
+        **Optional Alternative (bearerAuth):** Short-lived access ≤15min in memory + rotating refresh HttpOnly cookie with reuse detection.
+        Rate-limited per IP. No long-lived tokens in localStorage. Frontend never accesses Secrets Manager — public config only via PublicConfigProvider --> FE, private secrets BE/Worker --> SecretMgr.
+        Provisional until Phase04 validation.
+      operationId: register
+      security: []
+      x-purpose: Onboard unauthenticated user via email+password
+      x-required-role: Public
+      x-object-permission: None — new user
+      x-audit-event: user.registered
+      x-rate-limit: 5/min per IP
+      x-data-sensitivity: Tier1 Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              coach:
+                value:
+                  email: coach.reza@example.com
+                  password: SecurePassword123!
+                  display_name: Reza Rahimi
+                  preferred_locale: fa-IR
+                  invitation_token: optional_token
+      responses:
+        '201':
+          description: Created + authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Duplicate email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Secure Password Authentication
+      description: |
+        Verifies credentials, resets failed counters on success, establishes session. Rate-limited.
+        **Recommended MVP (cookieAuth):** Establishes HttpOnly Secure SameSite=Lax session cookie via Set-Cookie header + CSRF token, no tokens in body. No long-lived tokens in localStorage.
+        **Optional Alternative (bearerAuth):** Returns short-lived access ≤15min in memory (optional/nullable) + rotating refresh HttpOnly cookie with reuse detection — only when bearer strategy selected.
+        Frontend never accesses Secrets Manager — public config only via PublicConfigProvider --> FE, private secrets BE/Worker --> SecretMgr. FE --> BE HTTPS /api/v1 requests only.
+        Provisional until Phase04 validation.
+      operationId: login
+      security: []
+      x-required-role: Public
+      x-audit-event: auth.login, auth.login_failed, auth.login_rate_limit_exceeded
+      x-rate-limit: 5 fails per 15min per IP/email
+      x-data-sensitivity: Tier1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Current user profile
+      description: Returns authenticated user profile + memberships. Locale via Accept-Language.
+      operationId: getCurrentUser
+      x-required-role: Authenticated
+      x-object-permission: Self only
+      x-audit-event: none
+      x-localization: Returns display_name etc; Accept-Language fa-IR/en-US; formats numbers via intl client-side
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [Authentication]
+      summary: Update current user profile
+      description: Update display_name, preferred_locale, preferred_unit, timezone. Requires auth.
+      operationId: updateCurrentUser
+      x-required-role: Authenticated self
+      x-audit-event: user.profile_updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/forgot-password:
+    post:
+      tags: [Authentication]
+      summary: Request password reset link
+      description: Generates cryptographically random single-use token 15min TTL, sends localized email.
+      operationId: forgotPassword
+      security: []
+      x-rate-limit: 5/15min per IP/email
+      x-audit-event: auth.password_reset_requested
+      x-data-sensitivity: Tier1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '202':
+          description: Accepted (always returns 202 to avoid email enumeration)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message_key:
+                    type: string
+                    example: auth.reset_email_sent_if_exists
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /auth/reset-password/{token}:
+    post:
+      tags: [Authentication]
+      summary: Confirm password reset with single-use token
+      description: Invalidates all active sessions after success, token single-use enforcement 400 on reuse.
+      operationId: resetPasswordConfirm
+      security: []
+      x-audit-event: auth.password_reset_completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [new_password]
+              properties:
+                new_password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message_key:
+                    type: string
+                    example: auth.password_reset_success
+        '400':
+          description: Token invalid/used/expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '410':
+          description: Token expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /organizations:
+    post:
+      tags: [Organizations]
+      summary: Create organization workspace
+      description: Creates org + primary location + owner membership. Slug unique check 409.
+      operationId: createOrganization
+      x-required-role: Authenticated user
+      x-object-permission: Any authenticated user can create tenant
+      x-audit-event: org.created
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationRequest'
+      responses:
+        '201':
+          description: Org created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      tags: [Organizations]
+      summary: List organizations I belong to
+      description: Returns organizations for authenticated user via memberships.
+      operationId: listMyOrganizations
+      x-required-role: Authenticated
+      responses:
+        '200':
+          description: List
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  organizations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrganizationResponse'
+
+  /organizations/{org_id}:
+    get:
+      tags: [Organizations]
+      summary: Get organization settings
+      description: Owner full, Coach limited, Athlete branding only, Support read.
+      operationId: getOrganization
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      x-required-role: Membership active in org
+      x-object-permission: org_id filter from server context
+      responses:
+        '200':
+          description: Org
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Organizations]
+      summary: Update organization settings
+      description: Owner only.
+      operationId: updateOrganization
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      x-required-role: Owner
+      x-audit-event: org.settings_updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganizationRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /organizations/{org_id}/locations:
+    get:
+      tags: [Locations]
+      summary: Get primary location
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      x-required-role: Org member read-only
+      responses:
+        '200':
+          description: Location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+    patch:
+      tags: [Locations]
+      summary: Update primary location (single-location MVP)
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      x-required-role: Owner
+      x-audit-event: org.location_updated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationRequest'
+      responses:
+        '200':
+          description: Updated location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+
+  /organizations/{org_id}/invitations:
+    post:
+      tags: [Memberships]
+      summary: Dispatch organization invitation
+      description: Owner can invite Coach/Athlete/Support, Coach can invite Athlete only. Generates secure 7-day single-use token hash.
+      operationId: createInvitation
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      x-required-role: Owner or Coach (Coach athlete only)
+      x-object-permission: Owner any role, Coach athlete only — else 403
+      x-audit-event: invitation.sent
+      x-rate-limit: 10/min per org
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvitationRequest'
+      responses:
+        '201':
+          description: Invitation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    get:
+      tags: [Memberships]
+      summary: List pending invitations
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      x-required-role: Owner
+      responses:
+        '200':
+          description: Invites
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invitations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InvitationResponse'
+
+  /organizations/{org_id}/members:
+    get:
+      tags: [Memberships]
+      summary: List members & assignments
+      description: Filter by role/status/assigned coach.
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [owner, coach, athlete, support]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [invited, active, suspended]
+      x-required-role: Owner, Coach (own athletes?) — Owner full, Coach limited to own assigned athletes list
+      responses:
+        '200':
+          description: Members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberListResponse'
+
+  /organizations/{org_id}/members/{membership_id}:
+    patch:
+      tags: [Memberships]
+      summary: Suspend/unsuspend member
+      description: Owner only. Immediate revocation 403 for suspended membership. Logs audit.
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - name: membership_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Owner
+      x-audit-event: membership.status_changed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [active, suspended]
+      responses:
+        '200':
+          description: Updated membership
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MembershipResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /invitations/{token}/validate:
+    get:
+      tags: [Invitations]
+      summary: Validate invitation token (public)
+      description: Checks hash, expiry 7d, not used. For setup UI.
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Valid invite details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationValidateResponse'
+        '410':
+          description: Expired or used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /exercises:
+    get:
+      tags: [Exercise Catalog]
+      summary: Search & filter exercises with Persian character-variant folding
+      description: Supports query `q` with Perso-Arabic script keyboard-variant normalization for Persian search, filtering by muscle, movement pattern, equipment, locale fa-IR/en-US. Returns canonical global + org-private.
+      operationId: listExercises
+      parameters:
+        - name: q
+          in: query
+          description: Search string supports Persian Unicode variant folding
+          schema:
+            type: string
+        - name: muscle
+          in: query
+          schema:
+            type: string
+        - name: movement_pattern
+          in: query
+          schema:
+            type: string
+            enum: [squat, hinge, horizontal_push, horizontal_pull, vertical_push, vertical_pull, lunge, carry, isolation, cardio, other]
+        - name: equipment
+          in: query
+          schema:
+            type: string
+        - name: locale
+          in: query
+          description: Active translation filter fa-IR/en-US only
+          schema:
+            type: string
+            enum: [fa-IR, en-US]
+      x-required-role: Authenticated user in org
+      x-object-permission: org_id filter (canonical NULL + org private) + assignment not required for global catalog
+      x-localization: Notes fa-IR/en-US bilingual names, Accept-Language header optional
+      responses:
+        '200':
+          description: Results sorted by normalized relevance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExerciseListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      tags: [Exercise Catalog]
+      summary: Create private custom exercise with media rights metadata
+      description: Owner/Coach org-private only. Media upload separate but rights metadata required.
+      operationId: createPrivateExercise
+      x-required-role: Owner or Coach in org
+      x-audit-event: exercise.created_private
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExerciseRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExerciseResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /exercises/{exercise_id}:
+    get:
+      tags: [Exercise Catalog]
+      summary: Exercise detail + demo media (signed URLs)
+      parameters:
+        - name: exercise_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Authenticated org member (canonical global + org private)
+      x-object-permission: Org scope for private custom
+      responses:
+        '200':
+          description: Detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExerciseResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/exercises/moderation:
+    get:
+      tags: [Exercise Moderation]
+      summary: List pending exercise submissions (platform admin only, MFA)
+      x-required-role: Platform Admin MFA
+      x-audit-event: admin.moderation_queue_viewed (optional)
+      responses:
+        '200':
+          description: Queue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModerationQueueResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Exercise Moderation]
+      summary: Moderate (approve/reject) exercise
+      x-required-role: Platform Admin MFA
+      x-audit-event: exercise.published / exercise.rejected
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationDecisionRequest'
+      responses:
+        '200':
+          description: Decision applied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message_key:
+                    type: string
+
+  /programs:
+    get:
+      tags: [Programs]
+      summary: List org programs & templates
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - name: is_template
+          in: query
+          schema:
+            type: boolean
+      x-required-role: Owner, Coach in org
+      responses:
+        '200':
+          description: Programs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramListResponse'
+    post:
+      tags: [Programs]
+      summary: Create master program (hierarchical)
+      description: Creates Program + phases/weeks/days/workouts/items/prescriptions atomic.
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      x-required-role: Owner, Coach
+      x-audit-event: program.created
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProgramRequest'
+      responses:
+        '201':
+          description: Program created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramResponse'
+
+  /programs/{program_id}:
+    get:
+      tags: [Programs]
+      summary: Get program detail (builder)
+      parameters:
+        - name: program_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Owner, Coach in org (program org scope)
+      responses:
+        '200':
+          description: Program detail with hierarchy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramResponse'
+    patch:
+      tags: [Programs]
+      summary: Update program
+      x-audit-event: program.updated
+      parameters:
+        - name: program_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProgramRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramResponse'
+
+  /programs/{program_id}/clone:
+    post:
+      tags: [Templates]
+      summary: Clone program as independent copy (template)
+      description: Template clone does NOT mutate master.
+      parameters:
+        - name: program_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-audit-event: template.cloned
+      responses:
+        '201':
+          description: Clone created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramResponse'
+
+  /program-assignments:
+    post:
+      tags: [Assignments]
+      summary: Assign program to athlete with immutable snapshot
+      description: Verifies CoachAthleteAssignment, creates snapshot JSONB immutable, schedules workouts, notifies athlete.
+      operationId: assignProgram
+      x-required-role: Owner any org athlete, Coach assigned athletes only
+      x-audit-event: program.assigned
+      x-idempotency: Optional Idempotency-Key header recommended
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssignmentRequest'
+      responses:
+        '201':
+          description: Assignment + snapshot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    get:
+      tags: [Assignments]
+      summary: List assignments (filter athlete)
+      parameters:
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: athlete_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Owner, Coach (assigned athletes only), Athlete self
+      responses:
+        '200':
+          description: Assignments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentListResponse'
+
+  /athlete/today:
+    get:
+      tags: [Athlete Today]
+      summary: Athlete Today's Workout dashboard
+      description: Returns scheduled workouts for today for authenticated athlete, based on active assignment snapshot. Cached shell + network status.
+      operationId: getTodayWorkout
+      x-required-role: Athlete self
+      x-audit-event: none
+      responses:
+        '200':
+          description: Today's workouts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodayResponse'
+
+  /workout-sessions:
+    post:
+      tags: [Workout Sessions]
+      summary: Start workout session (scheduled → in_progress)
+      operationId: startWorkoutSession
+      x-required-role: Athlete self
+      x-audit-event: session.started
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartSessionRequest'
+      responses:
+        '201':
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutSessionResponse'
+
+  /workout-sessions/{session_id}:
+    get:
+      tags: [Workout Sessions]
+      summary: Get workout session detail
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Athlete self OR Assigned Coach OR Owner org operational
+      x-object-permission: Assignment check + org scope
+      responses:
+        '200':
+          description: Session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutSessionResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Workout Sessions]
+      summary: Complete workout session (in_progress → completed)
+      description: Optional pain flag embedded.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-audit-event: session.completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteSessionRequest'
+      responses:
+        '200':
+          description: Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutSessionResponse'
+
+  /workout-sessions/{session_id}/set-logs:
+    post:
+      tags: [Set Logs]
+      summary: Log set actuals (load, reps, RPE)
+      description: Athlete self primary, Coach proxy flagged optional. Temporary in-memory offline preservation in Phase07 (no durable queue until Phase12).
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Athlete self (or Coach proxy)
+      x-audit-event: set.logged (optional)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSetLogRequest'
+      responses:
+        '201':
+          description: Set logged + triggers rest timer client-side
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetLogResponse'
+
+  /workout-sessions/{session_id}/substitutions:
+    post:
+      tags: [Workout Sessions]
+      summary: Substitute exercise with mandatory reason
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-audit-event: exercise.substituted
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubstitutionRequest'
+      responses:
+        '201':
+          description: Substitution recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubstitutionResponse'
+
+  /workout-sessions/{session_id}/feedback-flags:
+    post:
+      tags: [Feedback Flags]
+      summary: Report pain/fatigue flag — subjective athlete feedback not clinical diagnosis
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Athlete self
+      x-audit-event: pain.flagged
+      x-data-sensitivity: Tier3 sensitive health-adjacent — assigned coach only + owner aggregate + audited admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackFlagRequest'
+      responses:
+        '201':
+          description: Flag created + coach notified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackFlagResponse'
+
+  /athletes/{athlete_id}/progress/photos:
+    get:
+      tags: [Progress]
+      summary: List progress photos with signed URLs (consent-gated)
+      description: Athlete self, Assigned Coach with active ConsentRecord progress_photo, Owner with explicit consent + audit escalation, Support DENIED, Admin break-glass audited.
+      parameters:
+        - name: athlete_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-data-sensitivity: Tier4 progress media — never public URLs, signed TTL ≤15min
+      x-audit-event: photo.viewed (audited sensitive read)
+      responses:
+        '200':
+          description: Photos + signed URLs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressPhotoListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Progress]
+      summary: Upload progress photo with explicit consent
+      description: Requires active ConsentRecord or granting consent in same flow? Proposed block until consent granted via consents endpoint.
+      parameters:
+        - name: athlete_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Athlete self
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, photo_type]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                photo_type:
+                  type: string
+                  enum: [front, side, back]
+                captured_at:
+                  type: string
+                  format: date
+      x-data-sensitivity: Tier4
+      x-audit-event: photo.uploaded
+      responses:
+        '201':
+          description: Photo uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressPhotoResponse'
+
+  /athletes/{athlete_id}/body-metrics:
+    get:
+      tags: [Progress]
+      summary: List body metrics (weight etc) — consent-gated in P0
+      parameters:
+        - name: athlete_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-data-sensitivity: Tier3
+      responses:
+        '200':
+          description: Metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BodyMetricListResponse'
+    post:
+      tags: [Progress]
+      summary: Record body metric
+      parameters:
+        - name: athlete_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Athlete self
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBodyMetricRequest'
+      responses:
+        '201':
+          description: Metric recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BodyMetricResponse'
+
+  /consents:
+    get:
+      tags: [Consent]
+      summary: List consents for athlete
+      parameters:
+        - name: athlete_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Athlete self, Assigned Coach? Coach can see consent status for own athletes? Proposed yes
+      responses:
+        '200':
+          description: Consents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentListResponse'
+    post:
+      tags: [Consent]
+      summary: Grant consent (progress_photo, nutrition_sharing)
+      description: Explicit affirmative consent interaction model.
+      x-audit-event: consent.granted
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConsentRequest'
+      responses:
+        '201':
+          description: Consent granted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentResponse'
+    delete:
+      tags: [Consent]
+      summary: Revoke consent
+      x-audit-event: consent.revoked
+      parameters:
+        - name: athlete_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: grantee_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: consent_type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [progress_photo, nutrition_sharing, body_metrics]
+      responses:
+        '204':
+          description: Revoked immediate effect invalidating signed URLs
+
+  /messages/threads:
+    get:
+      tags: [Messages]
+      summary: List message threads for current user (participant only)
+      x-required-role: Authenticated — participant scoped
+      responses:
+        '200':
+          description: Threads
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreadListResponse'
+    post:
+      tags: [Messages]
+      summary: Create thread or send first message (1:1 contextual)
+      description: Requires CoachAthleteAssignment active for coach-athlete threads, else 403. Owner escalation audited if accessing private threads.
+      x-audit-event: message.sent
+      x-data-sensitivity: Tier2+ confidential, support DENIED
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMessageRequest'
+      responses:
+        '201':
+          description: Message sent + notification dispatched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /messages/threads/{thread_id}/messages:
+    get:
+      tags: [Messages]
+      summary: List messages in thread (participant only + assignment check)
+      parameters:
+        - name: thread_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-required-role: Participant only + Owner escalation audited
+      responses:
+        '200':
+          description: Messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List in-app notifications for current user
+      x-required-role: Self only
+      responses:
+        '200':
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+
+  /notifications/preferences:
+    get:
+      tags: [Notifications]
+      summary: Get notification preferences
+      x-required-role: Self
+      responses:
+        '200':
+          description: Preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferenceResponse'
+    patch:
+      tags: [Notifications]
+      summary: Update notification preferences — critical assignment alerts cannot be disabled
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationPreferenceRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferenceResponse'
+
+  /organizations/{org_id}/audit-logs:
+    get:
+      tags: [Audit Events]
+      summary: List audit events — owner own org only, admin global
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      x-required-role: Owner own org, Admin global, Coach/athlete forbidden per PRD, Support org read allowed? Per PRD support org audit read. So Support allowed org read.
+      x-audit-event: audit.viewed (potentially sensitive)
+      responses:
+        '200':
+          description: Audit logs (immutable, read-only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/audit-logs:
+    get:
+      tags: [Audit Events]
+      summary: Global audit trail — Platform Admin MFA only
+      x-required-role: Platform Admin MFA + audited break-glass
+      responses:
+        '200':
+          description: Global audit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditListResponse'
+
+  /privacy/export-request:
+    post:
+      tags: [Privacy]
+      summary: Request machine-readable data export (GDPR Art.20 adjacent)
+      description: Authenticated self only. Enqueues Celery job packaging profile.json, workouts.json, set_logs.csv, etc. Sends time-limited download link via verified email.
+      x-audit-event: privacy.export_requested, privacy.export_completed
+      x-rate-limit: 2/day per user? Proposed
+      responses:
+        '202':
+          description: Export job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /privacy/forget-me:
+    post:
+      tags: [Privacy]
+      summary: Request account erasure / right-to-erasure (GDPR Art.17 adjacent)
+      description: Requires password re-entry confirmation. Pipeline wipes PII, deletes progress photos from S3, disassociates aggregates.
+      x-audit-event: privacy.erasure_requested, user.anonymized
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password_confirm]
+              properties:
+                password_confirm:
+                  type: string
+      responses:
+        '202':
+          description: Erasure accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErasureRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /media/{asset_id}/signed-url:
+    get:
+      tags: [Media]
+      summary: Generate signed URL for exercise demo media (private bucket)
+      description: Org scope + assignment check for private custom exercise media. TTL ≤15min. Audit for Tier4 only.
+      parameters:
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      x-data-sensitivity: Tier0/2 — still private bucket, no listing
+      responses:
+        '200':
+          description: Signed URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signed_url:
+                    type: string
+                    format: uri
+                  expires_at:
+                    type: string
+                    format: date-time
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Optional alternative — JWT access token short-lived ≤15min in memory (not localStorage) + rotating refresh token in HttpOnly Secure SameSite cookie with reuse detection revoking all sessions on reuse.
+        Explicit prohibition: never store long-lived refresh/access tokens in localStorage/sessionStorage.
+        When using bearer, Authorization header Bearer not auto-sent cross-origin, intrinsically CSRF-resistant, but still need XSS protections and HttpOnly refresh.
+        Marked proposed/conditional requiring Phase04 validation. Recommended MVP is cookieAuth.
+        Frontend MUST NEVER access Secrets Manager — private secrets only backend/worker via server-side injection.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+      description: |
+        Recommended MVP — HttpOnly; Secure; SameSite=Lax session cookie per ADR-032 corrected.
+        HttpOnly true (JS inaccessible prevents XSS theft), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation, balances usability).
+        No long-lived tokens in localStorage/sessionStorage — explicit prohibition.
+        CSRF strategy: double-submit token or Django CSRF middleware — frontend reads csrftoken cookie (readable) and sends X-CSRFToken header for state-changing mutations.
+        Frontend/backend trust boundary: browser untrusted, backend authoritative.
+        Frontend MUST NEVER access Secrets Manager directly — only public NEXT_PUBLIC_* runtime config.
+
+  parameters:
+    OrgId:
+      name: org_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Organization tenant ID — must match active org derived from server context, else 404/403
+
+  responses:
+    BadRequest:
+      description: Validation failure
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Unauthorized:
+      description: Missing/invalid auth — 401 + save form state to session storage redirect /login
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: Authenticated caller lacks role or object-level assignment — 403 or 404 for cross-tenant obscurity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: Not found or belongs to other tenant — 404
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Conflict:
+      description: Unique constraint violation (slug, email) — 409
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    TooManyRequests:
+      description: Rate limit breached — 429
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type:
+          type: string
+          format: uri
+          description: RFC7807 type URI
+          example: https://api.coachos.example.com/errors/permission_denied
+        title:
+          type: string
+          example: Permission Denied
+        status:
+          type: integer
+          example: 403
+        detail:
+          type: string
+          example: You do not possess an active assignment for this athlete.
+        instance:
+          type: string
+          format: uri
+          example: /api/v1/athletes/019f.../progress/photos
+        message_key:
+          type: string
+          description: Localized message key extension for frontend i18n
+          example: errors.authz.unassigned_athlete
+        field_errors:
+          type: object
+          additionalProperties:
+            type: string
+          description: Field-level validation errors
+
+    RegisterRequest:
+      type: object
+      required: [email, password, display_name]
+      properties:
+        email:
+          type: string
+          format: email
+          example: coach.reza@example.com
+        password:
+          type: string
+          minLength: 8
+          example: SecurePassword123!
+        display_name:
+          type: string
+          minLength: 2
+          example: Reza Rahimi
+        preferred_locale:
+          type: string
+          enum: [fa-IR, en-US]
+        invitation_token:
+          type: string
+          description: Optional invitation token from email link
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    UpdateMeRequest:
+      type: object
+      properties:
+        display_name:
+          type: string
+        preferred_locale:
+          type: string
+          enum: [fa-IR, en-US]
+        preferred_unit:
+          type: string
+          enum: [kg, lbs]
+        timezone:
+          type: string
+
+    AuthResponse:
+      description: |
+        **Corrected for Auth Transport Consistency — Final Fix Task 2:**
+        - **Recommended MVP (cookieAuth):** Response does NOT include access_token/refresh_token in JSON body. Authentication via HttpOnly Secure SameSite=Lax session cookie set via Set-Cookie header (sessionid), plus CSRF token via separate csrftoken cookie (readable) for state-changing mutations. Frontend must NOT store long-lived tokens in localStorage/sessionStorage. No tokens in body for MVP — cookie set via header.
+        - **Optional Alternative (bearerAuth):** When optional bearer/JWT strategy selected, response MAY include short-lived access_token (≤15min, to be held in memory not localStorage) and rotating refresh_token in HttpOnly Secure SameSite cookie (or as HttpOnly cookie, not in body for refresh). For backward compatibility, tokens documented as optional/nullable and explicitly marked present only when optional bearer strategy is selected.
+        - **Explicit Prohibition:** No long-lived token may be stored in localStorage or sessionStorage. Frontend MUST NEVER access Secrets Manager.
+        - **Provisional:** Remains provisional until Phase04 implementation validation — final choice recommended cookieAuth.
+      type: object
+      required: [user, memberships]
+      properties:
+        user:
+          $ref: '#/components/schemas/UserResponse'
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/MembershipResponse'
+        csrf_token:
+          type: string
+          nullable: true
+          description: |
+            CSRF token for cookie-session mutations — present only when cookieAuth recommended MVP is used.
+            Frontend reads csrftoken cookie (non-HttpOnly) and sends X-CSRFToken header for POST/PATCH/DELETE.
+            Marked optional and provisional.
+        access_token:
+          type: string
+          nullable: true
+          description: |
+            **Optional — Bearer/JWT alternative only.** Short-lived access token ≤15min in memory (not localStorage).
+            **Must NOT be present in recommended cookie-session MVP** — MVP uses HttpOnly session cookie via Set-Cookie header, not tokens in body.
+            Present only when optional bearer strategy selected — marked optional/nullable, explicitly documented.
+            Explicit prohibition: never store in localStorage/sessionStorage.
+        refresh_token:
+          type: string
+          nullable: true
+          description: |
+            **Optional — Bearer/JWT alternative only.** Rotating refresh token — should be delivered as HttpOnly Secure SameSite cookie, not in JSON body for production.
+            If included in body for transitional compatibility, it is optional/nullable and present only when optional bearer strategy selected.
+            Recommended: refresh token as HttpOnly cookie with reuse detection revoking all sessions on reuse.
+            Explicit prohibition: never store long-lived refresh in localStorage/sessionStorage.
+        message:
+          type: string
+          description: Localized message_key extension may be added via x- pattern.
+
+    CookieAuthResponse:
+      description: |
+        **Recommended MVP Response — Cookie Session:**
+        - No access_token/refresh_token in body — authentication via HttpOnly Secure SameSite=Lax session cookie (sessionid) set via Set-Cookie header.
+        - CSRF token via csrftoken cookie (readable) + X-CSRFToken header for state-changing mutations.
+        - No long-lived tokens in localStorage/sessionStorage.
+        - Public runtime config from PublicConfigProvider --> FE, private secrets BE --> SecretMgr, Worker --> SecretMgr, FE --> BE HTTPS /api/v1 requests only.
+      allOf:
+        - $ref: '#/components/schemas/AuthResponse'
+        - type: object
+          properties:
+            csrf_token:
+              type: string
+              description: CSRF token for state-changing mutations when using cookieAuth.
+
+    BearerAuthResponse:
+      description: |
+        **Optional Alternative Response — Bearer/JWT (Proposed/Conditional):**
+        - Short-lived access_token ≤15min in memory (not localStorage) + rotating refresh_token in HttpOnly Secure SameSite cookie with reuse detection.
+        - Explicit prohibition: never store long-lived tokens in localStorage/sessionStorage.
+        - Marked proposed/conditional requiring Phase04 validation — not recommended MVP.
+      allOf:
+        - $ref: '#/components/schemas/AuthResponse'
+        - type: object
+          properties:
+            access_token:
+              type: string
+              description: Short-lived access ≤15min in memory only when bearerAuth selected.
+            refresh_token:
+              type: string
+              description: Rotating refresh HttpOnly Secure SameSite cookie — preferably not in body but as HttpOnly cookie; if in body, transitional only, optional.
+
+    CurrentUserResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserResponse'
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/MembershipResponse'
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        display_name:
+          type: string
+        preferred_locale:
+          type: string
+          enum: [fa-IR, en-US]
+        preferred_unit:
+          type: string
+        timezone:
+          type: string
+        is_platform_admin:
+          type: boolean
+
+    OrganizationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        owner_user_id:
+          type: string
+          format: uuid
+        settings:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    CreateOrganizationRequest:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+          example: Alborz Fitness Club
+        slug:
+          type: string
+          example: alborz-fitness
+        primary_location:
+          type: object
+          properties:
+            name:
+              type: string
+            address_line1:
+              type: string
+            city:
+              type: string
+            phone:
+              type: string
+
+    UpdateOrganizationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        settings:
+          type: object
+
+    LocationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        is_primary:
+          type: boolean
+        address_line1:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+
+    UpdateLocationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        address_line1:
+          type: string
+        city:
+          type: string
+        phone:
+          type: string
+
+    CreateInvitationRequest:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [coach, athlete, support]
+        assigned_coach_id:
+          type: string
+          format: uuid
+          description: For athlete invitation — who is the assigned coach
+
+    InvitationResponse:
+      type: object
+      properties:
+        invitation_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        role:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+
+    InvitationValidateResponse:
+      type: object
+      properties:
+        email:
+          type: string
+        role:
+          type: string
+        organization_id:
+          type: string
+          format: uuid
+        organization_name:
+          type: string
+
+    MembershipResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [owner, coach, athlete, support]
+        status:
+          type: string
+          enum: [invited, active, suspended]
+        created_at:
+          type: string
+          format: date-time
+
+    MemberListResponse:
+      type: object
+      properties:
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/MembershipResponse'
+
+    ExerciseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+          nullable: true
+        movement_pattern:
+          type: string
+        difficulty:
+          type: string
+        primary_muscles:
+          type: array
+          items:
+            type: string
+        translations:
+          type: array
+          items:
+            type: object
+            properties:
+              locale:
+                type: string
+              name:
+                type: string
+              instructions:
+                type: string
+        media:
+          type: array
+          items:
+            type: object
+            properties:
+              asset_id:
+                type: string
+                format: uuid
+              media_type:
+                type: string
+              signed_url:
+                type: string
+                format: uri
+                description: Presigned URL TTL ≤15min (provisional for detail)
+              thumbnail_url:
+                type: string
+                format: uri
+
+    ExerciseListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExerciseResponse'
+        total:
+          type: integer
+
+    CreateExerciseRequest:
+      type: object
+      required: [movement_pattern, difficulty, translations, rights]
+      properties:
+        movement_pattern:
+          type: string
+        difficulty:
+          type: string
+        primary_muscles:
+          type: array
+          items:
+            type: string
+        translations:
+          type: array
+          items:
+            type: object
+            required: [locale, name]
+            properties:
+              locale:
+                type: string
+                enum: [fa-IR, en-US]
+              name:
+                type: string
+              instructions:
+                type: string
+        rights:
+          type: object
+          properties:
+            license_type:
+              type: string
+              enum: [original_production, licensed_cc_by, commercial_license, coach_upload]
+            creator_attribution:
+              type: string
+
+    ModerationQueueResponse:
+      type: object
+      properties:
+        pending:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExerciseResponse'
+
+    ModerationDecisionRequest:
+      type: object
+      required: [exercise_id, decision]
+      properties:
+        exercise_id:
+          type: string
+          format: uuid
+        decision:
+          type: string
+          enum: [approve, reject]
+        reason:
+          type: string
+
+    ProgramResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        target_goal:
+          type: string
+        is_template:
+          type: boolean
+        phases:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+              sequence_order:
+                type: integer
+              weeks:
+                type: array
+                items:
+                  type: object
+
+    ProgramListResponse:
+      type: object
+      properties:
+        programs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramResponse'
+
+    CreateProgramRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        target_goal:
+          type: string
+        is_template:
+          type: boolean
+        phases:
+          type: array
+          items:
+            type: object
+
+    UpdateProgramRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+
+    CreateAssignmentRequest:
+      type: object
+      required: [source_program_id, athlete_user_id, start_date, organization_id]
+      properties:
+        source_program_id:
+          type: string
+          format: uuid
+        athlete_user_id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date
+
+    AssignmentResponse:
+      type: object
+      properties:
+        assignment_id:
+          type: string
+          format: uuid
+        snapshot:
+          type: object
+          description: Immutable snapshot JSONB
+        scheduled_sessions_count:
+          type: integer
+
+    AssignmentListResponse:
+      type: object
+      properties:
+        assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssignmentResponse'
+
+    TodayResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        scheduled_workouts:
+          type: array
+          items:
+            type: object
+            properties:
+              session_id:
+                type: string
+                format: uuid
+              title:
+                type: string
+              status:
+                type: string
+              exercises:
+                type: array
+                items:
+                  type: object
+
+    StartSessionRequest:
+      type: object
+      required: [scheduled_date]
+      properties:
+        program_assignment_id:
+          type: string
+          format: uuid
+        scheduled_date:
+          type: string
+          format: date
+
+    WorkoutSessionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        program_assignment_id:
+          type: string
+          format: uuid
+        athlete_user_id:
+          type: string
+          format: uuid
+        scheduled_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [scheduled, in_progress, completed, skipped, modified]
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    CompleteSessionRequest:
+      type: object
+      properties:
+        session_rpe:
+          type: number
+        fatigue_score:
+          type: integer
+        athlete_notes:
+          type: string
+        skip_or_modify_reason:
+          type: string
+
+    CreateSetLogRequest:
+      type: object
+      required: [exercise_id, set_index, actual_reps, actual_load_kg]
+      properties:
+        exercise_id:
+          type: string
+          format: uuid
+        set_index:
+          type: integer
+        actual_reps:
+          type: integer
+        actual_load_kg:
+          type: number
+        actual_rpe:
+          type: number
+          nullable: true
+
+    SetLogResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        set_index:
+          type: integer
+        actual_reps:
+          type: integer
+        actual_load_kg:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+
+    SubstitutionRequest:
+      type: object
+      required: [original_exercise_id, substituted_exercise_id, reason]
+      properties:
+        original_exercise_id:
+          type: string
+          format: uuid
+        substituted_exercise_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          enum: [equipment_unavailable, discomfort, preference, other]
+
+    SubstitutionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+
+    FeedbackFlagRequest:
+      type: object
+      required: [flag_type, anatomical_location, severity, details]
+      properties:
+        flag_type:
+          type: string
+          enum: [joint_pain, muscle_strain, dizziness, severe_fatigue]
+        anatomical_location:
+          type: string
+        severity:
+          type: string
+          enum: [mild, moderate, severe]
+        details:
+          type: string
+          description: Subjective athlete feedback, not clinical diagnosis
+
+    FeedbackFlagResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        flag_type:
+          type: string
+        severity:
+          type: string
+        is_resolved:
+          type: boolean
+
+    ProgressPhotoResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        athlete_user_id:
+          type: string
+          format: uuid
+        photo_type:
+          type: string
+          enum: [front, side, back]
+        captured_at:
+          type: string
+          format: date
+        signed_url:
+          type: string
+          format: uri
+          description: TTL ≤15min, consent-gated
+        thumbnail_signed_url:
+          type: string
+          format: uri
+
+    ProgressPhotoListResponse:
+      type: object
+      properties:
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgressPhotoResponse'
+
+    BodyMetricResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        metric_type:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        recorded_at:
+          type: string
+          format: date
+
+    BodyMetricListResponse:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/BodyMetricResponse'
+
+    CreateBodyMetricRequest:
+      type: object
+      required: [metric_type, value, unit, recorded_at]
+      properties:
+        metric_type:
+          type: string
+          example: body_weight
+        value:
+          type: number
+        unit:
+          type: string
+          enum: [kg, lbs]
+        recorded_at:
+          type: string
+          format: date
+
+    ConsentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        athlete_user_id:
+          type: string
+          format: uuid
+        grantee_user_id:
+          type: string
+          format: uuid
+        consent_type:
+          type: string
+          enum: [progress_photo, nutrition_sharing, body_metrics]
+        is_granted:
+          type: boolean
+        granted_at:
+          type: string
+          format: date-time
+
+    ConsentListResponse:
+      type: object
+      properties:
+        consents:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsentResponse'
+
+    CreateConsentRequest:
+      type: object
+      required: [athlete_user_id, grantee_user_id, consent_type]
+      properties:
+        athlete_user_id:
+          type: string
+          format: uuid
+        grantee_user_id:
+          type: string
+          format: uuid
+        consent_type:
+          type: string
+          enum: [progress_photo, nutrition_sharing, body_metrics]
+        is_granted:
+          type: boolean
+
+    ThreadListResponse:
+      type: object
+      properties:
+        threads:
+          type: array
+          items:
+            type: object
+            properties:
+              thread_id:
+                type: string
+                format: uuid
+              participants:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+              last_message_at:
+                type: string
+                format: date-time
+
+    CreateMessageRequest:
+      type: object
+      required: [recipient_user_id, content]
+      properties:
+        thread_id:
+          type: string
+          format: uuid
+          description: Optional — create new if not provided
+        recipient_user_id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        workout_session_id:
+          type: string
+          format: uuid
+          nullable: true
+        organization_id:
+          type: string
+          format: uuid
+
+    MessageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        thread_id:
+          type: string
+          format: uuid
+        sender_user_id:
+          type: string
+          format: uuid
+        recipient_user_id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        workout_session_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    MessageListResponse:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageResponse'
+
+    NotificationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+        payload:
+          type: object
+        read_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    NotificationListResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationResponse'
+
+    NotificationPreferenceResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        preferences:
+          type: object
+          properties:
+            program_assigned:
+              type: boolean
+            workout_completed:
+              type: boolean
+            pain_flag_raised:
+              type: boolean
+            message_received:
+              type: boolean
+            marketing:
+              type: boolean
+
+    UpdateNotificationPreferenceRequest:
+      type: object
+      properties:
+        preferences:
+          type: object
+
+    AuditResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        actor_user_id:
+          type: string
+          format: uuid
+          nullable: true
+        organization_id:
+          type: string
+          format: uuid
+          nullable: true
+        action:
+          type: string
+        target_entity_type:
+          type: string
+        target_entity_id:
+          type: string
+        ip_hash:
+          type: string
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    AuditListResponse:
+      type: object
+      properties:
+        audit_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditResponse'
+
+    ExportRequestResponse:
+      type: object
+      properties:
+        export_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    ErasureRequestResponse:
+      type: object
+      properties:
+        erasure_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]

@@ -438,11 +438,12 @@ I want exercise search to normalize Perso-Arabic script keyboard-variant differe
 So that I can quickly find exercises regardless of device keyboard settings.
 
 Acceptance Criteria (Gherkin):
-Scenario: Search query with Arabic Yeh matches Persian exercise
+Scenario: Search query with Perso-Arabic script variant (Yeh) matches Persian exercise — Perso-Arabic script keyboard-variant normalization for Persian search
   Given an exercise in the catalog named "پرس سینه دمبل"
-  When a coach searches for "پرس سينه" (using Arabic Yeh 'ي')
+  When a coach searches for "پرس سينه" (using Arabic Yeh 'ي' variant from different keyboard layout — Perso-Arabic script keyboard-variant normalization for Persian search)
   Then the search returns "پرس سینه دمبل" in the result list
   And search scoring ranks exact normalized matches first
+  And no Arabic product localization or Arabic language support is implied — normalization handles keyboard-variant input only
 ```
 
 ---

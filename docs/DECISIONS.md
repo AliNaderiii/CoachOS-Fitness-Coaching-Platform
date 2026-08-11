@@ -1,6 +1,6 @@
 # Architecture & Product Decision Log (ADRs) — CoachOS
 
-**Document version:** 1.0.0 (Phase 01 Baseline)  
+**Document version:** 2.0.0 (Phase 03 Architecture Finalized)  
 **Last updated:** 2026-08-10  
 **Format:** Lightweight Architecture Decision Records (ADRs)  
 
@@ -13,25 +13,25 @@
 | ADR ID | Decision Title | Status | Founder Approval Required? | Decided / Proposed Phase |
 |--------|----------------|--------|-----------------------------|--------------------------|
 | **ADR-001** | Modular Monolith Architecture for MVP | **Accepted** | No (Team Baseline) | Phase 00 |
-| **ADR-002** | Preferred Technical Stack (Next.js + Django/DRF + PostgreSQL) | **Proposed** | No (Phase 03 Confirmation) | Phase 00 / 03 |
+| **ADR-002** | Preferred Technical Stack (Next.js + Django/DRF + PostgreSQL + Redis + S3 + PWA + Playwright + GitHub Actions) | **Conditionally Accepted (Proposed Pending Phase04 Validation)** | No (Team baseline, founder infra choice pending) | Phase 00 / 03 |
 | **ADR-003** | Product Locales: Persian (`fa-IR`) and English (`en-US`) Only; Arabic Out of Scope | **Accepted** | Yes (Founder Mandate) | Phase 00 |
 | **ADR-004** | Business Model: B2B2C Multi-Tenant SaaS | **Accepted** | Yes (Founder Approved) | Phase 00 |
-| **ADR-005** | Authentication Channel: Email + Password Default with OTP Roadmap | **Proposed** | No | Phase 00 / 01 |
-| **ADR-006** | Authorization Architecture: Server-Side RBAC + Object-Level Access Control | **Accepted** | No | Phase 00 / 01 |
+| **ADR-005** | Authentication Channel: Email + Password Default with OTP Roadmap (HS: session cookie HttpOnly + JWT rotating refresh) | **Proposed (Conditional Acceptance)** | No | Phase 00 / 01 / 03 |
+| **ADR-006** | Authorization Architecture: Server-Side RBAC + Object-Level Access Control + Consent | **Accepted** | No | Phase 00 / 01 / 03 |
 | **ADR-007** | Constrained AI Assistance Deferred to Phase 11 | **Accepted** | No | Phase 00 / 01 |
 | **ADR-008** | Exercise Media Rights, Provenance, and Moderation Metadata | **Accepted** | No | Phase 00 / 01 |
-| **ADR-009** | Calendar Strategy: UTC/Gregorian Storage with Persian Jalali UI Display | **Proposed** | No | Phase 01 |
-| **ADR-010** | Monorepo Folder Layout & Package Boundaries | **Deferred** | No | Phase 04 |
-| **ADR-011** | PWA Sequencing Correction (Phase 04 Foundation, Phase 07 Mobile Log, Phase 12 Advanced Offline) | **Accepted** | No | Phase 01 |
-| **ADR-012** | Repository License & Intellectual Property Strategy | **Pending Founder Approval** | **YES (Founder Decision)** | Phase 01 |
+| **ADR-009** | Calendar Strategy: UTC/Gregorian Storage with Persian Jalali UI Display | **Accepted (Conditional — frontend validation required)** | No | Phase 01 / 03 |
+| **ADR-010** | Monorepo Folder Layout & Package Boundaries | **Proposed (Accepted Orientation — Scaffold in Phase04)** | No | Phase 03 / 04 |
+| **ADR-011** | PWA Sequencing Correction (Phase 04 Foundation, Phase 07 Mobile Log, Phase 12 Advanced Offline) | **Accepted** | No | Phase 01 / 03 |
+| **ADR-012** | Repository License & Intellectual Property Strategy | **Pending Founder Approval** | **YES (Founder Decision)** | Phase 01 / 03 |
 | **ADR-013** | Single-Location-First MVP Strategy | **Accepted** | No | Phase 01 |
-| **ADR-014** | Organization Membership & Role Binding Model | **Proposed** | No | Phase 01 / 03 |
-| **ADR-015** | Program Versioning & Assignment Snapshot Strategy | **Proposed** | No | Phase 01 / 03 |
-| **ADR-016** | Data Deletion, Soft-Delete, and Archival Lifecycle | **Proposed** | No | Phase 01 / 03 |
-| **ADR-017** | Entity Identifier Strategy (UUIDv7 vs BigInt) | **Proposed** | No | Phase 01 / 03 |
-| **ADR-018** | Persian Search Normalization & Trigram Indexing Strategy | **Proposed** | No | Phase 01 / 03 |
+| **ADR-014** | Organization Membership & Role Binding Model (Multi-Role per Org Allowed) | **Accepted (Conditional — membership multi-role model affirmed)** | No | Phase 01 / 03 |
+| **ADR-015** | Program Versioning & Assignment Snapshot Strategy (Immutable JSONB Snapshot) | **Accepted (Conditional — snapshot immutability affirmed)** | No | Phase 01 / 03 |
+| **ADR-016** | Data Deletion, Soft-Delete, and Archival Lifecycle (Archive vs Anonymized Hard Delete) | **Accepted (Conditional — soft-archive operational, hard-delete via anonymization pipeline)** | No | Phase 01 / 03 |
+| **ADR-017** | Entity Identifier Strategy (UUIDv7 vs BigInt/UUIDv4) | **Proposed (Requires Validation — not authz substitute)** | No | Phase 01 / 03 |
+| **ADR-018** | Persian Search Normalization & Trigram Indexing Strategy (Perso-Arabic script keyboard-variant normalization for Persian search) | **Accepted (Conditional — pg_trgm + normalizer)** | No | Phase 01 / 03 |
 | **ADR-019** | Athlete Data Ownership, Privacy, and Portability Architecture | **Accepted** | No | Phase 01 |
-| **ADR-020** | Multi-Professional Collaboration & Consent Architecture (P1 Scope) | **Accepted** | No | Phase 01 |
+| **ADR-020** | Multi-Professional Collaboration & Consent Architecture (P1 Scope) | **Accepted for P1** | No | Phase 01 |
 | **ADR-021** | Payment Gateway Abstraction & Coach Monetization Deferral to Phase 10 | **Accepted** | No | Phase 01 |
 | **ADR-022** | Public Discovery Marketplace Deferral to Phase 11+ / P2 | **Accepted** | No | Phase 01 |
 | **ADR-023** | Athlete Mobile Navigation & Active Workout Canvas Pattern | **Accepted** | No | Phase 02 |
@@ -39,7 +39,22 @@
 | **ADR-025** | Persian Typography Strategy: Vazirmatn Variable Web Font | **Accepted** | No | Phase 02 |
 | **ADR-026** | Non-Clinical UX Language Standard for Subjective Feedback | **Accepted** | No | Phase 02 |
 | **ADR-027** | Explicit Affirmative Consent Interaction Model for Sensitive Photos | **Accepted** | No | Phase 02 |
-| **ADR-028** | Dark-Neutral Visual Theme for Mobile Gym-Floor Glare Reduction | **Accepted** | No | Phase 02 |
+| **ADR-028** | Dark-Neutral Visual Theme for Mobile Gym-Floor Glare Reduction (Design Target) | **Accepted** (Design target, requires user testing) | No | Phase 02 |
+| **ADR-029** | Frontend Architecture — Next.js App Boundaries | **Proposed (Pending Phase04 scaffold)** | No | Phase 03 |
+| **ADR-030** | Backend Architecture — Django Module Boundaries (20 Modules M01-M20) | **Proposed (Accepted Orientation)** | No | Phase 03 |
+| **ADR-031** | PostgreSQL Version/Extension Strategy (16 + pg_trgm, btree_gin, pgcrypto) | **Proposed (Requires Validation)** | No | Phase 03 |
+| **ADR-032** | Auth/Session Strategy (Argon2id, HttpOnly cookie, JWT rotating refresh 15min, rate limit 5/15min) | **Proposed (Conditional Acceptance)** | No | Phase 03 |
+| **ADR-033** | API Error Model (RFC7807 + message_key extension) | **Accepted** | No | Phase 03 |
+| **ADR-034** | Media Storage Architecture (Private buckets, no listing, signed URLs TTL≤15min, MIME whitelist, thumbnail, rights metadata, takedown) | **Accepted** | No | Phase 03 |
+| **ADR-035** | PWA Architecture (Manifest + SW + three-level offline boundary) | **Accepted** | No | Phase 03 |
+| **ADR-036** | Offline Boundary (Phase04 shell only, Phase07 temp in-memory, Phase12 durable IndexedDB queue) | **Accepted** | No | Phase 03 |
+| **ADR-037** | Backup/RTO/RPO Targets (PITR 15min RPO proposed, 1h RTO DB, versioned S3, Redis loss acceptable) | **Proposed (Requires Validation + Founder Approval on Cost)** | Yes (Cost approval) | Phase 03 |
+| **ADR-038** | Environment Separation (local/staging/prod distinct VPC/DB/buckets/secrets) | **Proposed** | No | Phase 03 |
+| **ADR-039** | CI/CD Strategy (GitHub Actions lint/type/unit/integration/security scan, Playwright E2E, staging auto deploy, prod manual gate) | **Proposed** | No | Phase 03 |
+| **ADR-040** | Observability Strategy (structlog JSON + redaction + request_id, Prometheus metrics, Sentry, healthz/readyz, alerting categories) | **Proposed** | No | Phase 03 |
+| **ADR-041** | OpenAPI 3.1 Contract Structure (/api/v1 versioned, endpoint groups P0, RFC7807 error) | **Proposed (Accepted as Provisional)** | No | Phase 03 |
+| **ADR-042** | Threat Model & Security Control Matrix (STRIDE + OWASP mapping, 21 threats, negative authorization controls) | **Accepted** | No | Phase 03 |
+| **ADR-043** | Privacy & Data Lifecycle (11 lifecycle stages, Tier0-8, consent, export/erasure, pre-DPIA checklist, retention questions) | **Accepted** | No | Phase 03 |
 
 ---
 
@@ -319,3 +334,267 @@
 - **Context:** Gyms frequently have intense overhead lighting and athletes operate devices with sweaty hands and variable screen brightness. Whether a dark theme measurably reduces perceived glare is a *hypothesis* requiring pilot validation, not an established proven benefit.
 - **Decision:** Implement a **Dark Obsidian Neutral Canvas** (`#0B0F17`) as the default *proposed* visual theme for the Athlete PWA, using high-contrast Emerald/Teal status accents and crisp typography with design-target contrast ratios intended to meet WCAG 2.2 AAA (requires implementation contrast testing).
 - **Consequences:** *Proposed* to reduce perceived screen glare and reduce battery consumption on OLED mobile devices during 60+ minute training sessions; actual effectiveness requires user testing and device validation. Light-theme tokens remain specified for desktop administration.
+
+---
+
+### ADR-002 (Phase 03 Update) — Preferred Technical Stack Finalized Conditionally
+
+- **Status:** **Conditionally Accepted — Proposed pending Phase 04 validation**
+- **Context:** Need final stack for implementation.
+- **Decision Final:** Frontend Next.js 14 App Router + React + TS + Tailwind logical properties + next-pwa/Workbox proposed; Backend Django 5 + DRF + Python 3.12; DB PostgreSQL 16 + pg_trgm + btree_gin + pgcrypto; Cache/Queue Redis 7 + Celery; Media S3-compatible private buckets presigned TTL ≤15min; API REST /api/v1 OpenAPI 3.1 provisional; PWA Manifest + SW three-level; E2E Playwright; CI/CD GitHub Actions.
+- **Options Considered:** Alternative frontend Remix, SvelteKit; backend FastAPI, Rails; DB MySQL; cache in-memory only; media local FS.
+- **Recommendation:** Stack as above for MVP velocity, mature ecosystem, security best practices.
+- **Consequences:** Mature ORM, built-in admin, battle-tested security, excellent velocity; operational cost managed via PaaS; licensing: all MIT/Apache/BSD except PostgreSQL PostgreSQL License permissive.
+- **Security:** Django CSRF, XSS protections, Argon2 support; Next.js CSP; S3 private.
+- **Migration:** If need to replace frontend, API contract stable; if DB change, ORM migrations needed.
+- **Status:** Conditionally Accepted — requires POC validation of UUIDv7, pg_trgm perf, Workbox bundle size, PaaS vs K8s infra cost.
+
+---
+
+### ADR-005 (Phase 03 Update) — Auth/Session Strategy (Corrected Transport Consistency)
+
+- **Status:** **Proposed (Conditional Acceptance) — Correction for Auth Transport Consistency**
+- **Context:** Email+password MVP but need session security and clear transport choice between cookies and Bearer tokens.
+- **Decision (Corrected):**
+  - **Recommended MVP Strategy:** HttpOnly/Secure/SameSite cookie sessions (Django `sessionid`):
+    - HttpOnly true (JS inaccessible, prevents XSS theft of session), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation for cross-site POST, balances usability; Strict for sensitive actions optional).
+    - No long-lived tokens in localStorage/sessionStorage — explicit prohibition.
+    - CSRF strategy for cookie-based mutations: double-submit token or Django CSRF middleware — frontend reads `csrftoken` cookie (non-HttpOnly) and sends `X-CSRFToken` header for POST/PATCH/DELETE; SameSite=Lax additional layer; verify CSRF on server.
+    - Frontend/backend trust boundary: browser untrusted, backend authoritative, all auth checks server-side.
+    - Rate limit 5/15min per IP/email via Redis, password strength validation, Argon2id/bcrypt cost ≥12, single-use reset token 15min TTL, invitation token 7d single-use SHA256 hashed.
+  - **Optional Alternative (Bearer/JWT):** If bearer/JWT retained:
+    - Short-lived access tokens ≤15min in memory (React state/memory, not localStorage), rotating refresh tokens in HttpOnly Secure SameSite cookie with reuse detection revoking all sessions on reuse.
+    - Explicit prohibition: never store long-lived refresh or access tokens in localStorage/sessionStorage.
+    - CSRF not applicable if using Authorization header Bearer (not auto-sent cross-origin), but still need XSS protections (HttpOnly refresh).
+  - **Which Recommended for First Implementation:** Cookie sessions (simpler CSRF handling via Django built-in, no token storage complexity).
+- **Consequences:** Secure, UX reasonable, cost low, no SMS gateway complexity, clear cookie vs bearer guidance.
+- **Security:** Prevents credential stuffing (rate limit), session theft (HttpOnly Secure SameSite + no localStorage), CSRF (SameSite + CSRF token), invitation reuse.
+- **Status:** Proposed conditional — requires Phase04 validation. OPENAPI.yaml securitySchemes keeps both cookieAuth and bearerAuth but documents recommendation.
+
+---
+
+### ADR-009 (Phase 03 Update) — Calendar Strategy
+
+- **Status:** **Accepted Conditional — frontend validation required**
+- **Context:** Jalali UI vs Gregorian storage.
+- **Decision:** UTC/Gregorian timestamptz storage, ISO8601 API, frontend date-fns-jalali renders Jalali when locale fa-IR, Gregorian when en-US; week layout Saturday-Friday fa-IR or Monday-Sunday configurable.
+- **Consequences:** Clean backend, robust tz math, native Persian experience.
+- **Status:** Accepted conditional.
+
+---
+
+### ADR-010 — Monorepo Layout & Package Boundaries (Phase 03 Final Orientation)
+
+- **Status:** **Proposed (Accepted Orientation — scaffold in Phase04)**
+- **Context:** Need code organization without implementing.
+- **Decision:** Proposed `frontend/` Next.js + `backend/` Django + `docs/` + `.github/` + `scripts/` + `docker-compose.yml` (Phase04). Monorepo tooling: npm workspaces or pnpm? For frontend only. Backend separate venv/poetry. Lint config root.
+- **Consequences:** Simple for MVP, easy CI cache, clear separation docs vs code.
+- **Security:** No secrets in repo, .env.example only placeholders.
+- **Status:** Proposed — scaffold Phase04.
+
+---
+
+### ADR-014 — Organization Membership & Role Binding Model (Multi-Role) — Corrected Owner Source Truth + Multi-Role Behavior + Assignment Reactivation Reference
+
+- **Status:** **Accepted Conditional — multi-role affirmed — Correction for Data-Model Integrity (Tasks 4.1, 4.2, 4.3)**
+- **Context:** Users may belong to multiple orgs, may have multiple roles per org (coach+athlete same org). Need to avoid drift between Organization.owner_user_id and owner Membership, define effective permissions for multi-role, and define reactivation invariant for CoachAthleteAssignment.
+- **Decision (Corrected):**
+  - **Organization Owner Source of Truth (4.1):** `Organization.owner_user_id` is authoritative source of truth for single owner MVP (legal/billing owner). There must exist exactly one active Membership with `role=owner` per org, and its `user_id` must equal `owner_user_id`. Membership owner row is derived/automatically managed, not independently mutable — kept in sync via transactional `OrganizationService.transferOwnership()` which updates owner_user_id and swaps Membership rows atomically, audit `org.owner_transferred`. No two independent mutable ownership fields drifting.
+  - **Membership Multi-Role Behavior (4.2):**
+    - Schema allows multi-role per user+org via `UNIQUE(user_id, organization_id, role)`, e.g., coach+athlete same org.
+    - MVP policy: single primary role per org recommended for simplicity; multi-role allowed but not required, explicitly enabled via owner action.
+    - Effective permissions = union of all active roles for that user in that org (most permissive, priority owner>coach>support>athlete for UI display). Backend computes via `AuthZService.effectivePermissions()` server-side, not trusting frontend.
+    - Role elevation audited: any Membership creation, role change, status change logs `membership.created`, `status_changed`, `role_changed` with actor/target/old/new/IP hash.
+    - Active org + active role: session stores `active_organization_id` + optional `active_role` if multiple roles; frontend receives `memberships` array + `effective_permissions` computed server-side; UI shows role switcher if multiple roles, default highest privilege.
+    - Frontend receives effective permissions but backend authoritative.
+  - **CoachAthleteAssignment Reactivation (4.3) (Reference — detailed in ERD.md):**
+    - Previous permanent unique `UNIQUE(org, coach, athlete)` prevented recreation after archival.
+    - Corrected: partial unique for active only `UNIQUE(organization_id, coach_user_id, athlete_user_id) WHERE status='active'` (or WHERE archived_at IS NULL) — allows historical archived rows + recreation, only one active per triple.
+    - Workflow: archival sets status archived + archived_at/ended_at + audit; reactivation creates new row preserving history (preferred) or reactivates archived if no active exists, audit reactivated; reassignment archives old + creates new.
+    - No migrations in Phase03 — conceptual invariant only, proposed for Phase04/05.
+- **Consequences:** Avoids ownership drift, supports multi-tenant gym coaches cleanly, prevents cross-tenant credential duplication, enables future multi-role, preserves assignment history while allowing reactivation.
+- **Status:** Accepted conditional — corrections documented in ERD.md 3.1 Identity & Tenancy, DATA_MODEL.md 3.1, and this ADR.
+
+---
+
+### ADR-015 — Program Versioning & Assignment Snapshot Strategy (Immutable JSONB)
+
+- **Status:** **Accepted Conditional**
+- **Decision:** Snapshot JSONB immutable on assignment — deep copy of phases/weeks/days/workouts/items/prescriptions at instant of assignment. Athlete logs attach to snapshot version ID. Explicit version push requires confirmation. ProgramVersion optional table for push history.
+- **Consequences:** Historical integrity, future edits don't corrupt logs.
+- **Status:** Accepted.
+
+---
+
+### ADR-016 — Data Deletion, Soft-Delete, and Archival Lifecycle
+
+- **Status:** **Accepted Conditional**
+- **Decision:** Operational entities Programs, Exercises, Organizations use soft-archive archived_at timestamp filtered from active queries. User erasure via multi-stage anonymization & hard deletion: PII wiped, photos S3 deleted, memberships archived, historical telemetry disassociated anonymized aggregates retained, audit user.anonymized. AuditEvent never deleted. Export TMP 7-day lifecycle.
+- **Consequences:** GDPR-adjacent, relational integrity preserved.
+- **Status:** Accepted conditional.
+
+---
+
+### ADR-017 — Entity Identifier Strategy (UUIDv7 vs BigInt/UUIDv4)
+
+- **Status:** **Proposed — requires validation — not authz substitute**
+- **Context:** Prevent enumeration, support offline client-side ID generation for Phase12 queue.
+- **Decision:** Proposed UUIDv7 time-ordered 128-bit for all public tenant entities. Must NOT be used as authz substitute — server-side RBAC/ABAC still mandatory. Time-ordered improves B-tree locality in PG. Validation required in Phase04: PG + Python (uuid6 package) + JS support.
+- **Fallback:** UUIDv4 if UUIDv7 libraries immature.
+- **Security:** Non-guessable but not security boundary.
+- **Status:** Proposed.
+
+---
+
+### ADR-018 — Persian Search Normalization & Trigram Indexing Strategy
+
+- **Status:** **Accepted Conditional — pg_trgm + normalizer**
+- **Decision:** Two-layer: Python/PostgreSQL normalizer PersianNormalizer folding Perso-Arabic variants (ي/ى → ی, ك → ک, Arabic-Indic digits, ZWNJ → space, strip diacritics) — precise wording Perso-Arabic script keyboard-variant normalization for Persian search, no Arabic product support implied. Second layer pg_trgm GIN indexes on ExerciseAlias.normalized_alias and ExerciseTranslation.name.
+- **Consequences:** Instant typo-tolerant Persian/English search zero external cluster.
+- **Status:** Accepted conditional.
+
+---
+
+### ADR-029 — Frontend Architecture — Next.js App Boundaries
+
+- **Status:** **Proposed pending Phase04 scaffold**
+- **Context:** Need frontend component boundaries without implementing.
+- **Decision:** Structure /app/[locale]/(auth)/(app)/(coach)/(org)/(admin) routes mapping 34 P0 screens SCR-... ; /components/ui (Btn, Input, Modal focus-trapped, DatePicker Jalali/Gregorian) + /components/domain (WorkoutCard, ProgramTree, ExerciseCard, RestTimer, ConsentModal) + /components/layout (BottomNav 5 tabs Today/Calendar/Progress/Messages/Profile, Sidebar collapsible 260px, TopBar OrgSwitcher LangSwitcher); /lib/api apiClient fetch wrapper auth Accept-Language idempotency-key X-Request-ID, /lib/auth session, /lib/i18n next-intl, fa-IR.json/en-US.json, /lib/pwa manifest SW registration offline fallback network hook, /lib/search Persian normalization helper; /styles design tokens CSS variables logical properties only Vazirmatn Inter. Pages import only from components, lib/api, lib/i18n, lib/pwa — never direct DB. apiClient centralizes error RFC7807, rate-limit retry, correlation ID.
+- **Consequences:** Clear separation, RTL/LTR parity, PWA-ready.
+- **Status:** Proposed.
+
+---
+
+### ADR-030 — Backend Architecture — Django Module Boundaries (20 Modules)
+
+- **Status:** **Proposed Accepted Orientation**
+- **Context:** Modular monolith need domain isolation without microservices.
+- **Decision:** 20 modules M01-M20 as documented in DOMAIN_MODULES.md: Identity, Org, Membership, AuthZ/Consent, Exercise Catalog, Media/Rights, Programs, Templates, Assignments/Snapshots, Sessions, Progress/Feedback, Messaging, Notifications, Admin/Moderation, Audit, Privacy Export/Erasure, Future Nutrition P1, Future Billing Phase10, Future Marketplace P2, Future AI Phase11. Each owns entities, service layer public interface, permissions.py, serializers, events emitted/consumed, test boundary, extraction risk. Dependency hierarchy lowest to highest: Identity → Org → Membership → AuthZ/Consent → Exercise/Media → Programs → Assignments → Sessions/Progress → Messaging/Notifications → Admin/Audit/Privacy → Future. No circular imports enforced via import-linter in CI.
+- **Consequences:** Maintain velocity + extraction path.
+- **Status:** Proposed.
+
+---
+
+### ADR-031 — PostgreSQL Version/Extension Strategy
+
+- **Status:** **Proposed requires validation**
+- **Decision:** PostgreSQL 16 proposed (managed RDS/Supabase/Neon). Extensions: pg_trgm for trigram search, btree_gin, pgcrypto/uuid-ossp for ID gen. JSONB for snapshot_payload. Timestamptz UTC for all timestamps. Partial unique index for single primary location. GIN indexes for normalized alias. B-tree for scheduled_date, audit created_at.
+- **Alternatives:** PG15 still ok, PG17 maybe newer but 16 stable. MySQL considered but JSONB + trigram weaker.
+- **Operational cost:** Managed PG cost ~ $15-50/mo for pilot.
+- **Security:** At-rest encryption provider, TLS.
+- **Status:** Proposed pending POC of pg_trgm performance + UUIDv7 generation.
+
+---
+
+### ADR-032 — Auth/Session Strategy (Corrected — Recommended MVP Cookie Sessions + Optional JWT Alternative)
+
+- **Status:** **Proposed Conditional Acceptance — Correction for Auth Transport Consistency**
+- **Context:** Need to reconcile docs mentioning both cookies and Bearer tokens — define one recommended MVP and one optional alternative with explicit security properties.
+- **Decision (Corrected):**
+  - **Recommended MVP:** Cookie sessions:
+    - Cookie behavior: `sessionid` HttpOnly true (JS inaccessible), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation, Lax for usability, Strict for sensitive state-changing? Documented as Lax per Django default but with CSRF token). No long-lived token in localStorage/sessionStorage — explicit prohibition.
+    - CSRF: double-submit token or Django CSRF middleware. Flow: backend sets `csrftoken` cookie (non-HttpOnly, readable by JS), frontend reads and sends `X-CSRFToken` header for POST/PATCH/DELETE, backend verifies. SameSite=Lax additional layer.
+    - Trust boundary: frontend untrusted, backend authoritative, all RBAC/ABAC server-side.
+    - Rate limit 5/15min per IP/email via Redis, password strength, Argon2id/bcrypt cost≥12, reset 15min single-use, invitation 7d SHA256 single-use.
+  - **Optional Alternative — Bearer/JWT:**
+    - Short-lived access ≤15min in memory (not localStorage), rotating refresh in HttpOnly Secure SameSite cookie with reuse detection — if refresh reuse detected, revoke all sessions and alert.
+    - Explicit prohibition: never store long-lived refresh/access tokens in localStorage/sessionStorage (prevents XSS theft).
+    - When using bearer, Authorization header `Bearer <access_token>` not auto-sent cross-origin, therefore intrinsically CSRF-resistant, but still need XSS protections and HttpOnly refresh.
+  - **Explicit Prohibitions:** No `FE --> SecretMgr`, no private secrets in frontend bundle, no long-lived tokens in localStorage, no `unsafe-inline` as accepted CSP.
+  - **Final Choice for First Implementation:** Cookie sessions (simpler, Django built-in). JWT alternative remains optional, marked proposed/conditional requiring Phase04 validation.
+- **Consequences:** Clear guidance prevents implementation drift between cookie vs bearer, reduces XSS/session theft risk, aligns with OPENAPI.yaml securitySchemes.
+- **Final Review Fix (Task 2 + Task 1 Final):**
+  - **Secret Manager Boundary Final:** Corrected misleading `FE -->|Public runtime config only NEXT_PUBLIC_* NO private secrets| BE` arrow — public config is not a secret-management flow from frontend to backend. Correct notation: `PublicConfigProvider --> FE` (public config only), `BE --> SecretMgr` (private secrets), `Worker --> SecretMgr` (private secrets), `FE --> BE : HTTPS /api/v1 requests only`. Applied to DEPLOYMENT_ARCHITECTURE, CONTAINER_ARCHITECTURE, SYSTEM_CONTEXT, COMPONENT_BOUNDARIES. Verified no FE --> SecretMgr remains in architecture diagrams (only explanatory text about forbidden).
+  - **AuthResponse Consistency Final:** `OPENAPI.yaml` AuthResponse previously presented access_token/refresh_token as ordinary properties. Corrected to make tokens optional/nullable, documented present only when optional bearer strategy selected, recommended MVP uses HttpOnly session cookie + CSRF token, not tokens in body. Added csrf_token optional/nullable present only when cookieAuth MVP, added separate schemas CookieAuthResponse (recommended MVP — no tokens in body, HttpOnly cookie via Set-Cookie, CSRF token) and BearerAuthResponse (optional alternative — short-lived access ≤15min memory + rotating HttpOnly refresh cookie). Updated /auth/register and /auth/login endpoint descriptions to clarify MVP cookie session no tokens in body, optional bearer tokens optional, explicit prohibitions no long-lived tokens in localStorage, FE --> SecretMgr forbidden, public config PublicConfigProvider --> FE, private secrets BE/Worker --> SecretMgr, FE --> BE HTTPS /api/v1 only, provisional until Phase04. Security schemes consistent, error responses RFC7807 message_key, P0 groups align, no payment/AI/wearable P0.
+  - **Validation:** YAML parses (manual regex validation due to no-install rule), OpenAPI 3.1 OK, all local $ref resolve (137 total, 137 local, 0 missing, 61 defined schemas after adding CookieAuthResponse/BearerAuthResponse), no frontend-to-Secrets-Manager relationship remains in architecture diagrams (grep for actual mermaid arrow shows none, correct notation present), no app code/dependencies/migrations/secrets/real health data added.
+- **Status:** Proposed conditional — requires Phase04 validation. Security sections in OPENAPI.yaml updated to document recommendation. Final review corrections applied in commit b6ea570 + new correction commit (current).
+
+---
+
+### ADR-033 — API Error Model
+
+- **Status:** **Accepted**
+- **Decision:** RFC7807 style `type` (URI), `title`, `status`, `detail`, `instance` + extension `message_key` for localized frontend i18n + optional `field_errors` object. Consistent across all endpoints. Example in OPENAPI.yaml.
+- **Consequences:** Standards-aware, actionable, prevents leakage (generic auth errors, 404 for cross-tenant obscurity).
+- **Status:** Accepted.
+
+---
+
+### ADR-034 — Media Storage Architecture
+
+- **Status:** **Accepted**
+- **Decision:** Private S3-compatible buckets BlockPublicAcls true no listing, versioning enabled, SSE-S3, buckets: coachos-media-private, coachos-progress-private Tier4 isolated, org-logos, exports-tmp lifecycle 7d. Signed URLs TTL ≤15min private, no caching Tier4 in SW, MIME whitelist image/jpeg/png/webp video/mp4, magic bytes validation, size limits 10MB image 100MB video, checksum SHA256, thumbnail 256/512 webp via Pillow worker, video poster via ffmpeg, optional ClamAV scan quarantine, rights metadata mandatory for exercise media, takedown workflow, CDN optional for canonical with signed URLs but no long cache for Tier4, retention archive vs hard delete.
+- **Status:** Accepted.
+
+---
+
+### ADR-035 — PWA Architecture
+
+- **Status:** **Accepted**
+- **Decision:** Three-level: Phase04 manifest.json standalone display start_url /app/today theme #0B0F17 icons 192/512 maskable, SW registration Workbox or custom, app-shell caching CacheFirst fonts/icons StaleWhileRevalidate JS/CSS, offline fallback localized page, install guidance via beforeinstallprompt defer + iOS Share → Add to Home Screen instructions. Phase07 touch-optimized 44×44 min 48×48 preferred CTA, numeric keypad inputmode decimal, rest timer client-side JS + SVG ring + haptic, form-state protection temporary in-memory React state not durable, network status hook useNetworkStatus online/offline events + yellow banner offline unsaved input retained temporarily retry required, retry failed set log toast, video demo requires network fallback text cues. Phase12 IndexedDB Dexie durable queue pending/syncing/synced/failed, sync status UI, exponential backoff, conflict resolution last-write-wins for set logs append-only, background sync API if supported fallback foreground sync, push Web Push VAPID limitations iOS 16.4+ standalone only, HealthKit/Health Connect eval native bridge decision.
+- **Status:** Accepted.
+
+---
+
+### ADR-036 — Offline Boundary
+
+- **Status:** **Accepted**
+- **Decision:** Explicit boundaries: Phase04 cached shell + offline fallback only; Phase07 temporary/in-memory preservation of unsaved input + network status + retry behavior no durable offline queue or guaranteed message queue; Phase12 durable IndexedDB workout queue offline persistence message queue if approved sync retries conflict resolution. Replace wording sets saved locally or message queued with unsaved input retained temporarily retry required after reconnection unless Phase12 queue explicitly described.
+- **Status:** Accepted — enforced in STATE_AND_ERROR_MATRIX, SCREEN_INVENTORY, USER_FLOWS, UX_COPY.
+
+---
+
+### ADR-037 — Backup/RTO/RPO Targets
+
+- **Status:** **Proposed Requires Validation + Founder Approval on Cost**
+- **Decision:** PG daily snapshot retention 30d proposed + WAL PITR RPO 15min (or 5min if WAL frequency) RTO 1h restore+30m validation, manual snapshot pre-migration; S3 versioning enabled noncurrent expire 30d proposed, retention Tier4 hard delete bypass versioning for erasure compliance; exports-tmp 7d lifecycle; Redis not source of truth loss acceptable; code git; restore runbooks DB/S3 + weekly automated restore testing to staging smoke tests; RTO full platform 2-4h infra rebuild; incident response steps detect triage contain investigate recover post-mortem communicate; breach response containment audit notification within 72h if GDPR legal required; rollback app previous image + migration reverse 2-step add/dual-write/backfill/switch/drop pattern with pre-migration snapshot.
+- **Cost:** Multi-AZ PG cost extra, cross-region replication deferred P1.
+- **Status:** Proposed pending founder infra budget approval.
+
+---
+
+### ADR-038 — Environment Separation
+
+- **Status:** **Proposed**
+- **Decision:** local developer docker-compose synthetic seed only no real secrets; staging pre-prod integration auto deploy from main or arena branch anonymized synthetic copy no prod PII E2E Playwright security scans; production live pilot tag v0.x.x + manual approval gate real user data Tier1-4 PITR backups audit enforced. Distinct VPC DB buckets secrets per env. No prod data copied to local. Access to prod secrets limited founder/SRE via Secrets Manager IAM.
+- **Status:** Proposed.
+
+---
+
+### ADR-039 — CI/CD Strategy
+
+- **Status:** **Proposed**
+- **Decision:** GitHub Actions workflows: ci.yml lint/type/unit/integration/security scan (ruff/mypy, tsc eslint, pip audit npm audit gitleaks, Dependabot Snyk) on every PR; e2e.yml Playwright RTL/LTR visual checks fa-IR en-US; deploy-staging.yml auto deploy on merge to main; deploy-prod.yml manual workflow_dispatch tag + health check /healthz /readyz. Use OIDC to AWS/GCP not secrets in repo. Docker images FE+BE keep last 5 tags for rollback. Frontend Vercel/Netlify auto.
+- **Status:** Proposed — not created in Phase03.
+
+---
+
+### ADR-040 — Observability Strategy
+
+- **Status:** **Proposed**
+- **Decision:** Structured logging JSON structlog + pino, required fields timestamp level service request_id org_id actor_user_id action entity_type/id duration status message version, redaction processor removes password, token, Authorization, message content, health flag details, photo keys, signed URLs, IP hash. Correlation request_id middleware UUIDv7 X-Request-ID propagate response. Audit vs debug logs separation: debug ELK/CloudWatch 30d proposed no Tier3/4 payloads, audit immutable PG table 1y+ retention. Metrics Prometheus django-prometheus /metrics protected counters http_requests_total http_request_duration_seconds auth_login_failures auth_rate_limit_hits program_assignments workout_sessions set_logs media_uploads notifications celery_tasks audit_events export_requests db_connections cache_hit_ratio. Error tracking Sentry DSN env scrub sensitive, release tracking commit hash. Health endpoints /healthz liveness public 200 if up, /readyz readiness checks DB Redis S3 Celery returns JSON version timestamp protected. Alerting categories auth anomaly >20 fails IP 15min, cross-tenant attempts spike, unauthorized photo 403 spike, 5xx >1% 5min, latency p95 read>400ms write>800ms 10min, DB connections >80%, Redis down >1min, S3 upload fail >5%, Celery queue >100 10min, export fail >3, backup fail, disk >80%, cert expiry <14d. Frontend Web Vitals LCP CLS INP via next/web-vitals optional analytics endpoint.
+- **Status:** Proposed requires validation.
+
+---
+
+### ADR-041 — OpenAPI 3.1 Contract Structure
+
+- **Status:** **Proposed Accepted as Provisional**
+- **Decision:** API versioned under /api/v1, REST + JSON, auth via bearerAuth + cookieAuth HttpOnly, localization via Accept-Language fa-IR/en-US, error model RFC7807 + message_key, endpoint groups P0: auth, current user/profile, organizations, locations, memberships, invitations, exercise catalog, exercise moderation, programs, templates, assignments, today view, workout sessions, set logs, feedback flags, progress metrics/photos, messages, notifications, audit events, privacy export/deletion, media signed URLs, consents. For every endpoint documented purpose authentication required role object permission request/response schema error responses localization idempotency expectation audit event rate-limit category data sensitivity. Idempotency-Key optional for critical writes invite assign payment future. Rate limit categories auth 5/15min search 30/min messages 10/min export 2/day.
+- **Status:** Provisional — requires implementation review Phase04.
+
+---
+
+### ADR-042 — Threat Model & Security Control Matrix
+
+- **Status:** **Accepted**
+- **Decision:** STRIDE method + OWASP Top10 mapping, 21 threats T01-T21 covering account takeover, credential stuffing, session theft, invitation abuse, cross-tenant IDOR, unassigned coach, owner overreach, photo exposure, malicious uploads, stored XSS, CSRF, SSRF, webhook forgery future Phase10, notification abuse, export abuse, erasure abuse, insider/admin misuse, prompt injection future Phase11, supply-chain, backup leakage, search enumeration. For each: asset, actor, attack path, impact, likelihood, risk, preventive/detective/corrective controls, test strategy, owner, residual risk. Control matrix maps threat→requirement→architecture control→phase→test type→evidence→status including negative controls for cross-tenant reads/writes, unassigned coach, suspended membership, unauthorized photo/message/audit/export.
+- **Status:** Accepted.
+
+---
+
+### ADR-043 — Privacy & Data Lifecycle
+
+- **Status:** **Accepted**
+- **Decision:** Lifecycle stages 11: collection, consent, storage, use, sharing, export, retention, revocation, deletion, anonymization, backup destruction. Classification Tier0 public metadata, Tier1 account/identity, Tier2 coaching operational, Tier3 sensitive health-adjacent pain flags body metrics, Tier4 progress media most sensitive, Tier5 audit immutable, Tier6 secrets, Tier7 payment future P1 Phase10, Tier8 AI future Phase11. For each class purpose legal/privacy assumption owner/controller assumption access rules encryption logging restriction retention question export/deletion behavior consent requirement documented. No legal compliance claim — privacy-aligned engineering design requires jurisdiction-specific legal review. Explicit consent model for progress photos + nutrition P1 multi-prof, revocation immediate, export ZIP via Celery tmp S3 24h link, erasure pipeline hard delete PII + anonymized aggregates. Pre-DPIA checklist large-scale sensitive, systematic monitoring, automated profiling, multi-prof sharing, progress-photo processing, wearable future, AI.
+
