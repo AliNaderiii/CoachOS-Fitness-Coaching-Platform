@@ -12,7 +12,7 @@
 
 ## 1. One-Line Status
 
-Phase 04 foundation complete: Modular monorepo established (`frontend/` Next.js 14 App Router + `backend/` Django 5 DRF + `infra/` Docker Compose + `.github/workflows/`), runnable bilingual PWA shell (`fa-IR` RTL / `en-US` LTR with dynamic HTML attributes and zero Arabic resources), Web App Manifest + Service Worker app-shell caching with offline fallback page, 21 backend Pytest tests passing (100%), 29 frontend Vitest tests passing (100%), safe health endpoints (`/healthz`, `/readyz`, `/api/v1/meta`), RFC 7807 problem details error envelopes with localized message keys, Correlation ID (`X-Request-ID` UUIDv7), Security Headers, Logging Redaction, strict frontend secret boundary (`NEXT_PUBLIC_*` only), ADR-012 Proprietary license applied, and comprehensive Hosting & Data Residency evaluation documented with pre-pilot decision gate. **Zero Phase 05 domain features (users, orgs, programs, workouts) created prematurely — foundation only.**
+Phase 04 foundation complete: Modular monorepo established (`frontend/` Next.js 14 App Router + `backend/` Django 5 DRF + `infra/` Docker Compose + CI quality gates), runnable bilingual PWA shell (`fa-IR` RTL / `en-US` LTR with dynamic HTML attributes and zero Arabic resources), Web App Manifest + Service Worker app-shell caching with offline fallback page, 32 backend Pytest tests passing (100%), 30 frontend Vitest tests passing (100%), Next.js production build verified (18 static pages generated), fail-closed secret configuration (no silent SQLite fallback, mandatory `DJANGO_SECRET_KEY` and `DATABASE_URL` in production/staging), secure default DRF permissions (`IsAuthenticated` global default with explicit `AllowAny` on `/healthz`, `/readyz`, `/api/v1/meta`), validated `CorrelationIDMiddleware` (UUIDv7), tenant header protection (`ALLOW_TENANT_HEADER_OVERRIDE=False`), security headers, logging redaction, strict frontend secret boundary (`NEXT_PUBLIC_*` only), ADR-012 Proprietary license applied, and comprehensive Hosting & Data Residency evaluation documented with pre-pilot decision gate. **Zero Phase 05 domain features (users, orgs, programs, workouts) created prematurely — foundation only.**
 
 ---
 
@@ -20,16 +20,18 @@ Phase 04 foundation complete: Modular monorepo established (`frontend/` Next.js 
 
 | Area | Implemented Artifacts | Verification / Tests |
 |---|---|---|
-| **Monorepo Architecture** | `frontend/`, `backend/`, `infra/`, `.github/`, `docker-compose.yml`, `compose.yaml`, `.env.example`, `.gitignore` | Local development verified via Docker & direct runtime |
-| **Frontend Shell** | Next.js 14.2 App Router, TypeScript strict, Tailwind logical CSS, dark obsidian theme (`#0B0F17`), placeholder dashboard screens clearly marked as foundation-only | 29 Vitest tests passing; Next.js static build verified (17 pages generated) |
+| **Monorepo Architecture** | `frontend/`, `backend/`, `infra/`, `docker-compose.yml`, `compose.yaml`, `.env.example`, `.gitignore` | Local development verified via Docker & direct runtime |
+| **Frontend Shell** | Next.js 14.2 App Router, TypeScript strict, Tailwind logical CSS, dark obsidian theme (`#0B0F17`), placeholder dashboard screens clearly marked as foundation-only | 30 Vitest tests passing; Next.js static build verified (18 static pages generated) |
 | **PWA Baseline** | `manifest.json`, `manifest.webmanifest`, `sw.js` (Cache-First static, Network-First navigation), 192px/512px maskable PNG icons, `/offline` page, `NetworkStatusBanner`, `InstallPromptBanner` | Manifest validation test passing; PWA icon dimension test passing; Service worker caching verified |
 | **Bilingual RTL/LTR Engine** | Dynamic `lang` and `dir` on HTML root, `fa-IR` RTL, `en-US` LTR, BiDi text isolation (`<bdi>`), Persian search normalizer (`PersianNormalizer`), Jalali date conversion | i18n tests passing; dictionary 100% key parity; Jalali converter test passing |
 | **Language Governance** | Strict exclusion of Arabic locale files (`ar-*.json`, `ar.json`, `ar.po`) across frontend and backend | `test_no_arabic.py` passing; `no-arabic.test.ts` passing; CI check-secrets scanner passing |
-| **Backend REST API** | Django 5.2 + DRF 3.18, modular settings (`base`, `dev`, `staging`, `prod`, `test`), `CorrelationIDMiddleware`, `SecurityHeadersMiddleware`, `LoggingRedactionMiddleware`, `TenantContextMiddleware` | 21 Pytest tests passing; 79% overall test coverage (90%+ core) |
+| **Backend REST API** | Django 5.2 + DRF 3.18, modular settings (`base`, `dev`, `staging`, `prod`, `test`), `CorrelationIDMiddleware`, `SecurityHeadersMiddleware`, `LoggingRedactionMiddleware`, `TenantContextMiddleware` | 32 Pytest tests passing; 77% overall test coverage (90%+ core) |
+| **Fail-Closed Configuration** | Mandatory `DJANGO_SECRET_KEY` and `DATABASE_URL` in production/staging; no wildcard `ALLOWED_HOSTS`; fail-fast exceptions | `test_fail_closed_settings.py` (5 tests passing) |
+| **Secure Default Permissions** | `REST_FRAMEWORK` default permission class set to `IsAuthenticated`; public health endpoints opt in explicitly | `test_default_permissions.py` (3 tests passing) |
 | **Safe Health Endpoints** | `GET /healthz` (200 OK liveness), `GET /readyz` (DB + Redis check), `GET /api/v1/meta` (safe public metadata) | `test_health.py`, `test_readyz.py`, `test_meta.py` passing |
 | **Error Handling & Security** | RFC 7807 Problem Details envelope with `message_key`, zero internal stack traces in client responses, log redaction, HttpOnly session cookie config | `test_errors.py`, `test_drf_exceptions.py`, `test_security_headers.py`, `test_secret_leakage.py` passing |
-| **Entity Identifiers** | Time-ordered UUIDv7 generator (`id_generator.py`) with fallback | `test_uuidv7.py` passing; verified time-ordering trend |
-| **CI/CD Quality Gates** | `.github/workflows/ci.yml`, `.github/workflows/security-scan.yml`, `infra/scripts/check-secrets.sh` | Lint (Ruff + ESLint), Type-check (tsc), Unit tests (Vitest + Pytest), Secret scanning, Arabic exclusion |
+| **Entity Identifiers** | Time-ordered UUIDv7 generator (`id_generator.py`) with validation | `test_uuidv7.py` passing; verified time-ordering trend |
+| **CI/CD Quality Gates** | `infra/ci/ci.yml`, `infra/ci/security-scan.yml`, `infra/scripts/check-secrets.sh` | Lint (Ruff + ESLint), Type-check (tsc), Unit tests (Vitest + Pytest), Secret scanning, Arabic exclusion |
 | **License & IP** | Transitioned to Proprietary / All Rights Reserved notice in `LICENSE` and ADR-012 | `LICENSE` file updated; ADR-012 accepted per founder mandate |
 | **Hosting & Data Residency** | Comprehensive 10-dimension evaluation of PaaS, EU Cloud, Bare VPS, Dual-Region in `HOSTING_AND_DATA_RESIDENCY_DECISION.md` | Decision gate established; zero cloud credentials in Git |
 
@@ -62,7 +64,7 @@ Phase 04 foundation complete: Modular monorepo established (`frontend/` Next.js 
 
 ## 5. Next Step
 
-Phase 04 complete. Standing by for explicit founder instruction to begin:
+Phase 04 complete + review corrections applied. Standing by for explicit founder instruction to begin:
 **Phase 05 — Identity, Tenancy, and Roles**
 - Do not start Phase 05 automatically.
 - Await explicit founder instruction.

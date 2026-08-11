@@ -1,6 +1,6 @@
 # PWA Foundation Specification — CoachOS
 
-**Document Version:** 1.0.0 (Phase 04 Baseline)  
+**Document Version:** 1.1.0 (Phase 04 Baseline — Correction Update)  
 **Date:** 2026-08-11 (UTC)  
 **Status:** Approved Engineering Baseline  
 **Governing ADRs:** ADR-011, ADR-035, ADR-036, ADR-046  
@@ -45,7 +45,7 @@ The manifest is located at `/frontend/public/manifest.json` and served at `/mani
 {
   "name": "CoachOS Fitness Coaching Platform",
   "short_name": "CoachOS",
-  "description": "Bilingual fitness coaching, program design, and workout execution platform.",
+  "description": "Bilingual fitness coaching, periodized program design, and athlete workout execution platform.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -84,6 +84,11 @@ The manifest is located at `/frontend/public/manifest.json` and served at `/mani
 }
 ```
 
+### 2.1 Static Manifest Locale Strategy & Future Dynamic Manifest
+- **Phase 04 Baseline:** The static `manifest.json` uses Persian (`fa-IR`, `dir: "rtl"`) as the canonical application title and metadata, reflecting the primary product market.
+- **English Users in Phase 04:** English users receive full runtime bilingual localization on document headers (`<html lang="en-US" dir="ltr">`), page titles (`CoachOS — Fitness Coaching Platform`), and all UI components.
+- **Future Roadmap (Phase 07):** Exploration of dynamic localized manifest delivery (e.g., serving dynamic manifest JSON via `/api/manifest?locale=en-US` when requested by international clients). Arabic remains strictly out of scope.
+
 ---
 
 ## 3. Service Worker Architecture
@@ -102,8 +107,8 @@ The Service Worker (`/frontend/public/sw.js`) provides an isolated offline cachi
 
 ### 3.2 Offline Fallback Experience
 When a user loses network connectivity and navigates to an uncached route, the Service Worker displays a dedicated, bilingual Offline Fallback Page (`/offline`) stating:
-- Persian: «شما در حالت آفلاین هستید. اتصال اینترنت خود را بررسی کنید.»
-- English: "You are currently offline. Please check your internet connection."
+- Persian: «شما در حالت آفلاین هستید. داده‌های ذخیره‌نشده به صورت موقت در حافظه نگهداری می‌شوند و برای ذخیره دائمی به اتصال اینترنت نیاز است.»
+- English: "You are currently offline. Unsaved input is retained temporarily in memory. Reconnection is required to save changes."
 - A retry button (`تلاش مجدد` / "Retry Connection") allowing immediate re-testing of network status.
 
 ---
@@ -119,8 +124,8 @@ When a user loses network connectivity and navigates to an uncached route, the S
 ### 4.2 Install Prompt Banner (`InstallPromptBanner.tsx`)
 - **Android / Chromium:** Intercepts `beforeinstallprompt` event, stores event handle, and displays an unobtrusive "Install CoachOS App" button.
 - **iOS Safari:** Detects iOS Safari user agent (where `beforeinstallprompt` is unsupported) and renders step-by-step visual guidance:
-  1. Tap the **Share** button (`⎙` / Box with arrow) in Safari toolbar.
-  2. Scroll down and tap **"Add to Home Screen"** (`＋`).
+  1. Tap the **Share** button in Safari toolbar.
+  2. Scroll down and tap **"Add to Home Screen"**.
 
 ---
 

@@ -9,7 +9,7 @@ from collections.abc import Callable
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 
-from apps.core.utils.id_generator import generate_uuid7
+from apps.core.utils.id_generator import generate_uuid7, is_valid_uuid
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +25,22 @@ class CorrelationIDFilter(logging.Filter):
 
 class CorrelationIDMiddleware:
     """
-    Attaches a unique correlation ID (UUIDv7) to incoming requests,
+    Attaches a validated correlation ID (UUIDv7) to incoming requests,
     propagates it to the logger context, and returns it in the X-Request-ID response header.
+    Rejects malformed, oversized, or log-injection values (ADR-048 Correction).
     """
 
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
         self.get_response = get_response
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
-        correlation_id = request.headers.get("X-Request-ID")
-        if not correlation_id:
+        incoming_id = request.headers.get("X-Request-ID", "").strip()
+
+        # Validate incoming ID: must be valid UUID and <= 36 characters
+        if incoming_id and len(incoming_id) <= 36 and is_valid_uuid(incoming_id):
+            correlation_id = incoming_id
+        else:
+            # Generate clean time-ordered UUIDv7 if missing or invalid
             correlation_id = generate_uuid7()
 
         request.correlation_id = correlation_id
@@ -64,7 +70,7 @@ class SecurityHeadersMiddleware:
             "camera=(), microphone=(), geolocation=(), payment=()",
         )
 
-        # Content-Security-Policy baseline
+        # Content-Security-Policy baseline for API backend
         csp = (
             "default-src 'self'; "
             "img-src 'self' data: https: blob:; "
@@ -91,7 +97,8 @@ class SecurityHeadersMiddleware:
 class TenantContextMiddleware:
     """
     Foundation placeholder interface for multi-tenant organization scoping (ADR-006, ADR-014).
-    Extracts active organization ID from session or header in Phase 05.
+    Production tenant context derives exclusively from authenticated session state.
+    Client-supplied header overrides are strictly gated behind ALLOW_TENANT_HEADER_OVERRIDE.
     """
 
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
@@ -104,9 +111,12 @@ class TenantContextMiddleware:
         if hasattr(request, "session"):
             request.org_id = request.session.get("active_org_id")
 
-        # Allow header override for testing / future API clients
-        if not request.org_id and "X-Organization-ID" in request.headers:
-            request.org_id = request.headers.get("X-Organization-ID")
+        # Explicitly gated test-only header override (default False in production/staging)
+        allow_override = getattr(settings, "ALLOW_TENANT_HEADER_OVERRIDE", False)
+        if allow_override and not request.org_id and "X-Organization-ID" in request.headers:
+            header_val = request.headers.get("X-Organization-ID", "").strip()
+            if header_val and len(header_val) <= 64:
+                request.org_id = header_val
 
         return self.get_response(request)
 

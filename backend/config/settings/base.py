@@ -13,17 +13,23 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY", "django-insecure-dev-key-phase04-testing-only-change-in-prod"
-)
-
+# Debug mode flag
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,backend").split(",")
-    if host.strip()
-]
+# Secret key handling - default fallback available only when DEBUG=True
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-dev-fallback-key-local-only" if DEBUG else "",
+)
+
+# Allowed hosts
+raw_allowed_hosts = os.environ.get("ALLOWED_HOSTS", "")
+if raw_allowed_hosts:
+    ALLOWED_HOSTS = [h.strip() for h in raw_allowed_hosts.split(",") if h.strip()]
+elif DEBUG:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "backend"]
+else:
+    ALLOWED_HOSTS = []
 
 # Application definition
 INSTALLED_APPS = [
@@ -41,7 +47,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # Correlation ID middleware (attaches X-Request-ID early)
+    # Correlation ID middleware (attaches X-Request-ID early with validation)
     "apps.core.middleware.CorrelationIDMiddleware",
     # Security headers middleware
     "apps.core.middleware.SecurityHeadersMiddleware",
@@ -137,13 +143,13 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Django REST Framework Configuration
+# Django REST Framework Configuration - SECURE DEFAULT: IsAuthenticated (ADR-048 Correction)
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",
+        "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
@@ -162,23 +168,31 @@ CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_HEADER_NAME = "HTTP_X_CSRFTOKEN"
 
-# CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get(
-        "CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
-    ).split(",")
-    if origin.strip()
-]
+# CORS & CSRF Configuration
+raw_cors = os.environ.get("CORS_ALLOWED_ORIGINS", "")
+if raw_cors:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in raw_cors.split(",") if o.strip()]
+elif DEBUG:
+    CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+else:
+    CORS_ALLOWED_ORIGINS = []
+
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get(
-        "CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000"
-    ).split(",")
-    if origin.strip()
-]
+raw_csrf = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+if raw_csrf:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in raw_csrf.split(",") if o.strip()]
+elif DEBUG:
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+    ]
+else:
+    CSRF_TRUSTED_ORIGINS = []
+
+# Tenant header override flag (Default: False; only enabled in explicit test mode)
+ALLOW_TENANT_HEADER_OVERRIDE = False
 
 # Redis & Celery Configuration
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")

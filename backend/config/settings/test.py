@@ -1,9 +1,11 @@
-"""Test environment settings."""
+"""Test environment settings — Explicitly isolated deterministic test settings."""
 
 from .base import *  # noqa: F403
 
 DEBUG = False
 SECRET_KEY = "django-insecure-test-key-for-pytest-execution-only"
+
+ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
     "default": {
@@ -18,3 +20,6 @@ PASSWORD_HASHERS = [
 
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+
+# Enable test override for unit tests
+ALLOW_TENANT_HEADER_OVERRIDE = True

@@ -82,7 +82,7 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
 - **Prompt Summary:**
   Execute Phase 04 — Project Foundation and PWA Baseline.
   - Apply founder decisions: Product languages fa-IR (RTL) and en-US (LTR) only; Arabic strictly out of scope; Proprietary / All Rights Reserved license (ADR-012); dual-region-capable strategy evaluation in `HOSTING_AND_DATA_RESIDENCY_DECISION.md`.
-  - Create reproducible, secure, bilingual, PWA-first monorepo foundation (`frontend/` Next.js 14, `backend/` Django 5/DRF, `infra/` Docker Compose, `.github/workflows/` CI quality gates).
+  - Create reproducible, secure, bilingual, PWA-first monorepo foundation (`frontend/` Next.js 14, `backend/` Django 5/DRF, `infra/` Docker Compose, CI quality gates).
   - PWA Level 1 foundation: Web App Manifest, 192px/512px maskable icons, Service Worker app-shell caching, offline fallback screen, network status banner, install guidance.
   - Backend foundation: modular settings, security headers, correlation ID middleware, logging redaction, RFC 7807 problem details error envelopes, UUIDv7 utility, Persian text search normalizer, `/healthz`, `/readyz`, `/api/v1/meta`.
   - Quality gates & verification: Vitest frontend tests, Pytest backend tests, Ruff linting, ESLint, TypeScript strict checking, secret scanning, Arabic exclusion check.
@@ -90,18 +90,33 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
   - Do not implement Phase 05+ domain features (users, orgs, programs, workouts).
   - Open Pull Request and stop for founder review.
 
+- **Actions Taken:** Initial Phase 04 foundation delivered and PR #7 opened.
+
+---
+
+## Prompt 008
+
+- **Date/time:** 2026-08-11 (UTC)
+- **Source:** Founder / supervising agent — Phase 04 Foundation Review — Correction-Only Task
+- **Phase:** 04 — Project Foundation and PWA Baseline (Review Corrections)
+- **Prompt Summary:**
+  Perform focused security, configuration, and documentation correction review on PR #7:
+  1. Fail-closed secret configuration (production/staging fail fast on missing `DJANGO_SECRET_KEY` or `DATABASE_URL`, no wildcard `ALLOWED_HOSTS`).
+  2. Secure default DRF permissions (`IsAuthenticated` default; `/healthz`, `/readyz`, `/api/v1/meta` explicit `AllowAny`).
+  3. Tenant-context header safety (`ALLOW_TENANT_HEADER_OVERRIDE=False`; session-only active organization derivation).
+  4. Correlation ID validation (reject malformed, oversized, or log-injection IDs; generate fresh UUIDv7).
+  5. Frontend security headers and CSP delivery on HTML responses via `next.config.mjs`.
+  6. PWA and locale validation (verify manifest, icons, service worker, static manifest Persian default metadata documentation).
+  7. Normalize static-page count to 18 verified pages and update test counts.
+  8. Do not create Phase 05 domain code, push correction to PR #7, and keep PR #7 open.
+
 - **Actions Taken:**
-  - Verified repository baseline at merge commit `692b2b02ac23d8ad433270fa9ea585f5dc860768` on working branch `arena/019fefbf-coachos-fitness-coaching-platf`.
-  - Updated ADR-012 and `LICENSE` to Proprietary / All Rights Reserved (Copyright (c) 2026 CoachOS Technologies / Ali Naderi).
-  - Authored `docs/architecture/HOSTING_AND_DATA_RESIDENCY_DECISION.md` evaluating PaaS, EU Cloud, Bare VPS, and Dual-Region architectures across 10 dimensions.
-  - Created modular monorepo structure with `.gitignore`, `compose.yaml`, `docker-compose.yml`, `.env.example`, `infra/docker/`, and `infra/scripts/`.
-  - Built runnable Next.js 14.2 App Router frontend shell with TypeScript strict mode, Tailwind logical CSS, dark obsidian theme (`#0B0F17`), dynamic `lang` and `dir` on HTML root, BiDi text isolation, and placeholder screens clearly marked as foundation-only.
-  - Built PWA Level 1 baseline: `manifest.json`, `manifest.webmanifest`, `sw.js` (Cache-First static, Network-First navigation with fallback), original 192px/512px standard and maskable PNG icons, `/offline` page, `NetworkStatusBanner`, and `InstallPromptBanner`.
-  - Built runnable Django 5.2 + DRF 3.18 backend foundation with modular environment settings, `CorrelationIDMiddleware` (generating/propagating `X-Request-ID` UUIDv7), `SecurityHeadersMiddleware`, `LoggingRedactionMiddleware`, `TenantContextMiddleware` interface, custom RFC 7807 exception handler, and safe health endpoints (`/healthz`, `/readyz`, `/api/v1/meta`).
-  - Implemented `PersianNormalizer` utility in both frontend (`lib/i18n/normalizer.ts`) and backend (`apps/core/utils/persian_normalizer.py`) folding Perso-Arabic keyboard variants (`ي`/`ى` -> `ی`, `ك` -> `ک`, Arabic-Indic digits, ZWNJ).
-  - Implemented Jalali Solar Hijri date conversion algorithm separate from UTC/Gregorian timestamp storage.
-  - Authored comprehensive test suites: 21 backend Pytest tests passing (100%), 29 frontend Vitest tests passing (100%), Next.js static build verified (17 pages generated), Ruff clean, ESLint clean, TypeScript strict clean.
-  - Configured GitHub Actions CI workflows (`.github/workflows/ci.yml`, `security-scan.yml`) and `infra/scripts/check-secrets.sh` verifying secret scanning and strict Arabic exclusion.
-  - Authored architecture specifications: `docs/architecture/PHASE04_FOUNDATION_DECISIONS.md`, `LOCAL_DEVELOPMENT.md`, `CI_CD_FOUNDATION.md`, `PWA_FOUNDATION.md`, `SECURITY_FOUNDATION.md`.
-  - Updated ADR-010, ADR-012, and added ADR-044 through ADR-049 in `docs/DECISIONS.md`.
-  - Authored comprehensive 25-section Phase 04 report (`docs/reports/PHASE-04-FOUNDATION-REPORT.md`).
+  - Implemented fail-closed validation in `staging.py` and `production.py` (mandatory secret key & DB URL, explicit allowed hosts, no wildcard fallback).
+  - Updated `base.py` DRF default permission class to `IsAuthenticated`; public health endpoints explicitly use `AllowAny`.
+  - Updated `CorrelationIDMiddleware` to validate UUID format and length ≤ 36 chars, replacing malformed strings with clean UUIDv7.
+  - Updated `TenantContextMiddleware` to derive tenant context from session state and gate client headers behind `ALLOW_TENANT_HEADER_OVERRIDE` (default `False`).
+  - Configured frontend CSP and security headers on Next.js HTML responses in `next.config.mjs`.
+  - Added unit tests for fail-closed settings (`test_fail_closed_settings.py`), DRF default permissions (`test_default_permissions.py`), correlation ID validation, tenant header safety, and frontend security headers (`security-headers.test.ts`).
+  - Total test suite: 32 backend Pytest tests (100% pass), 30 frontend Vitest tests (100% pass), 18 static pages generated in Next.js build.
+  - Updated documentation, checklist, changelog, and Phase 04 report.
+

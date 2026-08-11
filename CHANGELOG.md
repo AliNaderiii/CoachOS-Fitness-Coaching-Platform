@@ -57,6 +57,13 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 ### Changed
 
 - Transitioned repository `LICENSE` from MIT to **Proprietary / All Rights Reserved** (Copyright (c) 2026 CoachOS Technologies / Ali Naderi) pursuant to founder intellectual property mandate (ADR-012).
+- Applied security & configuration review corrections:
+  - Fail-closed secret configuration for production/staging (mandatory `DJANGO_SECRET_KEY` and `DATABASE_URL`, strict `ALLOWED_HOSTS`).
+  - Secure default DRF permissions (`IsAuthenticated` global default; `/healthz`, `/readyz`, `/api/v1/meta` explicit `AllowAny`).
+  - Validated `CorrelationIDMiddleware` preventing malformed or log-injection request IDs.
+  - Tenant context safety enforcing session-only active organization derivation (`ALLOW_TENANT_HEADER_OVERRIDE=False`).
+  - Frontend security headers and CSP delivery on HTML responses via `next.config.mjs`.
+  - Normalized static-page build count to 18 pages.
 - Updated `README.md` with runnable local development commands, architecture structure, and updated project status.
 - Updated `PROJECT_STATUS.md` and `PROJECT_CHECKLIST.md` marking Phase 04 complete.
 

@@ -4,11 +4,17 @@ import path from "path";
 
 describe("PWA Baseline & Manifest Validation (ADR-011, ADR-046)", () => {
   const manifestPath = path.resolve(__dirname, "../public/manifest.json");
+  const webManifestPath = path.resolve(__dirname, "../public/manifest.webmanifest");
 
-  it("ensures public/manifest.json exists and is valid JSON", () => {
+  it("ensures public/manifest.json and manifest.webmanifest exist and match", () => {
     expect(fs.existsSync(manifestPath)).toBe(true);
-    const content = fs.readFileSync(manifestPath, "utf-8");
-    const manifest = JSON.parse(content);
+    expect(fs.existsSync(webManifestPath)).toBe(true);
+
+    const contentJson = fs.readFileSync(manifestPath, "utf-8");
+    const contentWebManifest = fs.readFileSync(webManifestPath, "utf-8");
+
+    const manifest = JSON.parse(contentJson);
+    const webManifest = JSON.parse(contentWebManifest);
 
     expect(manifest.name).toBe("CoachOS Fitness Coaching Platform");
     expect(manifest.short_name).toBe("CoachOS");
@@ -16,6 +22,9 @@ describe("PWA Baseline & Manifest Validation (ADR-011, ADR-046)", () => {
     expect(manifest.start_url).toBe("/");
     expect(manifest.background_color).toBe("#0B0F17");
     expect(manifest.theme_color).toBe("#0B0F17");
+    expect(manifest.lang).toBe("fa-IR");
+    expect(manifest.dir).toBe("rtl");
+    expect(webManifest).toEqual(manifest);
   });
 
   it("contains both standard and maskable 192x192 and 512x512 icons", () => {
@@ -53,10 +62,14 @@ describe("PWA Baseline & Manifest Validation (ADR-011, ADR-046)", () => {
     }
   });
 
-  it("ensures Service Worker sw.js exists in public directory", () => {
+  it("ensures Service Worker sw.js never caches API routes and has offline fallback", () => {
     const swPath = path.resolve(__dirname, "../public/sw.js");
     expect(fs.existsSync(swPath)).toBe(true);
     const content = fs.readFileSync(swPath, "utf-8");
     expect(content).toContain("coachos-app-shell-v1");
+    // Verify API bypass rule (Network-Only)
+    expect(content).toContain('url.pathname.startsWith("/api/")');
+    // Verify offline fallback route
+    expect(content).toContain("/fa-IR/offline");
   });
 });

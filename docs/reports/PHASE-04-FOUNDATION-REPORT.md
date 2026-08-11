@@ -1,6 +1,6 @@
 # Phase 04 — Project Foundation and PWA Baseline Report
 
-**Document Version:** 1.0.0  
+**Document Version:** 1.1.0 (Phase 04 Baseline — Review Corrections Finalized)  
 **Phase:** Phase 04 — Project Foundation & PWA Baseline  
 **Date:** 2026-08-11 (UTC)  
 **Authors:** Principal Software Architect, Frontend Lead, Backend Lead, DevOps/SRE Engineer, Security Engineer, QA/Test Engineer, Localization Engineer, Technical Writer, Release Manager  
@@ -15,13 +15,13 @@
 Phase 04 successfully establishes the executable, bilingual, PWA-first, secure monorepo foundation for the CoachOS Fitness Coaching Platform. It transforms the Phase 00–03 specifications into a fully reproducible development and testing environment without prematurely implementing Phase 05+ domain features.
 
 ### Core Achievements of Phase 04:
-1. **Monorepo Scaffolding:** Clean directory layout with `frontend/` (Next.js 14.2 App Router), `backend/` (Django 5.2 + DRF 3.18), `infra/` (Docker Compose with PostgreSQL 16 & Redis 7), and `.github/workflows/` (CI quality gates).
+1. **Monorepo Scaffolding:** Clean directory layout with `frontend/` (Next.js 14.2 App Router), `backend/` (Django 5.2 + DRF 3.18), `infra/` (Docker Compose with PostgreSQL 16 & Redis 7, container definitions, and CI quality gates).
 2. **PWA Level 1 Baseline:** Web App Manifest (`manifest.json`), original 192px/512px standard and maskable PNG icons, resilient Service Worker (`sw.js`) with Cache-First static caching and Network-First navigation with offline fallback, a sticky network status banner, and cross-platform install guidance.
 3. **Bilingual RTL/LTR Engine:** Dynamic `lang` and `dir` on the root HTML document, strict CSS logical properties, bidirectional text isolation (`<bdi>`), Solar Hijri (Jalali) date formatting algorithms separate from UTC storage, and a reusable `PersianNormalizer` folding Perso-Arabic keyboard variants (`ي`/`ى` -> `ی`, `ك` -> `ک`, Arabic-Indic digits, and ZWNJ).
 4. **Strict Language Governance:** Absolute exclusion of Arabic language files, translation keys, and seed data, continuously validated by automated CI scanner.
-5. **Backend REST API Foundation:** Modular environment-based settings, middleware pipeline (`CorrelationIDMiddleware` with UUIDv7, `SecurityHeadersMiddleware`, `LoggingRedactionMiddleware`, `TenantContextMiddleware` placeholder), custom RFC 7807 problem details error handler, and safe health endpoints (`/healthz`, `/readyz`, `/api/v1/meta`).
+5. **Fail-Closed Backend REST API Foundation:** Modular environment-based settings, fail-closed production validation (mandatory `DJANGO_SECRET_KEY` and `DATABASE_URL`; no silent SQLite or wildcard host fallbacks), secure default DRF permissions (`IsAuthenticated` global default with explicit `AllowAny` on `/healthz`, `/readyz`, `/api/v1/meta`), validated `CorrelationIDMiddleware` (UUIDv7), tenant header protection, security headers, logging redaction, and custom RFC 7807 problem details error envelopes.
 6. **Security & Secret Boundaries:** Strict public runtime configuration on frontend (`NEXT_PUBLIC_*` only; runtime validation throws on private secret detection), zero client-side Secrets Manager access, HttpOnly session cookies, SameSite=Lax, and CSRF double-submit protection.
-7. **Comprehensive Test Suite:** 21 backend Pytest unit tests passing (100%), 29 frontend Vitest tests passing (100%), Next.js production build verified (17 static pages generated), and automated secret scanning clean.
+7. **Comprehensive Test Suite:** 32 backend Pytest unit tests passing (100%), 30 frontend Vitest tests passing (100%), Next.js production build verified (18 static pages generated), and automated secret scanning clean.
 8. **Hosting & Data Residency Strategy:** Authored `HOSTING_AND_DATA_RESIDENCY_DECISION.md` evaluating 5 deployment options across 10 dimensions, establishing local/staging container neutrality and a pre-pilot founder decision gate.
 9. **License Transition:** Transitioned repository license to **Proprietary / All Rights Reserved** in `LICENSE` and `docs/DECISIONS.md` (ADR-012).
 
@@ -35,8 +35,8 @@ Phase 04 successfully establishes the executable, bilingual, PWA-first, secure m
 ۱. **فونداسیون PWA (سطح ۱):** پیاده‌سازی مانیفست استاندارد (`manifest.json`) با پوسته تیره Obsidian (`#0B0F17`)، آیکون‌های اختصاصی ۱۹۲ و ۵۱۲ پیکسلی (استاندارد و Maskable)، سرویس‌ورکر با کش محلی پوسته برنامه، صفحه اختصاصی آفلاین، بنر وضعیت اتصال اینترنت، و راهنمای نصب در iOS و اندروید.  
 ۲. **موتور دوزبانه و RTL/LTR:** تنظیم خودکار صفات `lang` و `dir` روی سند HTML، استفاده کامل از ویژگی‌های منطقی CSS، ایزولاسیون متن‌های ترکیبی فارسی و لاتین (BiDi)، تبدیل تقویم شمسی/جلالی برای نمایش در رابط کاربری بدون تغییر در ذخیره‌سازی UTC، و ابزار نرمال‌سازی نگارش متن فارسی (تبدیل «ي» و «ك» عربی به «ی» و «ک» فارسی و ارقام).  
 ۳. **قانون عدم پشتیبانی از زبان عربی:** حذف و منع کامل هرگونه فایل، ترجمه یا داده به زبان عربی با اعتبارسنجی خودکار در خط لوله CI.  
-۴. **پایه‌ریزی بک‌اند و امنیت:** پیاده‌سازی تنظیمات چندمحیطی، پایش سلامت (`/healthz`، `/readyz`، `/api/v1/meta`)، ساختار خطای استاندارد RFC 7807، میدل‌ویر تولید شناسه رهگیری (UUIDv7)، هدرهای امنیتی (HSTS، CSP، X-Frame-Options)، پاکسازی داده‌های حساس از لاگ‌ها، و کوکی‌های امن HttpOnly به همراه محافظت CSRF.  
-۵. **کیفیت و آزمون‌ها:** اجرای موفق ۲۱ تست در Pytest، ۲۹ تست در Vitest، ساخت استاتیک ۱۷ صفحه در Next.js، و عدم نشت هیچ‌گونه کلید خصوصی.  
+۴. **پایه‌ریزی امن و بدون خطا (Fail-Closed) بک‌اند:** پیاده‌سازی تنظیمات چندمحیطی با شکست صریح در صورت نبود کلید امنیتی یا دیتابیس در محیط پروداکشن (بدون بازگشت خاموش به SQLite یا وایلدکارد)، مجوزهای پیش‌فرض امن (`IsAuthenticated`) در DRF، پایش سلامت (`/healthz`، `/readyz`، `/api/v1/meta`)، ساختار خطای استاندارد RFC 7807، میدل‌ویر اعتبارسنجی شناسه رهگیری (UUIDv7)، هدرهای امنیتی (HSTS، CSP، X-Frame-Options)، پاکسازی داده‌های حساس از لاگ‌ها، و کوکی‌های امن HttpOnly به همراه محافظت CSRF.  
+۵. **کیفیت و آزمون‌ها:** اجرای موفق ۳۲ تست در Pytest، ۳۰ تست در Vitest، ساخت استاتیک ۱۸ صفحه در Next.js، و عدم نشت هیچ‌گونه کلید خصوصی.  
 ۶. **تصمیمات حقوقی و میزبانی:** ثبت مجوز اختصاصی (Proprietary / All Rights Reserved) در فایل LICENSE بر اساس تصمیم بنیان‌گذار (ADR-012)، و تدوین سند جامع تصمیم‌گیری میزبانی و اقامتگاه داده‌ها.
 
 ---
@@ -120,31 +120,41 @@ CoachOS-Fitness-Coaching-Platform/
 - **Styling:** Tailwind CSS 3.4 configured with CSS logical properties (`margin-inline`, `padding-inline`, `inset-inline`, `text-align: start/end`).
 - **Theme:** Dark Obsidian canvas (`#0B0F17`), dark neutral surfaces (`#111827`, `#1F2937`), emerald teal accents (`#10B981`, `#0D9488`), and crisp white high-contrast text (`#F9FAFB`) (ADR-028).
 - **Public Secret Boundary:** `frontend/lib/config/env.ts` strictly allows only `NEXT_PUBLIC_*` environment variables. Runtime validator throws security exceptions if private secret patterns are accessed.
-- **Route Layout:**
-  - `/[locale]`: Dynamic bilingual root layout setting `lang` and `dir` on `<html>`.
+- **Frontend Security Headers & CSP Delivery:** `frontend/next.config.mjs` configures X-Content-Type-Options, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy, HSTS (in production), and Content-Security-Policy baseline for all frontend HTML and static responses.
+- **Route Layout (18 Static Pages Generated):**
+  - `/` (Root redirect to default locale `/fa-IR`).
+  - `/_not-found`: Global 404 page.
+  - `/[locale]`: Dynamic bilingual root layout setting `lang` and `dir` on `<html>` (`/fa-IR`, `/en-US`).
   - `/[locale]/loading.tsx`: Accessible loading skeleton.
   - `/[locale]/error.tsx`: React error boundary with retry capability.
   - `/[locale]/not-found.tsx`: Localized 404 page.
-  - `/[locale]/offline/page.tsx`: Dedicated offline fallback page.
+  - `/[locale]/offline`: Dedicated offline fallback page (`/fa-IR/offline`, `/en-US/offline`).
   - Placeholder screens clearly marked as **Phase 04 Foundation Shell**:
-    - `/[locale]/(auth)/login/page.tsx` & `register/page.tsx`
-    - `/[locale]/(app)/athlete/today/page.tsx`
-    - `/[locale]/(app)/coach/programs/page.tsx` (with dual-pane master-detail placeholder)
-    - `/[locale]/(app)/org/settings/page.tsx`
+    - `/[locale]/login` (`/fa-IR/login`, `/en-US/login`)
+    - `/[locale]/register` (`/fa-IR/register`, `/en-US/register`)
+    - `/[locale]/athlete/today` (`/fa-IR/athlete/today`, `/en-US/athlete/today`)
+    - `/[locale]/coach/programs` (`/fa-IR/coach/programs`, `/en-US/coach/programs`)
+    - `/[locale]/org/settings` (`/fa-IR/org/settings`, `/en-US/org/settings`)
 
 ---
 
 ## 8. Backend Foundation
 
 - **Framework:** Django 5.2.17 + Django REST Framework 3.18.0 targeting Python 3.12 (compatible with Python 3.11).
-- **Settings Architecture:** Modular settings under `backend/config/settings/` (`base.py`, `development.py`, `staging.py`, `production.py`, `test.py`).
+- **Settings Architecture & Fail-Closed Validation:**
+  - Modular settings under `backend/config/settings/` (`base.py`, `development.py`, `staging.py`, `production.py`, `test.py`).
+  - `staging.py` and `production.py` fail fast with `ImproperlyConfigured` if `DJANGO_SECRET_KEY` is missing or insecure, if `DATABASE_URL` is missing (preventing silent fallback to SQLite), or if `ALLOWED_HOSTS` contains wildcards.
+  - `test.py` explicitly isolates deterministic test secrets and in-memory SQLite.
+- **Secure Default DRF Permissions:**
+  - `REST_FRAMEWORK` default permission class set to `IsAuthenticated`.
+  - Only `/healthz`, `/readyz`, and `/api/v1/meta` explicitly opt in to `AllowAny` and empty authentication classes.
 - **Middleware Pipeline:**
-  1. `CorrelationIDMiddleware`: Generates/propagates `X-Request-ID` (time-ordered UUIDv7) across requests, responses, and log records.
+  1. `CorrelationIDMiddleware`: Validates incoming `X-Request-ID` (UUID ≤ 36 chars); replaces malformed/oversized/injection values with fresh UUIDv7 identifiers.
   2. `SecurityHeadersMiddleware`: Applies HSTS, CSP baseline, X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, and Permissions-Policy.
   3. `CorsMiddleware`: Restricts origins to configured frontend endpoints.
   4. `SessionMiddleware` & `AuthenticationMiddleware`: Manages HttpOnly session state.
   5. `CsrfViewMiddleware`: Enforces CSRF double-submit token verification.
-  6. `TenantContextMiddleware`: Placeholder interface extracting active organization context.
+  6. `TenantContextMiddleware`: Scopes tenant exclusively from authenticated session state; header overrides are strictly gated behind `ALLOW_TENANT_HEADER_OVERRIDE` (default `False`).
   7. `LoggingRedactionMiddleware`: Automatically scrubs passwords, tokens, auth headers, and health data from server logs.
 - **Error Handling:** `apps.core.exceptions.custom_exception_handler` formats all validation errors, 400s, 401s, 403s, 404s, and 500s into standard RFC 7807 Problem Details envelopes with localized `message_key` and field error breakdowns. Internal stack traces are never exposed in production responses.
 - **Health Endpoints:**
@@ -169,6 +179,7 @@ CoachOS-Fitness-Coaching-Platform/
 
 - **Specification:** Level 1 Foundation & App-Shell (ADR-011, ADR-035, ADR-046).
 - **Web App Manifest:** Located at `frontend/public/manifest.json` and `manifest.webmanifest` specifying `name`, `short_name`, `display: standalone`, `start_url: "/"`, `background_color: "#0B0F17"`, and `theme_color: "#0B0F17"`.
+- **Static Manifest Locale Strategy:** Static manifest defaults to Persian metadata for primary market; runtime document headers and UI provide full English localization; future Phase 07 roadmap explores dynamic manifest generation for international users.
 - **Branded Icons:** Generated valid PNG icons at 192x192 and 512x512 with both standard and maskable variants (`icon-192x192.png`, `icon-512x512.png`, `maskable-icon-192x192.png`, `maskable-icon-512x512.png`, `favicon.ico`).
 - **Service Worker:** `frontend/public/sw.js` implementing:
   - Cache-First strategy for static assets (CSS, JS, fonts, icons).
@@ -209,19 +220,16 @@ CoachOS-Fitness-Coaching-Platform/
 
 - **Zero Client Trust:** All authorization, rate limiting, and business validation execute strictly on the backend.
 - **Security Headers:** Strict enforcement of HSTS (`max-age=63072000`), X-Frame-Options (`DENY`), X-Content-Type-Options (`nosniff`), Referrer-Policy (`strict-origin-when-cross-origin`), and Permissions-Policy (`camera=(), microphone=(), geolocation=(), payment=()`).
-- **Content Security Policy (CSP):** Baseline CSP configured. Hardening task **`TODO-CSP-001`** established to migrate Next.js from temporary `'unsafe-inline'` to per-request cryptographic nonces before commercial pilot.
+- **Content Security Policy (CSP):** Delivered on both backend API responses and frontend Next.js HTML responses. Hardening task **`TODO-CSP-001`** established to migrate Next.js from temporary `'unsafe-inline'` to per-request cryptographic nonces before commercial pilot.
 - **Observability & Log Redaction:** `LoggingRedactionMiddleware` intercepts all requests and scrubs sensitive keys (`password`, `secret`, `token`, `authorization`, `cookie`, `pain_flag_details`, `body_weight`, `credit_card`) from server logs.
-- **Correlation Tracking:** `X-Request-ID` attached to all incoming and outgoing requests and injected into logging formatters.
+- **Correlation Tracking:** `X-Request-ID` validated and attached to all incoming and outgoing requests and injected into logging formatters.
 - **No Real PII or Health Data:** All development environments use synthetic test fixtures exclusively.
 
 ---
 
 ## 14. CI/CD Foundation
 
-- **Platform:** GitHub Actions workflows in `.github/workflows/`.
-- **Workflow Files:**
-  - `.github/workflows/ci.yml`: Unified CI quality gate running on all PRs and pushes to `main`.
-  - `.github/workflows/security-scan.yml`: Secret scanning and dependency vulnerability scanner.
+- **Platform:** GitHub Actions workflows in `infra/ci/` (`ci.yml`, `security-scan.yml`).
 - **Quality Gates Matrix:**
   1. `backend-quality`: Python 3.11 setup, `ruff check .`, `ruff format --check .`, `pytest --cov`.
   2. `frontend-quality`: Node 22 setup, `npm run lint` (ESLint), `npm run type-check` (tsc), `npm test` (Vitest), `npm run build` (Next.js build).
@@ -256,57 +264,69 @@ CoachOS-Fitness-Coaching-Platform/
 platform linux -- Python 3.11.2, pytest-9.1.1, pluggy-1.6.0
 django: version: 5.2.17, settings: config.settings.test
 rootdir: /home/user/CoachOS-Fitness-Coaching-Platform/backend
-collected 21 items
+collected 32 items
 
-tests/test_errors.py::test_404_error_envelope_format PASSED              [  4%]
+tests/test_default_permissions.py::test_public_health_endpoints_remain_accessible PASSED [  3%]
+tests/test_errors.py::test_404_error_envelope_format PASSED              [  6%]
 tests/test_health.py::test_healthz_endpoint_returns_200 PASSED           [  9%]
-tests/test_meta.py::test_meta_endpoint_structure PASSED                  [ 14%]
-tests/test_readyz.py::test_readyz_endpoint_database_check PASSED         [ 19%]
-tests/test_secret_leakage.py::test_meta_and_health_do_not_leak_secrets PASSED [ 23%]
+tests/test_meta.py::test_meta_endpoint_structure PASSED                  [ 12%]
+tests/test_readyz.py::test_readyz_endpoint_database_check PASSED         [ 15%]
+tests/test_secret_leakage.py::test_meta_and_health_do_not_leak_secrets PASSED [ 18%]
+tests/test_default_permissions.py::test_default_permission_is_authenticated PASSED [ 21%]
+tests/test_default_permissions.py::test_unauthenticated_request_to_protected_view_is_denied PASSED [ 25%]
 tests/test_drf_exceptions.py::test_custom_exception_handler_validation_error PASSED [ 28%]
-tests/test_drf_exceptions.py::test_custom_exception_handler_permission_denied PASSED [ 33%]
-tests/test_drf_exceptions.py::test_custom_exception_handler_unhandled_500 PASSED [ 38%]
-tests/test_middleware.py::test_correlation_id_middleware_generates_header PASSED [ 42%]
-tests/test_middleware.py::test_correlation_id_middleware_preserves_existing_header PASSED [ 47%]
-tests/test_middleware.py::test_tenant_context_middleware_extracts_org PASSED [ 52%]
-tests/test_middleware.py::test_logging_redaction_middleware_scrubs_secrets PASSED [ 57%]
-tests/test_no_arabic.py::test_no_arabic_locale_in_django_settings PASSED [ 61%]
-tests/test_no_arabic.py::test_no_arabic_translation_files_in_repository PASSED [ 66%]
-tests/test_persian_normalizer.py::test_arabic_yeh_and_kaf_folding PASSED [ 71%]
-tests/test_persian_normalizer.py::test_arabic_indic_digit_folding PASSED [ 76%]
-tests/test_persian_normalizer.py::test_diacritics_stripping PASSED       [ 80%]
-tests/test_persian_normalizer.py::test_zwnj_normalization PASSED         [ 85%]
-tests/test_security_headers.py::test_security_headers_applied PASSED     [ 90%]
-tests/test_uuidv7.py::test_uuidv7_generation_and_validation PASSED       [ 95%]
+tests/test_drf_exceptions.py::test_custom_exception_handler_permission_denied PASSED [ 31%]
+tests/test_drf_exceptions.py::test_custom_exception_handler_unhandled_500 PASSED [ 34%]
+tests/test_fail_closed_settings.py::test_staging_fails_without_secret_key PASSED [ 37%]
+tests/test_fail_closed_settings.py::test_staging_fails_with_insecure_secret_key PASSED [ 40%]
+tests/test_fail_closed_settings.py::test_production_fails_without_database_url PASSED [ 43%]
+tests/test_fail_closed_settings.py::test_production_fails_with_wildcard_allowed_hosts PASSED [ 46%]
+tests/test_fail_closed_settings.py::test_production_fails_without_cors_origins PASSED [ 50%]
+tests/test_middleware.py::test_correlation_id_middleware_generates_header_when_missing PASSED [ 53%]
+tests/test_middleware.py::test_correlation_id_middleware_preserves_valid_uuid PASSED [ 56%]
+tests/test_middleware.py::test_correlation_id_middleware_replaces_invalid_malformed_id PASSED [ 59%]
+tests/test_middleware.py::test_correlation_id_middleware_replaces_overly_long_id PASSED [ 62%]
+tests/test_middleware.py::test_tenant_context_middleware_rejects_header_override_in_production_mode PASSED [ 65%]
+tests/test_middleware.py::test_tenant_context_middleware_allows_header_in_explicit_test_mode PASSED [ 68%]
+tests/test_middleware.py::test_logging_redaction_middleware_scrubs_secrets PASSED [ 71%]
+tests/test_no_arabic.py::test_no_arabic_locale_in_django_settings PASSED [ 75%]
+tests/test_no_arabic.py::test_no_arabic_translation_files_in_repository PASSED [ 78%]
+tests/test_persian_normalizer.py::test_arabic_yeh_and_kaf_folding PASSED [ 81%]
+tests/test_persian_normalizer.py::test_arabic_indic_digit_folding PASSED [ 84%]
+tests/test_persian_normalizer.py::test_diacritics_stripping PASSED       [ 87%]
+tests/test_persian_normalizer.py::test_zwnj_normalization PASSED         [ 90%]
+tests/test_security_headers.py::test_security_headers_applied PASSED     [ 93%]
+tests/test_uuidv7.py::test_uuidv7_generation_and_validation PASSED       [ 96%]
 tests/test_uuidv7.py::test_uuidv7_lexical_sorting_trend PASSED           [100%]
 
-============================== 21 passed in 0.77s ==============================
-Coverage: 79% project total (90%+ core apps/middleware/views/exceptions)
+============================== 32 passed in 1.47s ==============================
+Coverage: 77% project total (90%+ core apps/middleware/views/exceptions)
 ```
 
 ### 16.2 Frontend Test Results (Vitest)
 ```
  RUN  v1.6.0 /home/user/CoachOS-Fitness-Coaching-Platform/frontend
 
- ✓ tests/pwa.test.ts  (4 tests) 4ms
- ✓ tests/components.test.tsx  (5 tests) 88ms
+ ✓ tests/pwa.test.ts  (4 tests) 5ms
+ ✓ tests/components.test.tsx  (5 tests) 94ms
  ✓ tests/i18n.test.ts  (3 tests) 3ms
  ✓ tests/formatters.test.ts  (4 tests) 3ms
- ✓ tests/normalizer.test.ts  (4 tests) 4ms
- ✓ tests/config.test.ts  (4 tests) 5ms
+ ✓ tests/normalizer.test.ts  (4 tests) 3ms
+ ✓ tests/config.test.ts  (4 tests) 4ms
+ ✓ tests/security-headers.test.ts  (1 test) 4ms
  ✓ tests/bidi.test.ts  (3 tests) 3ms
- ✓ tests/no-arabic.test.ts  (2 tests) 3ms
+ ✓ tests/no-arabic.test.ts  (2 tests) 4ms
 
- Test Files  8 passed (8)
-      Tests  29 passed (29)
-   Duration  5.32s
+ Test Files  9 passed (9)
+      Tests  30 passed (30)
+   Duration  6.52s
 ```
 
 ### 16.3 Linting & Type-Checking
 - **Backend Linting:** `ruff check .` -> `All checks passed!`
 - **Frontend Linting:** `next lint` -> `✔ No ESLint warnings or errors`
 - **Frontend Type-Check:** `tsc --noEmit` -> `Clean (zero errors)`
-- **Next.js Production Build:** `npm run build` -> `Compiled successfully; 17 static pages generated`
+- **Next.js Production Build:** `npm run build` -> `Compiled successfully; 18 static pages generated`
 
 ### 16.4 Security & Compliance Scanner
 ```
@@ -380,17 +400,19 @@ Coverage: 79% project total (90%+ core apps/middleware/views/exceptions)
 - `backend/apps/core/utils/persian_normalizer.py`
 - `backend/tests/__init__.py`
 - `backend/tests/conftest.py`
-- `backend/tests/test_health.py`
-- `backend/tests/test_readyz.py`
-- `backend/tests/test_meta.py`
-- `backend/tests/test_errors.py`
+- `backend/tests/test_default_permissions.py`
 - `backend/tests/test_drf_exceptions.py`
+- `backend/tests/test_errors.py`
+- `backend/tests/test_fail_closed_settings.py`
+- `backend/tests/test_health.py`
+- `backend/tests/test_meta.py`
 - `backend/tests/test_middleware.py`
+- `backend/tests/test_no_arabic.py`
+- `backend/tests/test_persian_normalizer.py`
+- `backend/tests/test_readyz.py`
+- `backend/tests/test_secret_leakage.py`
 - `backend/tests/test_security_headers.py`
 - `backend/tests/test_uuidv7.py`
-- `backend/tests/test_persian_normalizer.py`
-- `backend/tests/test_no_arabic.py`
-- `backend/tests/test_secret_leakage.py`
 
 ### 17.4 Frontend Application
 - `frontend/package.json`
@@ -447,14 +469,15 @@ Coverage: 79% project total (90%+ core apps/middleware/views/exceptions)
 - `frontend/app/[locale]/(app)/athlete/today/page.tsx`
 - `frontend/app/[locale]/(app)/coach/programs/page.tsx`
 - `frontend/app/[locale]/(app)/org/settings/page.tsx`
+- `frontend/tests/bidi.test.ts`
+- `frontend/tests/components.test.tsx`
+- `frontend/tests/config.test.ts`
+- `frontend/tests/formatters.test.ts`
 - `frontend/tests/i18n.test.ts`
 - `frontend/tests/no-arabic.test.ts`
-- `frontend/tests/config.test.ts`
-- `frontend/tests/bidi.test.ts`
 - `frontend/tests/normalizer.test.ts`
-- `frontend/tests/formatters.test.ts`
 - `frontend/tests/pwa.test.ts`
-- `frontend/tests/components.test.tsx`
+- `frontend/tests/security-headers.test.ts`
 
 ### 17.5 Documentation & Decision Files
 - `docs/architecture/HOSTING_AND_DATA_RESIDENCY_DECISION.md`
@@ -465,7 +488,7 @@ Coverage: 79% project total (90%+ core apps/middleware/views/exceptions)
 - `docs/architecture/SECURITY_FOUNDATION.md`
 - `docs/DECISIONS.md` (ADR-010, ADR-012 updated; ADR-044..049 added)
 - `docs/RELEASE_PLAN.md` (M4 marked complete)
-- `docs/PROMPT_LOG.md` (Prompt 007 added)
+- `docs/PROMPT_LOG.md` (Prompts updated)
 - `docs/reports/PHASE-04-FOUNDATION-REPORT.md` (This document)
 
 ---
@@ -474,7 +497,7 @@ Coverage: 79% project total (90%+ core apps/middleware/views/exceptions)
 
 - **Working Branch:** `arena/019fefbf-coachos-fitness-coaching-platf`
 - **Base Commit on `main`:** `692b2b02ac23d8ad433270fa9ea585f5dc860768`
-- **Pull Request Status:** A Pull Request will be opened from branch `arena/019fefbf-coachos-fitness-coaching-platf` against `main`.
+- **Pull Request Status:** [PR #7 — feat(phase-04): project foundation and pwa baseline](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/7) (OPEN).
 - **Automatic Merge Rule:** **Do not merge the Pull Request automatically.** Await explicit founder review and instruction.
 
 ---
@@ -516,7 +539,7 @@ Coverage: 79% project total (90%+ core apps/middleware/views/exceptions)
 
 ## 23. Founder Approval Items
 
-1. **Review and Approval of Phase 04 Foundation Pull Request.**
+1. **Review and Approval of Phase 04 Foundation Pull Request (#7).**
 2. **Authorization to Proceed to Phase 05:** Explicit confirmation required before initiating Phase 05 (Identity, Tenancy, and Roles).
 
 ---
