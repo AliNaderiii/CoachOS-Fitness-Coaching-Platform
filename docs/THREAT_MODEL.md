@@ -72,7 +72,7 @@
 - **Impact:** High
 - **Likelihood:** Low if HttpOnly + Secure + TLS1.3, but Medium if frontend stores JWT in localStorage.
 - **Risk:** High without HttpOnly.
-- **Preventive:** Session cookie HttpOnly; Secure; SameSite=Lax; TLS1.3 + HSTS; short-lived access token 15min; rotating refresh token with reuse detection; never store tokens in localStorage (proposed memory + HttpOnly refresh). CSP headers.
+- **Preventive (Corrected CSP + Secret Boundary):** Session cookie HttpOnly; Secure; SameSite=Lax (recommended MVP cookie sessions per ADR-032 corrected: HttpOnly true prevents JS access, Secure true HTTPS only, SameSite Lax CSRF mitigation; CSRF double-submit or Django CSRF middleware for cookie mutations); TLS1.3 + HSTS; short-lived access ≤15min in memory if JWT alternative used + rotating refresh in HttpOnly cookie with reuse detection revoking all sessions; never store long-lived tokens in localStorage — explicit prohibition; Frontend MUST NEVER access Secrets Manager directly — private secrets only to backend/worker via server-side injection, frontend only public NEXT_PUBLIC_* runtime config (corrected boundary, FE --> SecretMgr forbidden). CSP headers: production preferred nonce- or hash-based `script-src` (`script-src 'self' 'nonce-{random}' 'strict-dynamic' https:`), no `unsafe-inline` as accepted production control; if framework limitation requires temporary `unsafe-inline` during Phase04, mark as temporary, document risk (XSS inline injection), define hardening task TODO-CSP-001 to migrate to nonce before pilot — do not claim CSP finalized before implementation validation.
 - **Detective:** Monitor reuse of refresh token — if reused, revoke all sessions + alert.
 - **Corrective:** Invalidate all sessions on password reset, token reuse.
 - **Test:** Verify cookies flags, token TTL.
@@ -175,7 +175,7 @@
 - **Impact:** High — session token theft if HttpOnly not set, or deface.
 - **Likelihood:** Medium
 - **Risk:** High
-- **Preventive:** Backend output encoding (escape HTML), frontend defense-in-depth DOMPurify sanitization, CSP header `script-src 'self'` with no unsafe-inline where possible, HttpOnly cookie for session (so JS cannot read even if XSS). No storage of token in localStorage.
+- **Preventive:** Backend output encoding (escape HTML), frontend defense-in-depth DOMPurify sanitization, CSP header production preferred nonce/hash-based `script-src` (no `unsafe-inline` as accepted production control), document temporary exception with risk and TODO-CSP-001 hardening if needed during Phase04, HttpOnly cookie for session (so JS cannot read even if XSS). No storage of long-lived token in localStorage — explicit prohibition. Frontend never accesses Secrets Manager — private secrets only backend/worker.
 - **Detective:** CSP violation reports, Sentry captures.
 - **Test:** Unit test sanitization, e2e test injection payload rendered as text not executable.
 

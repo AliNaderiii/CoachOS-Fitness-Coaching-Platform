@@ -2,12 +2,34 @@ openapi: 3.1.0
 info:
   title: CoachOS API
   description: |
-    Provisional OpenAPI 3.1 specification for CoachOS B2B2C fitness coaching platform — P0 MVP.
+    Provisional OpenAPI 3.1 specification for CoachOS B2B2C fitness coaching platform — P0 MVP (Correction Phase 03 review).
     Covers authentication, organizations, memberships, invitations, exercise catalog, moderation, programs, templates, assignments, athlete Today view, workout sessions, set logs, feedback flags, progress metrics/photos, messages, notifications, audit events, privacy export/deletion.
-    This file is a specification artifact only — not implemented in Phase 03. Requires implementation review in Phase 04.
-    Languages: Persian fa-IR RTL + English en-US LTR only. Arabic out of scope.
+    This file is a specification artifact only — not implemented in Phase 03. Requires implementation review in Phase 04. Remains provisional until Phase 04 validation.
+
+    **Authentication Transport Consistency — Corrected (ADR-032):**
+    - **Recommended MVP Strategy:** HttpOnly/Secure/SameSite cookie sessions (Django sessionid):
+      - HttpOnly true (JS inaccessible, prevents XSS theft), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation, Lax balances usability vs Strict).
+      - No long-lived tokens in localStorage/sessionStorage — explicit prohibition.
+      - CSRF strategy for cookie-based mutations: double-submit token or Django CSRF middleware — frontend reads csrftoken cookie (non-HttpOnly readable) and sends X-CSRFToken header for POST/PATCH/DELETE, backend verifies, SameSite=Lax additional layer.
+      - Frontend/backend trust boundary: browser untrusted, backend authoritative, all auth checks server-side.
+    - **Optional Alternative (Bearer/JWT):** If bearer/JWT retained:
+      - Short-lived access ≤15min in memory (not localStorage), rotating refresh in HttpOnly Secure SameSite cookie with reuse detection revoking all sessions on reuse.
+      - Explicit prohibition: never store long-lived refresh/access tokens in localStorage/sessionStorage.
+      - When using bearer, Authorization header Bearer not auto-sent cross-origin, intrinsically CSRF-resistant, but still need XSS protections and HttpOnly refresh.
+    - **Final Choice for First Implementation:** Cookie sessions (simpler, Django built-in). JWT alternative remains optional, marked proposed/conditional requiring Phase 04 validation. Both schemes documented but recommendation clear.
+
+    **Secrets Boundary Correction:**
+    - Frontend MUST NEVER access Secrets Manager directly — private secrets (DB URLs, Django SECRET_KEY, Redis/S3 credentials, email API keys, JWT signing keys) only to backend/worker via server-side injection. Frontend only public NEXT_PUBLIC_* runtime config. FE --> SecretMgr forbidden and removed from diagrams.
+
+    **CSP Correction:**
+    - Production preferred nonce/hash-based script-src (script-src 'self' 'nonce-{random}' 'strict-dynamic' https:), no unsafe-inline as accepted production control. Temporary unsafe-inline exception during Phase04 if framework requires, marked temporary with risk and hardening task TODO-CSP-001, not finalized before validation.
+
+    Languages: Persian fa-IR RTL + English en-US LTR only. Arabic out of scope. No payment/AI/wearable endpoints as P0 implemented.
     Error model: RFC7807 compatible + message_key extension for localized frontend messages.
-  version: 1.0.0-provisional
+
+    **OpenAPI Validity:** YAML parses successfully, OpenAPI 3.1, all local $ref resolve, security schemes consistent with corrected auth strategy, error responses RFC7807-compatible with message_key, P0 endpoint groups align with API_CONTRACT, PRD story IDs, authorization rules, no future payment/AI/wearable as P0.
+
+  version: 1.0.1-provisional-corrected
   contact:
     name: CoachOS Platform Team
     url: https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
@@ -23,8 +45,14 @@ servers:
     description: Local development
 
 security:
-  - bearerAuth: []
-  - cookieAuth: []
+  - cookieAuth: []  # Recommended MVP — HttpOnly Secure SameSite=Lax, CSRF double-submit, no localStorage long-lived tokens
+  - bearerAuth: []  # Optional alternative — short-lived ≤15min in memory + rotating refresh in HttpOnly cookie, explicit prohibition localStorage
+
+x-auth-strategy:
+  recommended: cookieAuth
+  optional: bearerAuth
+  notes: |
+    Recommended MVP cookie sessions per ADR-032 corrected: HttpOnly true, Secure true, SameSite Lax, CSRF token header X-CSRFToken, no long-lived tokens in localStorage. Optional JWT alternative short-lived access in memory + rotating refresh HttpOnly cookie reuse detection. Frontend/backend trust boundary browser untrusted backend authoritative. FE --> SecretMgr forbidden — private secrets only backend/worker via server-side injection.
 
 paths:
   /auth/register:
@@ -1290,12 +1318,23 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Optional JWT access token (15min TTL) — alternative to HttpOnly cookie session. Implementation in Phase05.
+      description: |
+        Optional alternative — JWT access token short-lived ≤15min in memory (not localStorage) + rotating refresh token in HttpOnly Secure SameSite cookie with reuse detection revoking all sessions on reuse.
+        Explicit prohibition: never store long-lived refresh/access tokens in localStorage/sessionStorage.
+        When using bearer, Authorization header Bearer not auto-sent cross-origin, intrinsically CSRF-resistant, but still need XSS protections and HttpOnly refresh.
+        Marked proposed/conditional requiring Phase04 validation. Recommended MVP is cookieAuth.
+        Frontend MUST NEVER access Secrets Manager — private secrets only backend/worker via server-side injection.
     cookieAuth:
       type: apiKey
       in: cookie
       name: sessionid
-      description: HttpOnly; Secure; SameSite=Lax session cookie
+      description: |
+        Recommended MVP — HttpOnly; Secure; SameSite=Lax session cookie per ADR-032 corrected.
+        HttpOnly true (JS inaccessible prevents XSS theft), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation, balances usability).
+        No long-lived tokens in localStorage/sessionStorage — explicit prohibition.
+        CSRF strategy: double-submit token or Django CSRF middleware — frontend reads csrftoken cookie (readable) and sends X-CSRFToken header for state-changing mutations.
+        Frontend/backend trust boundary: browser untrusted, backend authoritative.
+        Frontend MUST NEVER access Secrets Manager directly — only public NEXT_PUBLIC_* runtime config.
 
   parameters:
     OrgId:

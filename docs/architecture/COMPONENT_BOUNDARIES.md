@@ -160,10 +160,20 @@ Temporary in-memory preservation (Phase07) — no IndexedDB — set logs held in
 
 ---
 
-## 5. Security Boundaries at Component Level
+## 5. Security Boundaries at Component Level (Corrected Secrets Boundary + Auth Transport Consistency)
 
 - No component generates signed S3 URL without MediaService + AuthZ.
-- No frontend component accesses `localStorage` for auth tokens (preference HttpOnly cookies). If JWT used, refresh token in HttpOnly cookie, access token short-lived memory.
+- **Secret Manager Boundary (Critical Correction):** No frontend component (including Next.js SSR Node.js serving frontend) ever accesses Secrets Manager directly. Private secrets (DB URL, Django SECRET_KEY, Redis URL, S3 credentials, email API keys, JWT signing keys) are available only to backend and worker runtimes via server-side secret injection (Secrets Manager / env at deploy time). Frontend receives only explicitly public runtime config (`NEXT_PUBLIC_*` such as `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_APP_NAME`) — no private secrets in bundle, no rendering private secrets in server props, no proxying private secrets via API.
+- **Auth Transport Consistency (Corrected — ADR-032):**
+  - **Recommended MVP:** HttpOnly/Secure/SameSite cookie sessions (Django `sessionid`):
+    - HttpOnly true (JS inaccessible, prevents XSS theft), Secure true (HTTPS only), SameSite=Lax (prevents CSRF cross-site POST, balances usability vs Strict).
+    - CSRF strategy for cookie-based mutations: double-submit token or Django CSRF middleware — frontend reads `csrftoken` cookie (non-HttpOnly) and sends `X-CSRFToken` header for POST/PATCH/DELETE; SameSite=Lax additional layer; verify CSRF on server.
+    - No long-lived tokens in localStorage/sessionStorage — explicit prohibition.
+  - **Optional Alternative (Bearer/JWT):** If bearer/JWT retained:
+    - Short-lived access tokens ≤15min in memory (React state/memory, not localStorage), rotating refresh tokens in HttpOnly Secure SameSite cookie with reuse detection — if refresh reuse detected (token already rotated), revoke all sessions and alert.
+    - Explicit prohibition: never store long-lived refresh or access tokens in localStorage/sessionStorage.
+    - Frontend/backend trust boundary: frontend untrusted, backend authoritative, all checks server-side.
+  - **Final Choice:** Recommended first implementation is cookie sessions (simpler, built-in Django CSRF). JWT alternative remains optional, marked proposed/conditional requiring Phase04 validation — both schemes documented in OPENAPI.yaml securitySchemes but recommendation documented in ADR-032.
 - All user content sanitized both server and client.
 - Rate limiter checked in DRF throttling (DRF `AnonRateThrottle`, `UserRateThrottle` backed by Redis).
 

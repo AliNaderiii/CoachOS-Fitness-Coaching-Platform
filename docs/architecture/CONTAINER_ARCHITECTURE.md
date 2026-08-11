@@ -116,23 +116,29 @@ flowchart TB
 
 ## 3. Containers Detailed
 
-### 3.1 Frontend — Next.js + React + TypeScript
+### 3.1 Frontend — Next.js + React + TypeScript (Corrected Secrets Boundary)
 
 - **Responsibility:** All UI rendering, PWA lifecycle, i18n resource loading, client-side validation, network status indicator, temporary form preservation (Phase 07), offline fallback shell (Phase 04).
 - **Key Tech:** Next.js 14 App Router (proposed), React 18, TypeScript 5, Tailwind CSS with logical properties, Vazirmatn + Inter fonts, next-pwa or custom SW.
-- **Boundaries:** No direct DB access, no secret handling, no server-side authz bypass; auth via HttpOnly cookie or Bearer token stored securely.
+- **Boundaries (Corrected):**
+  - No direct DB access, no server-side authz bypass.
+  - **No secret handling — CRITICAL CORRECTION:** Browser and frontend runtime MUST NEVER access Secrets Manager directly. Private secrets (DB URLs, Django secret keys, Redis credentials, S3 credentials, email API keys, JWT signing keys) are available only to backend and worker runtimes via server-side injection. Frontend receives only explicitly public runtime config (`NEXT_PUBLIC_*` vars such as `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_APP_NAME`). Frontend MUST NEVER receive, render, bundle, or proxy private secrets. Relationship `FE --> SecretMgr` is forbidden and removed. Updated deployment topology shows `BE --> SecretMgr` and `Worker --> SecretMgr` only, and `FE -->|Public runtime config only, NO private secrets| BE`.
+  - Auth via HttpOnly cookie (recommended MVP) or short-lived Bearer token in memory — never long-lived token in localStorage (see ADR-032 corrected).
 - **PWA Sequencing:**
   - Phase 04: Manifest, icons 192/512 maskable, standalone display, SW registration, app-shell caching, offline fallback page.
   - Phase 07: Today view with cached program snapshot read, touch-optimized logging with 44/48px targets, network indicator, retry banner, no durable queue.
   - Phase 12: IndexedDB (Dexie or similar) durable workout queue, background sync, conflict resolution.
-- **Security:** CSP headers, no `dangerouslySetInnerHTML` with user content without sanitization, XSS encoding.
+- **Security:** CSP headers prefer nonce/hash-based `script-src` in production (see DEPLOYMENT_ARCHITECTURE.md corrected CSP strategy), no `unsafe-inline` as accepted production control unless temporary exception documented with risk and hardening task TODO-CSP-001, no `dangerouslySetInnerHTML` with user content without sanitization, XSS encoding. Public runtime config only, no private secrets in bundle — verified via CI bundle secret scan.
 
-### 3.2 Backend — Django + DRF Modular Monolith
+### 3.2 Backend — Django + DRF Modular Monolith (Corrected Secrets Boundary)
 
-- **Responsibility:** All business logic, tenant isolation, RBAC/ABAC, domain invariants (snapshot immutability, consent gating).
+- **Responsibility:** All business logic, tenant isolation, RBAC/ABAC, domain invariants (snapshot immutability, consent gating). **Only backend and worker runtimes may access Secrets Manager** via server-side injection — private secrets (DB URL, Django SECRET_KEY, Redis URL, S3 keys, email API key, JWT signing keys) are injected as env vars from Secrets Manager at deploy time, never committed, never exposed to frontend. Frontend receives only public config via `NEXT_PUBLIC_*`.
 - **Tech:** Python 3.12, Django 5.x (proposed), DRF, Django ORM, Celery.
 - **Modularity:** `apps/` packages per domain (see DOMAIN_MODULES.md). Dependencies enforced via import lint (e.g., `import-linter` or `django-deps` checks).
-- **Auth:** Email+Password Argon2id/bcrypt; session cookie `HttpOnly; Secure; SameSite=Lax`; optional JWT access (15min) + rotating refresh; rate limit 5/15min on auth endpoints via Redis.
+- **Auth (Corrected Consistency — See ADR-032 Updated):**
+  - **Recommended MVP Strategy:** HttpOnly/Secure/SameSite cookie sessions (Django sessionid) — HttpOnly true (JS inaccessible), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation Lax, Strict option for state-changing? Proposed Lax for usability, Strict for sensitive? Document as Lax). No long-lived token in localStorage — explicit prohibition. Short-lived access via session cookie, no JWT needed for MVP. CSRF: double-submit token or Django CSRF middleware for cookie-based mutations, SameSite=Lax + CSRF token in header `X-CSRFToken` for POST/PATCH/DELETE.
+  - **Optional Alternative (Bearer/JWT):** If bearer/JWT retained as alternative, short-lived access tokens ≤15min in memory (not localStorage) + rotating refresh tokens in HttpOnly cookie with reuse detection revoking all sessions on reuse. Explicit prohibition: never store long-lived refresh/access tokens in localStorage/sessionStorage. Frontend/backend trust boundary: frontend untrusted, backend authoritative, auth checks server-side only.
+  - **Final Choice:** Recommended MVP is cookie sessions (simpler CSRF handling via Django). JWT alternative remains optional but marked proposed/conditional requiring Phase04 validation — keep both security schemes in OPENAPI.yaml but document recommendation. Rate limit 5/15min on auth endpoints via Redis.
 - **Authorization:** Middleware extracts active `organization_id` from authenticated user + membership; every tenant-scoped queryset filters by org; CoachAssignment service validates coach-athlete binding.
 - **Audit:** Signal/hook on sensitive mutations emits `AuditEvent` immutable.
 

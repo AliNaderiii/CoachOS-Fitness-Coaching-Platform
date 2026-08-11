@@ -118,19 +118,34 @@ erDiagram
 - **Audit:** `user.registered`, `user.login_failed`, `user.deactivated`
 - **Retention:** Until erasure request; anonymized aggregates disassociated.
 
-#### Organization
+#### Organization (Corrected Owner Source of Truth Invariant — Task 4.1)
+
 - **PK:** `id` UUIDv7
 - **Fields:**
   - `name` VARCHAR(150) NN
   - `slug` VARCHAR(100) UK IDX NN — URL friendly unique
-  - `owner_user_id` FK User NN
+  - `owner_user_id` FK User NN — **Authoritative source of truth for legal/billing owner (single owner MVP)** — see invariant below
   - `settings` JSONB — branding, defaults
   - `created_at` TSP NN
   - `archived_at` TSP NULL ARCH
 - **Indexes:** slug unique, owner_user_id
 - **Tenant ownership:** Self is tenant root
 - **State:** active, archived
-- **Audit:** org.created, org.archived
+- **Audit:** org.created, org.archived, org.owner_transferred
+
+- **Owner Source of Truth Correction (4.1):**
+  - Problem: Model previously had both `Organization.owner_user_id` and separate `owner` Membership row as two independent mutable fields that could drift.
+  - **Chosen Invariant (Corrected):**
+    - `Organization.owner_user_id` is **authoritative source of truth** for single Owner MVP (legal/billing owner).
+    - There must exist exactly one active `Membership` with `role=owner` per organization, and its `user_id` **must equal** `Organization.owner_user_id` at all times.
+    - Membership owner row is **derived/automatically managed**, not independently mutable — it must be kept in sync via transactional service layer invariant, not via direct independent updates.
+    - On organization creation: transaction creates `Organization` with `owner_user_id=creator` **and** `Membership(user_id=creator, organization_id=org, role=owner, status=active)` atomically.
+    - On ownership transfer: dedicated service `OrganizationService.transferOwnership(org_id, new_owner_user_id, actor_id)` must:
+      1. Verify `new_owner_user_id` has active membership or invitation in org.
+      2. In same transaction: update `Organization.owner_user_id = new_owner_id`, archive old owner Membership (status→archived or suspended + `archived_at` set), create new owner Membership active if not exists, ensure only one active owner Membership remains.
+      3. Audit `org.owner_transferred` with old_owner, new_owner, actor.
+    - **Drift prevention:** DB check constraint or application-level invariant verification in service + periodic consistency check job; CI test verifies invariant holds. No direct API to create second active owner Membership without updating `owner_user_id`.
+    - **Future multi-owner?** If multi-owner needed P1, then `owner_user_id` would become nullable or removed and Membership set becomes authoritative. For MVP single-owner, this invariant avoids drift. Documented as strict synchronization rule, no migrations created in Phase03 — conceptual invariant only.
 
 #### Location (Single-Location MVP)
 - **PK:** `id` UUIDv7
@@ -139,14 +154,32 @@ erDiagram
 - **Constraint:** Partial unique `UNIQUE(organization_id) WHERE is_primary=true` (enforce single primary)
 - **Indexes:** organization_id
 
-#### Membership
+#### Membership (Corrected Multi-Role Behavior — Task 4.2)
+
 - **PK:** `id` UUIDv7
 - **FKs:** `user_id` FK User IDX, `organization_id` FK Organization ORG-SCOPED IDX
-- **Fields:** `role` VARCHAR(30) NN — owner/coach/athlete/support, `status` VARCHAR(20) default active — invited/active/suspended, `created_at` TSP
-- **Constraint:** `UNIQUE(user_id, organization_id, role)` — allows multi-role per org? Actually proposal ADR-014 multi-role; unique per user+org+role permits coach+athlete same org if needed but MVP mostly single role.
+- **Fields:** `role` VARCHAR(30) NN — owner/coach/athlete/support, `status` VARCHAR(20) default active — invited/active/suspended/archived, `created_at` TSP, `archived_at` TSP NULL (for soft-archive when role removed)
+- **Constraint:** `UNIQUE(user_id, organization_id, role)` — permits multiple roles per user+org (e.g., user could be coach+athlete in same org)
 - **Indexes:** organization_id, user_id, status
 - **State:** invited → active → suspended/archived
-- **Audit:** membership.created, status_changed
+- **Audit:** membership.created, status_changed, role_changed (role elevation audited)
+
+- **Multi-Role Behavior Correction (4.2):**
+  - **Whether multi-role allowed in MVP:** Schema allows multi-role, but **MVP policy: single primary role per organization recommended for simplicity**. Multi-role (e.g., coach who is also athlete in same org) is **allowed but not required** for MVP and must be explicitly enabled via owner action; default onboarding assigns single role. Future P1 may use multi-role more broadly.
+  - **Effective permissions calculation when multiple roles:**
+    - Effective permissions = **union** of all active roles for that user in that organization (most permissive). No permission denied if granted by any active role, except explicit DENY for Tier4 (support DENIED photos/messages remains DENY even if support has some other role? Actually DENY overrides? Define: support role alone DENIED for Tier4, but if user has both support+coach, coach permissions allow Tier4 with consent — union would allow. So DENY only for pure support without other qualifying role.)
+    - Priority for display: owner > coach > support > athlete for UI default role badge.
+    - Backend computes effective permissions server-side via `AuthZService.effectivePermissions(user_id, organization_id)` returning set of permissions union, not trusting frontend.
+  - **Role elevation audited:** Any creation of new Membership role, change role, or status change invited→active→suspended is audited with `membership.created`, `membership.status_changed`, `membership.role_changed` including actor_id, target_user_id, old_role/new_role, old_status/new_status, IP hash.
+  - **Active organization and active role selection:**
+    - User session stores `active_organization_id` (from org picker) and optionally `active_role` if user has multiple roles in that org. If multiple roles, frontend shows role switcher (e.g., "Acting as Coach / Athlete") but effective permissions remain union unless explicit role scoping required for UI? For MVP, active_role selects UI navigation (coach dashboard vs athlete today), but API permissions still union for safety (or scoped to active_role? Decision: API uses union for data access, UI uses active_role for navigation emphasis).
+    - Default active org: last used or first active membership.
+    - Default active role: highest privilege active role for MVP (owner > coach > support > athlete) if not explicitly selected.
+  - **How frontend receives effective permissions:**
+    - `GET /api/v1/auth/me` returns `memberships` array with each role+status, plus `effective_permissions` object computed server-side: e.g., `{can_manage_org: true if owner, can_create_program: true if owner|coach, can_log_sets: true if athlete, can_view_photos: true if coach with assignment+consent or owner with consent, etc}` or frontend computes via helper mirroring backend but backend authoritative.
+    - Frontend uses effective permissions for hiding/showing UI but never bypasses server checks (server re-evaluates).
+  - **Security:** No privilege escalation via client manipulation — role change only via owner/admin service, audited.
+  - **No migrations in Phase03:** Conceptual invariant only, Django model changes to add `archived_at` and effective permissions helper in service layer proposed for Phase04.
 
 #### Invitation
 - **PK:** `id` UUIDv7
@@ -157,13 +190,31 @@ erDiagram
 - **Audit:** invitation.sent, accepted, revoked
 - **Security:** Plaintext token only in email, never stored.
 
-#### CoachAthleteAssignment
+#### CoachAthleteAssignment (Corrected Reactivation/Reassignment Invariant — Task 4.3)
+
 - **PK:** `id` UUIDv7
 - **FK:** `organization_id` OrgScoped IDX, `coach_user_id` FK User IDX, `athlete_user_id` FK User IDX
-- **Fields:** `status` VC20 default active — active/archived, `created_at` TSP
-- **Constraint:** `UNIQUE(organization_id, coach_user_id, athlete_user_id)`
-- **Audit:** assignment.created, archived
+- **Fields:** `status` VC20 default active — active/archived, `created_at` TSP, `archived_at` TSP NULL, `ended_at` TSP NULL (alternative to archived_at for explicit end date)
+- **Constraint (Corrected):**
+  - **Previous (Problematic):** `UNIQUE(organization_id, coach_user_id, athlete_user_id)` permanent unique prevents recreation of previously archived relationship.
+  - **Chosen (Corrected):** Use **partial unique constraint for active assignments only**:
+    - `UNIQUE(organization_id, coach_user_id, athlete_user_id) WHERE status='active'` (PostgreSQL partial unique index) — allows historical archived rows + recreation after archival.
+    - Alternative formulation: `UNIQUE(organization_id, coach_user_id, athlete_user_id) WHERE archived_at IS NULL` if using archived_at soft-delete pattern.
+  - This permits same triple to have multiple historical rows (archived) but only one active at a time.
+- **Indexes:** organization_id, coach_user_id, athlete_user_id, status, partial unique active
+- **State:** active → archived (with archived_at set)
+- **Audit:** assignment.created, archived, reactivated
 - **Purpose:** Object-level authz — coach can only access athlete if active assignment exists.
+
+- **Reactivation/Reassignment Workflow (Corrected):**
+  - **Archival:** When coach-athlete relationship ends (coach departure, athlete reassignment, membership suspended), set `status=archived`, `archived_at=now()`, `ended_at=now()`, audit `assignment.archived`.
+  - **Reactivation:** Dedicated service `AssignmentService.reactivate(org_id, coach_id, athlete_id, actor_id)` or `AssignmentService.assign()` idempotent:
+    1. Check if active assignment exists for triple — if yes, return existing (idempotent).
+    2. If no active but archived exists, create **new row** with new UUID, status active, created_at now (or reactivate archived row by setting status active and clearing archived_at — decision: create new row to preserve history, preferred for audit). New row preserves history of previous relationship via separate archived row.
+    3. Audit `assignment.reactivated` or `assignment.created`.
+    4. Enforce partial unique ensures no duplicate active.
+  - **Reassignment:** Owner can reassign athlete from old coach to new coach: archive old assignment (status archived), create new assignment with new coach, audit both.
+  - **No migrations in Phase03:** Conceptual invariant only — actual Django migration to add `archived_at`/`ended_at` and partial unique index proposed for Phase04/05.
 
 ### 3.2 Exercise Catalog
 

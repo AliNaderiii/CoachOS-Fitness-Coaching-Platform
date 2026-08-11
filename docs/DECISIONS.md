@@ -351,14 +351,25 @@
 
 ---
 
-### ADR-005 (Phase 03 Update) — Auth/Session Strategy
+### ADR-005 (Phase 03 Update) — Auth/Session Strategy (Corrected Transport Consistency)
 
-- **Status:** **Proposed (Conditional Acceptance)**
-- **Context:** Email+password MVP but need session security.
-- **Decision:** Argon2id/bcrypt cost ≥12, session cookie HttpOnly;Secure;SameSite=Lax, optional JWT access 15min + rotating refresh with reuse detection, rate limit 5/15min per IP/email via Redis, password strength validation, single-use reset token 15min TTL, invitation token 7d single-use SHA256 hashed.
-- **Consequences:** Secure, UX reasonable, cost low, no SMS gateway complexity.
-- **Security:** Prevents credential stuffing, session theft, invitation reuse.
-- **Status:** Proposed.
+- **Status:** **Proposed (Conditional Acceptance) — Correction for Auth Transport Consistency**
+- **Context:** Email+password MVP but need session security and clear transport choice between cookies and Bearer tokens.
+- **Decision (Corrected):**
+  - **Recommended MVP Strategy:** HttpOnly/Secure/SameSite cookie sessions (Django `sessionid`):
+    - HttpOnly true (JS inaccessible, prevents XSS theft of session), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation for cross-site POST, balances usability; Strict for sensitive actions optional).
+    - No long-lived tokens in localStorage/sessionStorage — explicit prohibition.
+    - CSRF strategy for cookie-based mutations: double-submit token or Django CSRF middleware — frontend reads `csrftoken` cookie (non-HttpOnly) and sends `X-CSRFToken` header for POST/PATCH/DELETE; SameSite=Lax additional layer; verify CSRF on server.
+    - Frontend/backend trust boundary: browser untrusted, backend authoritative, all auth checks server-side.
+    - Rate limit 5/15min per IP/email via Redis, password strength validation, Argon2id/bcrypt cost ≥12, single-use reset token 15min TTL, invitation token 7d single-use SHA256 hashed.
+  - **Optional Alternative (Bearer/JWT):** If bearer/JWT retained:
+    - Short-lived access tokens ≤15min in memory (React state/memory, not localStorage), rotating refresh tokens in HttpOnly Secure SameSite cookie with reuse detection revoking all sessions on reuse.
+    - Explicit prohibition: never store long-lived refresh or access tokens in localStorage/sessionStorage.
+    - CSRF not applicable if using Authorization header Bearer (not auto-sent cross-origin), but still need XSS protections (HttpOnly refresh).
+  - **Which Recommended for First Implementation:** Cookie sessions (simpler CSRF handling via Django built-in, no token storage complexity).
+- **Consequences:** Secure, UX reasonable, cost low, no SMS gateway complexity, clear cookie vs bearer guidance.
+- **Security:** Prevents credential stuffing (rate limit), session theft (HttpOnly Secure SameSite + no localStorage), CSRF (SameSite + CSRF token), invitation reuse.
+- **Status:** Proposed conditional — requires Phase04 validation. OPENAPI.yaml securitySchemes keeps both cookieAuth and bearerAuth but documents recommendation.
 
 ---
 
@@ -383,12 +394,26 @@
 
 ---
 
-### ADR-014 — Organization Membership & Role Binding Model (Multi-Role)
+### ADR-014 — Organization Membership & Role Binding Model (Multi-Role) — Corrected Owner Source Truth + Multi-Role Behavior + Assignment Reactivation Reference
 
-- **Status:** **Accepted Conditional — multi-role affirmed**
-- **Decision:** Membership explicit join User-Organization with role owner/coach/athlete/support, status invited/active/suspended, created_at, unique (user_id, organization_id, role) allowing same user different roles in different orgs and potentially multiple roles in same org (coach+athlete) if business allows. Single active org context per session switchable.
-- **Consequences:** Supports multi-tenant gym coaches cleanly, prevents cross-tenant credential duplication, enables future multi-role (e.g., coach who is also athlete).
-- **Status:** Accepted conditional.
+- **Status:** **Accepted Conditional — multi-role affirmed — Correction for Data-Model Integrity (Tasks 4.1, 4.2, 4.3)**
+- **Context:** Users may belong to multiple orgs, may have multiple roles per org (coach+athlete same org). Need to avoid drift between Organization.owner_user_id and owner Membership, define effective permissions for multi-role, and define reactivation invariant for CoachAthleteAssignment.
+- **Decision (Corrected):**
+  - **Organization Owner Source of Truth (4.1):** `Organization.owner_user_id` is authoritative source of truth for single owner MVP (legal/billing owner). There must exist exactly one active Membership with `role=owner` per org, and its `user_id` must equal `owner_user_id`. Membership owner row is derived/automatically managed, not independently mutable — kept in sync via transactional `OrganizationService.transferOwnership()` which updates owner_user_id and swaps Membership rows atomically, audit `org.owner_transferred`. No two independent mutable ownership fields drifting.
+  - **Membership Multi-Role Behavior (4.2):**
+    - Schema allows multi-role per user+org via `UNIQUE(user_id, organization_id, role)`, e.g., coach+athlete same org.
+    - MVP policy: single primary role per org recommended for simplicity; multi-role allowed but not required, explicitly enabled via owner action.
+    - Effective permissions = union of all active roles for that user in that org (most permissive, priority owner>coach>support>athlete for UI display). Backend computes via `AuthZService.effectivePermissions()` server-side, not trusting frontend.
+    - Role elevation audited: any Membership creation, role change, status change logs `membership.created`, `status_changed`, `role_changed` with actor/target/old/new/IP hash.
+    - Active org + active role: session stores `active_organization_id` + optional `active_role` if multiple roles; frontend receives `memberships` array + `effective_permissions` computed server-side; UI shows role switcher if multiple roles, default highest privilege.
+    - Frontend receives effective permissions but backend authoritative.
+  - **CoachAthleteAssignment Reactivation (4.3) (Reference — detailed in ERD.md):**
+    - Previous permanent unique `UNIQUE(org, coach, athlete)` prevented recreation after archival.
+    - Corrected: partial unique for active only `UNIQUE(organization_id, coach_user_id, athlete_user_id) WHERE status='active'` (or WHERE archived_at IS NULL) — allows historical archived rows + recreation, only one active per triple.
+    - Workflow: archival sets status archived + archived_at/ended_at + audit; reactivation creates new row preserving history (preferred) or reactivates archived if no active exists, audit reactivated; reassignment archives old + creates new.
+    - No migrations in Phase03 — conceptual invariant only, proposed for Phase04/05.
+- **Consequences:** Avoids ownership drift, supports multi-tenant gym coaches cleanly, prevents cross-tenant credential duplication, enables future multi-role, preserves assignment history while allowing reactivation.
+- **Status:** Accepted conditional — corrections documented in ERD.md 3.1 Identity & Tenancy, DATA_MODEL.md 3.1, and this ADR.
 
 ---
 
@@ -461,11 +486,24 @@
 
 ---
 
-### ADR-032 — Auth/Session Strategy
+### ADR-032 — Auth/Session Strategy (Corrected — Recommended MVP Cookie Sessions + Optional JWT Alternative)
 
-- **Status:** **Proposed Conditional Acceptance**
-- **Decision:** Already described in ADR-005 update — Argon2id/bcrypt cost≥12, session cookie HttpOnly Secure SameSite Lax, JWT rotating refresh 15min access optional, rate limit 5/15min Redis, password strength, reset token 15min single-use, invitation 7d SHA256 hashed single-use.
-- **Status:** Proposed.
+- **Status:** **Proposed Conditional Acceptance — Correction for Auth Transport Consistency**
+- **Context:** Need to reconcile docs mentioning both cookies and Bearer tokens — define one recommended MVP and one optional alternative with explicit security properties.
+- **Decision (Corrected):**
+  - **Recommended MVP:** Cookie sessions:
+    - Cookie behavior: `sessionid` HttpOnly true (JS inaccessible), Secure true (HTTPS only), SameSite=Lax (CSRF mitigation, Lax for usability, Strict for sensitive state-changing? Documented as Lax per Django default but with CSRF token). No long-lived token in localStorage/sessionStorage — explicit prohibition.
+    - CSRF: double-submit token or Django CSRF middleware. Flow: backend sets `csrftoken` cookie (non-HttpOnly, readable by JS), frontend reads and sends `X-CSRFToken` header for POST/PATCH/DELETE, backend verifies. SameSite=Lax additional layer.
+    - Trust boundary: frontend untrusted, backend authoritative, all RBAC/ABAC server-side.
+    - Rate limit 5/15min per IP/email via Redis, password strength, Argon2id/bcrypt cost≥12, reset 15min single-use, invitation 7d SHA256 single-use.
+  - **Optional Alternative — Bearer/JWT:**
+    - Short-lived access ≤15min in memory (not localStorage), rotating refresh in HttpOnly Secure SameSite cookie with reuse detection — if refresh reuse detected, revoke all sessions and alert.
+    - Explicit prohibition: never store long-lived refresh/access tokens in localStorage/sessionStorage (prevents XSS theft).
+    - When using bearer, Authorization header `Bearer <access_token>` not auto-sent cross-origin, therefore intrinsically CSRF-resistant, but still need XSS protections and HttpOnly refresh.
+  - **Explicit Prohibitions:** No `FE --> SecretMgr`, no private secrets in frontend bundle, no long-lived tokens in localStorage, no `unsafe-inline` as accepted CSP.
+  - **Final Choice for First Implementation:** Cookie sessions (simpler, Django built-in). JWT alternative remains optional, marked proposed/conditional requiring Phase04 validation.
+- **Consequences:** Clear guidance prevents implementation drift between cookie vs bearer, reduces XSS/session theft risk, aligns with OPENAPI.yaml securitySchemes.
+- **Status:** Proposed conditional — requires Phase04 validation. Security sections in OPENAPI.yaml updated to document recommendation.
 
 ---
 

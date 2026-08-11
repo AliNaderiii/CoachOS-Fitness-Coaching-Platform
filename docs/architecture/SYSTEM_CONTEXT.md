@@ -131,14 +131,15 @@ flowchart TB
 
 ---
 
-## 4. Trust Boundaries (Explicit)
+## 4. Trust Boundaries (Explicit — Corrected Secrets Boundary)
 
-1. **Browser/PWA ↔ API Gateway (TLS 1.3, HSTS):** All traffic over HTTPS; cookies `HttpOnly; Secure; SameSite=Lax`; CSRF double-submit where cookie auth used.
-2. **API ↔ PostgreSQL:** Private VPC/network; credential via Secrets Manager; no secrets in repo.
-3. **API ↔ Redis:** Private network; TLS optional depending on provider; no PII in cache keys.
-4. **API ↔ Object Storage:** Private buckets `BlockPublicAcls=true`, no listing; signed URLs only with TTL ≤ 15 min; MIME validation + virus scanning hook.
-5. **API ↔ External Email:** Adapter interface; provider API key via env; DKIM/SPF enforced por founder infra.
+1. **Browser/PWA ↔ API Gateway (TLS 1.3, HSTS):** All traffic over HTTPS; cookies `HttpOnly; Secure; SameSite=Lax` (recommended MVP per ADR-032 corrected) — cookies HttpOnly true Secure true SameSite Lax; CSRF double-submit or Django CSRF middleware for cookie mutations where cookie sessions used. **Frontend MUST NEVER access Secrets Manager directly — private secrets only to backend/worker via server-side injection.** Frontend receives only explicitly public runtime config (`NEXT_PUBLIC_*` like `NEXT_PUBLIC_API_BASE_URL`), no private secrets in bundle, no proxying secrets.
+2. **API ↔ PostgreSQL:** Private VPC/network; credential via Secrets Manager **backend/worker only**; no secrets in repo; frontend never receives DB URL.
+3. **API ↔ Redis:** Private network; credential via Secrets Manager backend/worker only; TLS optional depending on provider; no PII in cache keys; no Redis credential to frontend.
+4. **API ↔ Object Storage:** Private buckets `BlockPublicAcls=true`, no listing; signed URLs only with TTL ≤ 15 min; MIME validation + virus scanning hook; S3 credentials via Secrets Manager backend/worker only, not frontend.
+5. **API ↔ External Email:** Adapter interface; provider API key via Secrets Manager backend/worker only via env; DKIM/SPF enforced per founder infra; no email API key to frontend.
 6. **Platform Admin Break-Glass:** Separate MFA step; audited escalation events for sensitive reads (photos, messages, global audit).
+7. **Frontend Trust Boundary:** Browser is untrusted. Backend is authoritative. All auth checks server-side. No long-lived tokens in localStorage — explicit prohibition (see ADR-032 corrected). If JWT alternative used, short-lived access ≤15min in memory + rotating refresh in HttpOnly cookie with reuse detection.
 
 ---
 

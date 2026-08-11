@@ -1445,3 +1445,271 @@ This separation is mandatory so that Phase 01 requirements and Phase 02 UX artif
 - **Working Branch:** `arena/019fed02-coachos-fitness-coaching-platf` from `771afa668e71b0b181218be2e4d768e60f4f36f9`
 - **Actions:** Phase 02 preflight audit and corrections on Phase03 branch + complete Phase03 architecture documentation suite as listed above — 13 architecture docs + 6 top-level architecture specs + Phase03 report — no application code created (specification only: Mermaid, OpenAPI YAML, JSON Schema, conceptual DDL, threat-model tables)
 - **Result:** Phase03 architecture complete — pending final report commit and PR creation for founder review
+
+---
+
+## Prompt 005
+
+- **Date/time:** 2026-08-10 (UTC)
+- **Source:** Founder / supervising agent — Phase 03 Architecture Review — Correction-Only Task
+- **Phase:** 03 — Architecture, Data, Security, and Privacy — Review Corrections (PR #6)
+- **Exact Full Text Received:**
+
+```text
+**PHASE 03 ARCHITECTURE REVIEW — CORRECTION-ONLY TASK**
+
+Pull Request #6 is currently open:
+
+https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/6
+
+Current Phase 03 commit:
+
+ddbdceb
+
+Do not merge PR #6.  
+Do not start Phase 04.  
+Do not create application code.  
+Do not install dependencies.  
+Do not create migrations.  
+Do not redo the entire Phase 03 architecture package.
+
+Perform a focused architecture-quality review and make correction-only commits on the Phase 03 branch.
+
+**1. Critical secret-manager boundary correction**
+
+The current deployment/container diagrams appear to show the frontend container accessing the Secrets Manager directly, including a relationship similar to:
+
+`FE --> SecretMgr`
+
+This is not acceptable.
+
+Correct all architecture artifacts so that:
+
+- The browser and frontend runtime never access the Secrets Manager.
+- The Next.js frontend receives only explicitly public runtime configuration.
+- Private secrets such as database URLs, Django secret keys, Redis credentials, S3 credentials, email API keys, JWT signing keys, and provider secrets are available only to backend and worker runtimes through server-side secret injection.
+- The frontend must never receive, render, bundle, or proxy private secrets.
+- Update the relevant C4 diagrams, deployment topology, security controls, and Phase 03 report.
+
+Review at minimum:
+
+- `docs/architecture/CONTAINER_ARCHITECTURE.md`
+- `docs/architecture/DEPLOYMENT_ARCHITECTURE.md`
+- `docs/architecture/SYSTEM_CONTEXT.md`
+- `docs/architecture/COMPONENT_BOUNDARIES.md`
+- `docs/THREAT_MODEL.md`
+- `docs/SECURITY_CONTROL_MATRIX.md`
+
+**2. CSP correction**
+
+The deployment document currently contains a placeholder-like CSP expression similar to:
+
+`script-src 'self' 'unsafe-inline' ?`
+
+Replace it with a clear proposed strategy:
+
+- Prefer nonce- or hash-based script authorization for production.
+- Do not present `unsafe-inline` as an accepted production security control.
+- If a framework limitation requires a temporary exception during Phase 04, explicitly mark it as temporary, explain the risk, and define a hardening task.
+- Do not claim that CSP is finalized before implementation validation.
+
+**3. Authentication transport consistency**
+
+Reconcile the architecture documents where they mention both cookies and Bearer tokens.
+
+Define one recommended MVP strategy and one optional alternative.
+
+At minimum document:
+
+- HttpOnly/Secure/SameSite cookie behavior if cookie sessions are selected.
+- CSRF strategy for cookie-based mutations.
+- Short-lived access tokens and refresh-token rotation if bearer/JWT is retained.
+- Explicit prohibition on storing long-lived tokens in localStorage.
+- Frontend/backend trust boundary.
+- Which strategy is recommended for the first implementation.
+
+Update the relevant ADR and OpenAPI security sections. Keep the final choice marked proposed/conditional if it requires Phase 04 validation.
+
+**4. Data-model integrity corrections**
+
+Review `docs/architecture/ERD.md`, `docs/DATA_MODEL.md`, and `docs/DECISIONS.md` for the following invariants.
+
+**4.1 Organization owner source of truth**
+
+The model currently includes both:
+
+- `Organization.owner_user_id`
+- An `owner` Membership row
+
+Choose and document one authoritative source of truth, or define a strict invariant and synchronization rule. Avoid two independent mutable ownership fields that can drift.
+
+**4.2 Membership multi-role behavior**
+
+The current Membership model permits multiple roles per user and organization.
+
+Define:
+
+- Whether multi-role memberships are allowed in MVP.
+- How effective permissions are calculated when a user has multiple roles.
+- Whether role elevation is audited.
+- How the active organization and active role are selected.
+- How the frontend receives effective permissions.
+
+**4.3 Assignment reactivation/reassignment**
+
+Review the unique constraint on `CoachAthleteAssignment`.
+
+If the model uses a permanent unique constraint on:
+
+`(organization_id, coach_user_id, athlete_user_id)`
+
+then a previously archived relationship cannot be recreated. Define whether to use:
+
+- A partial unique constraint for active assignments,
+- An `ended_at`/`archived_at` model,
+- Or an explicit reactivation workflow.
+
+Document the chosen invariant without creating migrations.
+
+**5. Backup and disaster-recovery wording**
+
+Review the backup documents and make sure they do not overclaim:
+
+- S3 versioning is not the same as independent backup or cross-region disaster recovery.
+- Versioning does not automatically satisfy deletion/erasure requirements.
+- RPO/RTO figures are proposed targets, not guarantees.
+- Cross-region replication, multi-AZ, retention, and residency require cost/legal approval.
+- Redis is not a source of truth, but important asynchronous jobs must have durable database state or an outbox/retry strategy.
+
+Update wording and decision status where necessary.
+
+**6. API specification validation**
+
+Validate `docs/OPENAPI.yaml` as a specification artifact:
+
+- YAML parses successfully.
+- It is OpenAPI 3.1.
+- All local `$ref` references resolve.
+- Security schemes are consistent with the selected/conditional auth strategy.
+- Error responses are RFC 7807-compatible with the localized `message_key` extension.
+- P0 endpoint groups align with `docs/API_CONTRACT.md`, PRD story IDs, and authorization rules.
+- No future payment, AI, or wearable endpoint is presented as implemented P0 functionality.
+
+If an issue is found, correct the spec and document that it remains provisional until Phase 04 implementation validation.
+
+**7. Architecture report and project tracking**
+
+Update:
+
+- `docs/reports/PHASE-03-ARCHITECTURE-REPORT.md`
+- `PROJECT_STATUS.md`
+- `PROJECT_CHECKLIST.md`
+- `CHANGELOG.md`
+- `docs/PROMPT_LOG.md`
+- `docs/DECISIONS.md`
+
+The report must distinguish:
+
+- Corrected
+- Accepted
+- Proposed
+- Pending Founder Approval
+- Deferred
+- Requires implementation validation
+- Requires legal review
+
+**8. Phase separation**
+
+Do not create:
+
+- Frontend code
+- Backend code
+- `package.json`
+- `requirements.txt`
+- Dockerfiles
+- CI workflows
+- Database migrations
+- Real secrets
+- Real health data
+- Arabic resources
+
+At the end:
+
+1. Show the exact files changed.
+2. Show the correction commit.
+3. Confirm that no application code was created.
+4. Update PR #6 with the correction commit.
+5. Do not merge PR #6.
+6. Stop and wait for founder review.
+```
+
+- **Actions Taken (Correction-Only):**
+
+**Task 1 — Critical secret-manager boundary correction:**
+- Removed `FE --> SecretMgr` from `DEPLOYMENT_ARCHITECTURE.md` topology, replaced with `Worker --> SecretMgr` and `FE -->|Public runtime config only NEXT_PUBLIC_* vars NO private secrets| BE`
+- Updated Secrets & Configuration section to explicitly forbid frontend accessing Secrets Manager, private secrets only backend/worker via server-side injection, frontend only public `NEXT_PUBLIC_*`, verification via CI bundle secret scan, no private secrets in bundle/render/proxy
+- Updated `CONTAINER_ARCHITECTURE.md` 3.1 Frontend and 3.2 Backend to clarify frontend never accesses Secrets Manager, only public config, backend/worker only private secrets, plus auth transport consistency note and CSP nonce/hash preferred
+- Updated `SYSTEM_CONTEXT.md` Trust Boundaries to add frontend never accesses Secrets Manager, private secrets only backend/worker, explicit prohibition no long-lived tokens in localStorage
+- Updated `COMPONENT_BOUNDARIES.md` §5 Security Boundaries with secret boundary correction + auth transport consistency
+- Updated `THREAT_MODEL.md` T02 preventive with secret boundary FE --> SecretMgr forbidden + bundle secret scan + CSP nonce/hash
+- Updated `SECURITY_CONTROL_MATRIX.md` T02 row with secret boundary + bundle secret scan + CSP nonce/hash
+
+**Task 2 — CSP correction:**
+- Replaced placeholder `script-src 'self' 'unsafe-inline' ?` in `DEPLOYMENT_ARCHITECTURE.md` §7 with clear proposed strategy production preferred nonce/hash-based `script-src 'self' 'nonce-{random}' 'strict-dynamic' https:`, no unsafe-inline as accepted production, temporary exception if Next.js requires unsafe-inline during Phase04 explicitly marked temporary with risk XSS inline injection bypasses CSP + hardening task TODO-CSP-001 migrate to nonce before pilot, not presented as accepted production, do not claim CSP finalized before validation
+- Updated `CONTAINER_ARCHITECTURE.md` security to prefer nonce/hash, no unsafe-inline as accepted unless temporary exception documented with risk and TODO-CSP-001
+- Updated `THREAT_MODEL.md` T02 and T09 preventive to nonce/hash-based and temporary exception handling
+- Updated `SECURITY_CONTROL_MATRIX.md` T02 and T09 rows to nonce/hash preferred
+
+**Task 3 — Authentication transport consistency:**
+- Reconciled docs mentioning both cookies and Bearer tokens, defined recommended MVP cookie sessions (HttpOnly true Secure true SameSite Lax, no long-lived tokens in localStorage explicit prohibition, CSRF double-submit/Django middleware csrftoken + X-CSRFToken header, trust boundary browser untrusted backend authoritative) and optional alternative Bearer/JWT (short-lived ≤15min in memory not localStorage + rotating refresh HttpOnly cookie reuse detection explicit prohibition localStorage, Authorization header Bearer intrinsically CSRF-resistant)
+- Final choice for first implementation: cookie sessions (simpler Django built-in), JWT alternative optional proposed/conditional requiring Phase04 validation
+- Updated `CONTAINER_ARCHITECTURE.md` 3.2 Backend Auth, `COMPONENT_BOUNDARIES.md` §5, `SYSTEM_CONTEXT.md` Trust Boundaries, `DECISIONS.md` ADR-005 and ADR-032 with corrected transport consistency, `OPENAPI.yaml` info description + x-auth-strategy recommended cookieAuth optional bearerAuth notes + securitySchemes descriptions + top-level security order cookieAuth first, version bumped 1.0.0-provisional → 1.0.1-provisional-corrected, remains provisional
+
+**Task 4 — Data-model integrity corrections:**
+- 4.1 Organization owner source of truth: Defined invariant Organization.owner_user_id authoritative for single owner MVP, exactly one active Membership role=owner must exist and user_id must equal owner_user_id, Membership owner row derived automatically managed not independently mutable, creation transaction creates both, transfer via OrganizationService.transferOwnership() atomic audit, drift prevention via service + periodic check. Updated ERD.md Organization, DATA_MODEL.md Organization, DECISIONS.md ADR-014.
+- 4.2 Membership multi-role: Schema allows multi-role via UNIQUE(user_id, organization_id, role), MVP policy single primary role recommended but multi-role allowed explicitly enabled, effective permissions = union of all active roles (most permissive, priority owner>coach>support>athlete), role elevation audited, active org + active role via session, frontend receives memberships array + effective_permissions computed server-side. Updated ERD.md Membership, DATA_MODEL.md Membership, DECISIONS.md ADR-014.
+- 4.3 Assignment reactivation: Previous permanent UNIQUE prevented recreation after archival, corrected to partial unique for active only UNIQUE(org, coach, athlete) WHERE status='active' (or WHERE archived_at IS NULL) — allows historical archived rows + recreation, only one active per triple. Added fields archived_at ended_at, workflow archival sets status archived + timestamps audit, reactivation creates new row preserving history (preferred) or reactivates if no active exists, reassignment archives old + creates new, idempotent assign returns existing if active. Updated ERD.md CoachAthleteAssignment, DATA_MODEL.md CoachAthleteAssignment, DECISIONS.md ADR-014.
+
+**Task 5 — Backup and disaster-recovery wording:**
+- Corrected BACKUP_AND_DISASTER_RECOVERY.md 1.2: Clarified versioning ≠ independent backup nor cross-region DR, versioning provides recovery within same bucket/region via noncurrent versions but does not protect against region failure/bucket deletion/account compromise unless combined with CRR and MFA Delete, does NOT automatically satisfy deletion/erasure requirements — erasure must permanently delete all versions, versioning is one layer not full backup, CRR optional requires cost/legal approval, lifecycle retention proposed not guarantee balanced with erasure.
+- Corrected 1.3 Redis: Not source of truth but important async jobs must have durable DB state or outbox/retry — create DB record first then enqueue Celery, reconciliation re-enqueues pending.
+- Corrected 3 RPO/RTO: Labeled proposed targets not guarantees require validation via restore drills, multi-AZ requires cost approval, S3 durability 11 9s but versioning alone not cross-region DR, versioning ≠ erasure compliance, Redis queue must have durable DB state via outbox pattern.
+- Corrected 4 Disaster Scenarios: Clarified versioning ≠ backup nor cross-region DR, not automatic erasure compliance, CRR requires cost/legal approval, Redis failure needs durable DB state outbox/retry.
+- Updated DEPLOYMENT_ARCHITECTURE.md §8 Backup & Restore Hooks and §9 RPO/RTO similarly corrected.
+
+**Task 6 — API specification validation:**
+- Validated OPENAPI.yaml via regex checks (yaml module not available per no-install rule, used manual parsing): openapi 3.1.0 OK, total $ref 135 local 135 missing schema refs [] (59 defined schemas), security schemes consistent with corrected auth strategy (bearerAuth optional alternative + cookieAuth recommended MVP), error responses RFC7807-compatible with message_key true, P0 endpoint groups align with API_CONTRACT PRD story IDs auth rules (tags Authentication Organizations Locations Memberships etc), no Payment/AI/Wearable as P0 implemented (forbidden tags absent, /webhooks/payments not present), paths count 37. Corrected spec info description + version bumped provisional-corrected, remains provisional until Phase04 implementation validation.
+
+**Task 7 — Architecture report and project tracking:**
+- Updated docs/reports/PHASE-03-ARCHITECTURE-REPORT.md with new Section 32 Phase 03 Architecture Review Corrections distinguishing Corrected/Accepted/Proposed/Pending Founder Approval/Deferred/Requires implementation validation/Requires legal review, plus Section 33 corrected files list, Section 34 tests/validation commands, Section 35 exact recommended prompt for Phase04 reaffirms corrections.
+- Updated PROJECT_STATUS.md with Section 1.2 Phase 03 Architecture Review Corrections detailing 6 tasks corrected, files changed, no app code.
+- Updated CHANGELOG.md with correction entry for PR #6 review.
+- Updated PROJECT_CHECKLIST.md Phase03 section with additional checklist item for review corrections evidence.
+- Updated docs/DECISIONS.md ADR-005 ADR-032 ADR-014 and CSP corrections in relevant ADRs.
+
+**Task 8 — Phase separation:**
+- Verified no frontend code, backend code, package.json, requirements.txt, Dockerfiles, CI workflows, database migrations, real secrets, real health data, Arabic resources created — via find commands.
+
+- **Tests/Validation Commands Executed:**
+  - grep -Rn "SecretMgr|FE --> Secret" docs/architecture/ — shows only BE --> SecretMgr and Worker --> SecretMgr, FE -->|Public runtime config only| BE, no FE --> SecretMgr
+  - grep -Rn "script-src 'self' 'unsafe-inline'" docs/architecture/ — should show only corrected nonce/hash description, temporary exception marked temporary with TODO-CSP-001
+  - grep -Rn "HttpOnly; Secure; SameSite=Lax|No long-lived tokens in localStorage|Recommended MVP.*cookie" docs/architecture/ docs/DECISIONS.md docs/OPENAPI.yaml — verifies auth transport consistency
+  - grep -n "owner_user_id.*authoritative|effective permissions.*union|partial unique.*WHERE status='active'" docs/architecture/ERD.md docs/DATA_MODEL.md docs/DECISIONS.md — verifies data-model integrity corrections
+  - grep -n "Versioning.*NOT.*independent backup|Versioning.*NOT.*cross-region DR|Proposed targets.*not guarantees|RPO.*Proposed.*not guarantee" docs/architecture/BACKUP_AND_DISASTER_RECOVERY.md docs/architecture/DEPLOYMENT_ARCHITECTURE.md — verifies backup wording corrections
+  - python3 regex validation for OPENAPI.yaml: openapi version 3.1.0 OK, $ref 135 local 135 missing [], security schemes bearerAuth cookieAuth, ErrorEnvelope RFC7807 + message_key present, tags P0 groups, no payment/AI/wearable P0
+  - find . -type d -name backend -o -name frontend -o -name node_modules, find . -maxdepth 3 -name package.json -o -name requirements.txt -o -name Dockerfile — none beyond docs — spec only
+
+- **Security and Privacy Considerations:** Frontend must never access Secrets Manager — private secrets only to backend/worker via server-side injection — prevents secret exposure in browser bundle/SSR props/proxy; CSP nonce/hash preferred reduces XSS risk, temporary unsafe-inline exception marked with risk and hardening task; Auth transport consistency recommended MVP cookie sessions HttpOnly Secure SameSite Lax CSRF double-submit explicit prohibition localStorage protects session theft, optional JWT short-lived memory rotating refresh HttpOnly reuse detection; Data-model integrity prevents ownership drift, ensures effective permissions union audited, allows assignment reactivation while preserving history via partial unique active; Backup wording clarifies versioning ≠ independent backup nor cross-region DR, versioning ≠ erasure compliance, RPO/RTO proposed not guarantees, cross-region replication multi-AZ retention residency require cost/legal approval, Redis not source of truth but important jobs must have durable DB state outbox/retry; API validation ensures $ref resolve, security schemes consistent, error model RFC7807 message_key, P0 groups align no future payment/AI/wearable as P0.
+
+- **Blockers:** None blocking Phase04 after founder review of corrections — no material UX contradiction, no app code created.
+
+- **Follow-up:** Update PR #6 with correction commit, do not merge PR #6, stop and wait for founder review.
+
+---
+
+## Post-Phase-03 Correction Work Record
+
+- **Date/time:** 2026-08-10 (UTC) — Correction commit for PR #6 review
+- **Working Branch:** `arena/019fed02-coachos-fitness-coaching-platf` — correction commit on top of `ddbdceb`
+- **Commit:** Correction commit addressing 6 review tasks — secret manager boundary, CSP, auth transport consistency, data-model integrity (owner source of truth, multi-role, assignment partial unique), backup wording, API validation — plus updates to PHASE-03 report, PROJECT_STATUS, CHANGELOG, PROJECT_CHECKLIST, DECISIONS, PROMPT_LOG — no application code created (spec only)
+- **Result:** Corrections applied, ready to push to PR #6 for founder review, do not merge, do not start Phase04

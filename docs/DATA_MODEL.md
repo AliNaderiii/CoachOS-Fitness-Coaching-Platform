@@ -70,12 +70,12 @@
 - `created_at` (TIMESTAMPTZ, UTC): Registration timestamp.
 - `updated_at` (TIMESTAMPTZ, UTC): Last profile modification.
 
-#### `Organization`
+#### `Organization` (Corrected Owner Source of Truth — see ERD.md Task 4.1)
 *The top-level customer boundary (Tenant).*
 - `id` (UUIDv7, PK): Unique organization tenant ID.
 - `name` (VARCHAR(150)): Business or gym name (e.g., "Alborz Performance").
 - `slug` (VARCHAR(100), Unique, Indexed): URL-friendly unique identifier.
-- `owner_user_id` (UUIDv7, FK -> `User.id`): Primary owner of the workspace.
+- `owner_user_id` (UUIDv7, FK -> `User.id`): **Authoritative source of truth for single owner MVP** (legal/billing owner) — invariant: exactly one active Membership role=owner must exist and its user_id must equal owner_user_id; drift prevented via transactional `OrganizationService.transferOwnership()` updating both atomically, audit `org.owner_transferred`.
 - `settings` (JSONB): Organization-wide defaults (branding colors, logo URL, default schedule start day).
 - `created_at` (TIMESTAMPTZ, UTC): Creation timestamp.
 - `archived_at` (TIMESTAMPTZ, Nullable): Archival timestamp.
@@ -91,15 +91,16 @@
 - `phone` (VARCHAR(32), Nullable): Front-desk phone number.
 - `created_at` (TIMESTAMPTZ, UTC): Creation timestamp.
 
-#### `Membership`
+#### `Membership` (Corrected Multi-Role Behavior — Task 4.2)
 *Scoped relationship binding a User to an Organization with a defined Role.*
 - `id` (UUIDv7, PK): Membership record ID.
 - `user_id` (UUIDv7, FK -> `User.id`, Indexed): Authenticated user.
 - `organization_id` (UUIDv7, FK -> `Organization.id`, Indexed): Organization tenant.
 - `role` (VARCHAR(30)): Role within this organization (`owner`, `coach`, `athlete`, `support`).
-- `status` (VARCHAR(20), Default: `active`): Membership state (`invited`, `active`, `suspended`).
+- `status` (VARCHAR(20), Default: `active`): Membership state (`invited`, `active`, `suspended`, `archived`).
 - `created_at` (TIMESTAMPTZ, UTC): Membership grant timestamp.
-- *Constraint:* `UNIQUE(user_id, organization_id, role)`
+- `archived_at` (TIMESTAMPTZ, Nullable): For soft-archive when role removed.
+- *Constraint:* `UNIQUE(user_id, organization_id, role)` allows multi-role per org; MVP policy single primary role recommended but multi-role allowed (e.g., coach+athlete same org). Effective permissions = union of all active roles for that user+org (most permissive, priority owner>coach>support>athlete for UI display). Role elevation audited (`membership.created`, `status_changed`, `role_changed`). Active org + active role via session `active_organization_id` + optional `active_role`; frontend receives `memberships` array + `effective_permissions` computed server-side (union), UI shows role switcher if multiple roles, default highest privilege. See ERD.md 4.2 for full invariant, no migrations in Phase03.
 
 #### `Invitation`
 *Cryptographically secure single-use organization onboarding token.*
@@ -113,7 +114,7 @@
 - `accepted_at` (TIMESTAMPTZ, Nullable): Acceptance timestamp.
 - `created_at` (TIMESTAMPTZ, UTC): Invitation dispatch timestamp.
 
-#### `CoachAthleteAssignment`
+#### `CoachAthleteAssignment` (Corrected Reactivation Invariant — Task 4.3)
 *Explicit authorization binding an Athlete to a specific Coach within an Organization.*
 - `id` (UUIDv7, PK): Assignment ID.
 - `organization_id` (UUIDv7, FK -> `Organization.id`, Indexed): Tenant context.
@@ -121,7 +122,9 @@
 - `athlete_user_id` (UUIDv7, FK -> `User.id`, Indexed): Assigned athlete.
 - `status` (VARCHAR(20), Default: `active`): `active` | `archived`.
 - `created_at` (TIMESTAMPTZ, UTC): Assignment start timestamp.
-- *Constraint:* `UNIQUE(organization_id, coach_user_id, athlete_user_id)`
+- `archived_at` (TIMESTAMPTZ, Nullable): Soft-archive timestamp, `ended_at` alternative.
+- *Constraint (Corrected):* Use partial unique for active only: `UNIQUE(organization_id, coach_user_id, athlete_user_id) WHERE status='active'` (or WHERE archived_at IS NULL) — allows historical archived rows + recreation after archival, only one active per triple at a time. Previous permanent unique prevented recreation.
+- *Workflow:* Archival sets status archived + archived_at/ended_at + audit `assignment.archived`; reactivation via `AssignmentService.reactivate` creates new row (preserving history) or reactivates if no active exists, audit `assignment.reactivated`; reassignment archives old + creates new, audit both. Partial unique ensures idempotent assign returns existing if active. No migrations in Phase03 — conceptual invariant only, proposed for Phase04/05.
 
 ---
 
