@@ -1,13 +1,13 @@
 # Security, Privacy & Data Governance Baseline — CoachOS
 
-**Document version:** 1.0.0 (Phase 01 Baseline)  
+**Document version:** 2.0.0 (Phase 03 Architecture Finalized)  
 **Last updated:** 2026-08-10  
-**Compliance Context:** GDPR, HIPAA-adjacent health privacy principles, OWASP Top 10, and regional data protection regulations.  
-**Disclaimer:** This specification is an engineering baseline, not formal legal counsel. Prior to commercial deployment handling live health data, qualified legal review is mandatory.
+**Compliance Context:** GDPR-adjacent privacy-aligned engineering design principles, OWASP Top 10, regional data protection. Disclaimer: engineering baseline, not formal legal counsel — requires jurisdiction-specific legal review before handling live health data.  
+**Phase03 Authoritative Expansion:** Detailed threat model in `docs/THREAT_MODEL.md` (STRIDE 21 threats), control matrix in `docs/SECURITY_CONTROL_MATRIX.md`, privacy lifecycle in `docs/PRIVACY_DATA_LIFECYCLE.md` (11 stages, Tier0-Tier8, consent, export/erasure, pre-DPIA), authorization architecture in `docs/architecture/AUTHORIZATION_ARCHITECTURE.md`, media storage in `docs/architecture/MEDIA_STORAGE.md`, observability in `docs/architecture/OBSERVABILITY.md`, backup/DR in `docs/architecture/BACKUP_AND_DISASTER_RECOVERY.md`. This baseline retains taxonomy summary but points to Phase03 authoritative docs.
 
 ---
 
-## 1. Comprehensive Data Classification Taxonomy
+## 1. Comprehensive Data Classification Taxonomy (Summary — Detailed in PRIVACY_DATA_LIFECYCLE.md)
 
 | Data Classification Tier | Description & Scope | Examples | Handling, Storage & Encryption Policies | Access Boundaries |
 |---|---|---|---|---|
@@ -20,6 +20,10 @@
 | **Tier 6: Secrets & Infrastructure Keys** | Cryptographic keys and cloud credentials. | Database connection URIs, JWT signing keys, S3 secret keys, Redis credentials. | Secure Secrets Manager / Environment variables only; **never committed to Git repository**. | Infrastructure / CI pipeline execution only. |
 | **Tier 7: Financial & Billing Data (Future P1/Phase 10)** | Payment gateway tokens and transaction history. | Gateway customer IDs, subscription status, invoice metadata (no raw PAN). | PCI-DSS compliant payment tokenization via external gateways (Stripe/Shetab). | Tenant Owner; Finance Admin. |
 | **Tier 8: AI Inference Logs (Future Phase 11)** | Prompts, completions, and human review decisions. | AI prompt version, generated workout variant, coach approval state. | Anonymized; stripped of athlete PII prior to model submission; audit logged. | Authoring Coach; Platform AI safety auditor. |
+
+**Detailed per-class privacy lifecycle (purpose, legal assumption, owner/controller assumption, access, encryption, logging restriction, retention, export, deletion, consent) documented in `docs/PRIVACY_DATA_LIFECYCLE.md` with 11 lifecycle stages + pre-DPIA checklist (large-scale sensitive, systematic monitoring, profiling, multi-prof sharing, progress-photo processing, wearable future, AI).**
+
+---
 
 ---
 

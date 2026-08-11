@@ -1,10 +1,20 @@
 # Conceptual Data Model & Entity Specifications — CoachOS
 
-**Document version:** 1.1.0 (Phase 01 Preflight Calibrated)  
+**Document version:** 2.0.0 (Phase 03 Architecture Finalized)  
 **Last updated:** 2026-08-10  
-**Phase alignment:** Phase 01 Conceptual & Logical Specification.  
-**Architectural Notice:** The entity sketches, column definitions, and identifier strategies (e.g., UUIDv7) below represent provisional requirements-level domain models. Physical PostgreSQL DDL, index tuning, foreign-key cascade behaviors, and formal C4/ERD diagrams will be finalized in **Phase 03 — Architecture, Data, Security, and Privacy**.  
-**Language constraints:** Bilingual metadata fields supporting `fa-IR` and `en-US`. **No Arabic tables, columns, or seed catalogs.**
+**Phase alignment:** Phase 03 — Architecture, Data, Security, and Privacy — logical/physical model coherent with PRD and UX (34 screens, 27 P0 stories).  
+**Architectural Notice:** Phase 01 provisional model has been finalized in Phase 03. Authoritative physical model, indexes, constraints, state machines, ERD, and conceptual DDL are now in `docs/architecture/ERD.md`. This document retains the detailed entity specification for traceability but should be read alongside `docs/architecture/ERD.md`, `docs/architecture/DOMAIN_MODULES.md`, `docs/JSON_SCHEMAS.md`, and `docs/DECISIONS.md` ADR-014..ADR-018.  
+**Language constraints:** Bilingual metadata fields supporting `fa-IR` and `en-US` only. **No Arabic tables, columns, or seed catalogs.**  
+**Identifier Strategy:** UUIDv7 proposed (ADR-017) — time-ordered, non-sequential, supports offline client-side generation for Phase12 queue, but NOT authz substitute — requires validation against PG/runtime support in Phase04.  
+**Offline & Snapshot Integrity:** Program assignments preserve immutable historical snapshots (JSONB) — duplication justified; every tenant-scoped query derives organization scope from authenticated server context; progress photos never use public URLs; multi-professional access requires explicit consent + revocation.
+
+**Authoritative Artifacts Created in Phase03:**
+- `docs/architecture/ERD.md` — ER diagram + detailed entity specs with PK/FK/tenant ownership/sensitive fields/indexes/unique constraints/state machines/soft-delete/archive policy/audit/retention/localization
+- `docs/architecture/DOMAIN_MODULES.md` — module ownership + test boundaries
+- `docs/architecture/AUTHORIZATION_ARCHITECTURE.md` — object-level rules for sensitive entities
+- `docs/JSON_SCHEMAS.md` — snapshot, queue entry, export manifest, notification payload, Persian normalization pseudocode (Perso-Arabic script keyboard-variant normalization for Persian search)
+
+**Phase03 Exit Gate Verification:** Logical/physical model coherent, ERD renders, tenant isolation explicit, program snapshot immutability explicit, photo private storage explicit, consent revocation explicit.
 
 ---
 

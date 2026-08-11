@@ -1,12 +1,21 @@
 # API Contract & Endpoint Specification — CoachOS
 
-**Document version:** 1.1.0 (Phase 01 Preflight Calibrated)  
+**Document version:** 2.0.0 (Phase 03 Finalized)  
 **Last updated:** 2026-08-10  
-**Base URL:** `/api/v1` (Provisional)  
+**Base URL:** `/api/v1` — Versioned, provisional 2026-08-10, requires implementation review in Phase04  
 **Content-Type:** `application/json` (unless multipart for media uploads)  
-**Architectural Notice:** The endpoint paths, JSON payloads, and error envelopes below represent requirements-level interface contracts designed to guide UX and authorization modeling. Definitive OpenAPI 3.1 specifications, serialization schemas, and transport details will be formally finalized in **Phase 03 — Architecture, Data, Security, and Privacy**.  
-**Supported Locales:** `fa-IR` (Persian), `en-US` (English)  
-**Strict constraint:** Arabic is explicitly out of scope.
+**Authoritative Specification:** `docs/OPENAPI.yaml` OpenAPI 3.1 provisional catalog now contains full P0 endpoint groups, with purpose, authentication, required role, object-level permission rule, request/response schemas, error responses, localization behavior, idempotency expectation, audit event, rate-limit category, data sensitivity. This document retains high-level overview + human-readable examples; `OPENAPI.yaml` is machine-readable contract.  
+**Error Model:** RFC7807 `type`, `title`, `status`, `detail`, `instance` + localized `message_key` extension — consistent across all endpoints (see OPENAPI.yaml components.schemas.ErrorEnvelope).  
+**Supported Locales:** `fa-IR` (Persian, RTL) and `en-US` (English, LTR) only — precise wording: Accept-Language negotiation, no Arabic product scope, search normalization is "Perso-Arabic script keyboard-variant normalization for Persian search".  
+**Architectural Notice:** Endpoint paths below are provisional API design targets — implementation validation occurs Phase04. No API implementation done in Phase03.  
+**Related Artifacts:** `docs/OPENAPI.yaml`, `docs/JSON_SCHEMAS.md`, `docs/architecture/AUTHORIZATION_ARCHITECTURE.md`, `docs/SECURITY_CONTROL_MATRIX.md`
+
+**Phase03 Exit Gate Verification:**
+- P0 endpoint groups covered: Auth, current user/profile, orgs, locations, memberships, invitations, exercise catalog, exercise moderation, programs, templates, assignments, Today view, workout sessions, set logs, feedback flags, progress metrics/photos, messages, notifications, audit events, privacy export/deletion, media signed URLs, consents.
+- For every endpoint: method, path, purpose, auth, required role, object-level permission, request/response schema, error responses, localization, idempotency, audit, rate-limit, data sensitivity documented in OPENAPI.yaml.
+- Error model RFC7807 compatible.
+- Offline wording boundaries explicit (Phase04 shell-only, Phase07 temporary in-memory, Phase12 durable queue).
+- No Arabic scope, no AI/payment/wearable P0 implementation implied.
 
 ---
 
