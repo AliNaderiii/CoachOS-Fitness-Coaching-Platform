@@ -99,7 +99,7 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Backend scaffold works (Django + DRF) — evidence: `backend/` Django 5.2 + DRF 3.18, 37 Pytest tests passing, middleware pipeline, RFC 7807 problem details
 - [x] PWA foundation (Manifest, installable shell, Service Worker) works — evidence: `frontend/public/manifest.json`, `frontend/public/sw.js`, `frontend/public/icons/`, `frontend/app/[locale]/offline/page.tsx`, `frontend/components/pwa/`
 - [x] Database and migrations work — evidence: PostgreSQL 16 connection config, initial foundation syncdb/migrations tested in test/dev
-- [!] GitHub Actions activation — not active on `main`; `infra/ci/ci.yml`, `infra/ci/security-scan.yml`, and `infra/scripts/check-secrets.sh` are local command references only; workflow activation is blocked to a later separate PR
+- [!] GitHub Actions activation — still inactive: `.github/workflows/` is absent from `main`; `infra/ci/ci.yml`, `infra/ci/security-scan.yml`, and `infra/scripts/check-secrets.sh` are local command references only, not activation evidence; workflow activation is the next gated task via a separate PR; only visible remote GitHub check results count as activation evidence
 - [x] Local lint/type/test commands work — evidence: Ruff lint + format (clean), ESLint (clean), TypeScript `tsc --noEmit` (clean), Pytest (37 passed), Vitest (49 passed)
 - [x] Health checks work — evidence: `GET /healthz` (200 OK liveness), `GET /readyz` (DB + Redis readiness), `GET /api/v1/meta` (public system metadata)
 - [x] Phase 04 report committed — evidence: `docs/reports/PHASE-04-FOUNDATION-REPORT.md`
@@ -109,9 +109,10 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Focused remediation tests added without weakening existing tests — API client, service-worker registration, public configuration, date boundaries, Persian normalization, exact locale metadata, and 54-key bilingual governance
 - [x] Clean tracked-only validation completed — `npm ci`, frontend lint/type-check/49 tests/build, backend Ruff/37 tests, compliance/language/PWA scans, `git diff --check`, `git check-ignore`, and `git ls-files frontend/lib`
 - [x] Separate correction report committed — evidence: `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`; original report retained unchanged
-- [~] Post-merge remediation PR — implementation complete and awaiting remote PR review; do not merge automatically
+- [x] Post-merge remediation PR merged — evidence: PR [#8](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/8) merged into `main` on 2026-08-11T15:20:23Z at merge commit `dd7dea56945d96a6a2d595afb5154b6828c4e3b6`; all nine `frontend/lib/` files verified present and tracked on remote `main` via GitHub Contents API and `git ls-tree origin/main`; broad `lib/` ignore rule retained with only `/frontend/lib/` exceptions
+- [~] Post-merge status synchronization (PR A, docs-only) — stale "awaiting review / in progress" wording corrected in `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`; PR opened targeting `main`; awaiting founder review and merge
 
-**Phase 04 status:** `[~]` Original foundation merged; post-merge frontend remediation clean-validated and awaiting PR review (2026-08-11)
+**Phase 04 status:** `[x]` Complete — original foundation merged via PR #7; post-merge frontend remediation merged via PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`) on 2026-08-11; GitHub Actions activation outstanding as next gated task (2026-08-11)
 
 ---
 
@@ -126,7 +127,7 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [ ] Persian/English settings work
 - [ ] Phase 05 report committed
 
-**Phase 05 status:** `[ ]` Not started
+**Phase 05 status:** `[ ]` Not started — awaits explicit founder authorization after CI activation review (GitHub Actions checks visible and passing on `main` first)
 
 ---
 

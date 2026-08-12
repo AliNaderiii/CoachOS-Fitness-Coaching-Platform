@@ -143,3 +143,31 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
   - Added `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`; retained the original Phase 04 report unchanged.
   - Did not add workflow files or Phase 05 domain code.
 
+---
+
+## Post-Phase-04-Remediation Merge Record
+
+- **Date/time:** 2026-08-11T15:20:23Z (UTC)
+- **Action:** Pull Request [#8](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/8) merged into `main` (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`)
+- **Result:** Founder-authorized specification-based reimplementation of the nine missing `frontend/lib/` files is now on remote `main`. Phase 04 remediation closed; GitHub Actions still inactive (`.github/workflows/` absent on `main`).
+
+---
+
+## Prompt 010
+
+- **Date/time:** 2026-08-11 (UTC)
+- **Source:** Founder / supervising agent — Post-PR-#8 operational closure and CI activation directive
+- **Phase:** 04 — Post-merge status synchronization (PR A) → GitHub Actions activation (PR B, gated)
+- **Prompt Summary:**
+  - Fetch and verify the actual current remote `main` after the PR #8 merge; report any drift from `dd7dea56945d96a6a2d595afb5154b6828c4e3b6`.
+  - Correct stale pre-merge wording in the tracking documents: remediation described as awaiting PR review (`PROJECT_STATUS.md`) or in progress (`PROJECT_CHECKLIST.md`), and next-step wording still telling the agent to push/open/review PR #8.
+  - Deliver a docs-only status synchronization PR (PR A) touching only `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md` — no product source, tests, dependencies, or workflow files; do not rewrite the original Phase 04 report; do not merge automatically.
+  - After PR A merges, deliver a separate PR (PR B) activating GitHub Actions by creating exactly `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` from the validated `infra/ci/` definitions; `infra/ci/` and `infra/scripts/copy-workflows.sh` are not substitutes; only real remote GitHub check results count as CI activation evidence.
+  - On any GitHub Workflows-permission push failure (workflows permission refusal or `gh: Resource not accessible by integration (HTTP 403)`), stop immediately and report instead of claiming success.
+  - Keep Phase 05 unstarted until PR A is merged, workflow files exist on remote `main`, Actions checks are visible and passing, `PROJECT_STATUS.md` reflects that evidence, and the founder explicitly authorizes Phase 05.
+- **Actions Taken:**
+  - Verified remote `main` at merge commit `dd7dea56945d96a6a2d595afb5154b6828c4e3b6` (PR #8, merged 2026-08-11T15:20:23Z) — matches the expected SHA exactly; no drift.
+  - Verified remotely that all nine `frontend/lib/` files are tracked on `main` (GitHub Contents API and `git ls-tree`), that the broad `lib/` ignore rule remains with narrow `/frontend/lib/` exceptions, and that `.github/` is absent from `main` (GitHub Actions inactive).
+  - Updated `PROJECT_STATUS.md` (merged/complete status, closed P04-REMEDIATION risk, CI activation as next gated task, Phase 05 gate), `PROJECT_CHECKLIST.md` (remediation PR item completed with remote evidence, Phase 04 `[x]` complete, Phase 05 authorization gate), and `CHANGELOG.md` (post-merge status synchronization record).
+  - Opened PR A — docs-only Phase 04 status synchronization: PR [#9](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/9) targeting `main` from `arena/019ff171-coachos-fitness-coaching-platf` (session branch delivering the requested `chore/close-phase04-remediation-status` work); left open for founder review; not merged.
+  - Held GitHub Actions workflow activation (PR B) pending founder review and merge of PR A; did not start Phase 05.

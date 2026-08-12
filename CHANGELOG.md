@@ -17,6 +17,14 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 - Added `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md` without rewriting the original Phase 04 report.
 - Kept GitHub Actions activation and Phase 05 out of scope; both require later separate authorization/review.
 
+### Changed — Phase 04 Post-Merge Status Synchronization (docs-only, no code/test/dependency/workflow changes)
+
+- Recorded that PR [#8](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/8) merged into `main` on 2026-08-11T15:20:23Z at merge commit `dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, completing the Phase 04 post-merge frontend remediation.
+- Corrected stale pre-merge wording in `PROJECT_STATUS.md` and `PROJECT_CHECKLIST.md` that still described the remediation as awaiting PR review or in progress after it had merged.
+- Recorded remote verification that all nine `frontend/lib/` files are tracked on `main` (GitHub Contents API and `git ls-tree origin/main`) and that the broad `lib/` ignore rule remains with only the narrow `/frontend/lib/` exceptions.
+- Recorded that GitHub Actions remain inactive because `.github/workflows/` is absent from `main`; workflow activation is the next gated task via a separate PR (`.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` from the validated `infra/ci/` definitions), with visible remote check results as activation evidence.
+- Recorded that Phase 05 remains unstarted and awaits explicit founder authorization after CI activation review.
+
 ## [0.4.0] — 2026-08-11 — Phase 04 Project Foundation and PWA Baseline
 
 ### Added
