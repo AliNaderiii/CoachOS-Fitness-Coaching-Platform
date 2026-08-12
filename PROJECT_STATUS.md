@@ -1,10 +1,10 @@
 # Project Status — CoachOS
 
-**Last updated:** 2026-08-11 (UTC)
-**Current phase:** Phase 04 — Post-merge frontend reimplementation remediation (**merged and complete via PR #8**)
-**Next step:** GitHub Actions workflow activation (separate PR; `.github/workflows/` still absent on `main`); Phase 05 remains unstarted and awaits explicit founder authorization after CI activation review
-**Working branch:** `chore/close-phase04-remediation-status` (delivered via session branch `arena/019ff171-coachos-fitness-coaching-platf`)
-**Base commit (main):** `dd7dea56945d96a6a2d595afb5154b6828c4e3b6` (PR #8 merge)
+**Last updated:** 2026-08-12 (UTC)
+**Current phase:** Phase 04 — Post-merge frontend reimplementation remediation (**merged and complete via PR #8**); docs synchronization PR #9 merged (`0eae53b...`); CI activation PR #10 (`chore/activate-github-actions-manual`) open and unmerged
+**Next step:** GitHub Actions workflow activation (PR #10 open; `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` present on branch `chore/activate-github-actions-manual` but CI still pending merge and remote check evidence); Phase 05 remains unstarted and unauthorized
+**Working branch:** `arena/019ff797-coachos-fitness-coaching-platf`
+**Base commit (main):** `0eae53b89343ec0a4eb1200086b769011012c406` (PR #9 merge — docs synchronization)
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
 **License:** Proprietary / All Rights Reserved (ADR-012 — Copyright (c) 2026 CoachOS Technologies / Ali Naderi)
 
@@ -12,7 +12,7 @@
 
 ## 1. One-Line Status
 
-The Phase 04 post-merge remediation is **merged and complete**: PR [#8](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/8) was merged into `main` on 2026-08-11T15:20:23Z at merge commit `dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, and all nine `frontend/lib/` files are verified present and tracked on remote `main` (GitHub Contents API + `git ls-tree origin/main`). The files implement exact `fa-IR`/`en-US` locale governance, matching bilingual dictionaries, deterministic Jalali/Gregorian display, Persian normalization, Unicode BiDi isolation, public-only configuration validation, a foundation-only typed API client, and SSR-safe `/sw.js` registration, tracked through narrow `/frontend/lib/` exceptions inside the retained broad `lib/` ignore rule. The remediation is a founder-authorized specification-based reimplementation — not a restoration; provenance and corrections remain recorded in `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md` (original Phase 04 report unchanged). **GitHub Actions are still inactive because `.github/workflows/` is absent from `main`; `infra/ci/` definitions are local command references only, not activation evidence. CI workflow activation is the next gated task via its own PR, and Phase 05 remains unstarted awaiting explicit founder authorization after CI activation review.**
+The Phase 04 post-merge remediation is **merged and complete** via PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, 2026-08-11); docs synchronization PR #9 (`0eae53b89343ec0a4eb1200086b769011012c406`) is merged; CI activation PR #10 (`chore/activate-github-actions-manual`, head `871c4f21c7f8e78dfef555916ffb5b939625af9e`) is open and unmerged, with `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` present on the PR branch but CI still pending merge and remote check evidence. The files implement exact `fa-IR`/`en-US` locale governance, matching bilingual dictionaries, deterministic Jalali/Gregorian display, Persian normalization, Unicode BiDi isolation, public-only configuration validation, a foundation-only typed API client, and SSR-safe `/sw.js` registration, tracked through narrow `/frontend/lib/` exceptions inside the retained broad `lib/` ignore rule. The remediation is a founder-authorized specification-based reimplementation — not a restoration; provenance and corrections remain recorded in `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md` (original Phase 04 report unchanged). **Phase 05 remains unstarted and unauthorized.**
 
 ---
 
@@ -60,17 +60,16 @@ The Phase 04 post-merge remediation is **merged and complete**: PR [#8](https://
 | **ADR-049** | Production Hosting Provider Selection | Medium | **Evaluation Complete:** Comparative matrix in `HOSTING_AND_DATA_RESIDENCY_DECISION.md`; production deployment gated until Phase 13 founder approval. |
 | **TODO-CSP-001** | CSP Strict Nonce Migration | Low | Next.js development uses `'unsafe-inline'`; production eliminates `unsafe-eval`; migration to per-request cryptographic nonce planned before production pilot. |
 | **LEGAL** | Privacy Compliance (GDPR & Iran Data Residency) | High | Formal pre-DPIA documented; jurisdiction-specific legal review required before handling real production health telemetry. |
-| **P04-REMEDIATION** | Missing original `frontend/lib/` source | Medium | **Closed — merged:** PR [#8](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/8) merged 2026-08-11T15:20:23Z at merge commit `dd7dea56945d96a6a2d595afb5154b6828c4e3b6`; all nine `frontend/lib/` files verified tracked on remote `main`. Provenance/correction record: `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`. |
-| **CI-ACTIVATION** | GitHub Actions not active | Medium | **Inactive — next gated task:** `.github/workflows/` is absent from `main`. Activation requires a separate post-merge workflow PR creating exactly `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` from the validated `infra/ci/` definitions, plus visible remote check results as evidence; `infra/ci/` and `infra/scripts/copy-workflows.sh` alone are not activation evidence. |
+| **P04-REMEDIATION** | Missing original `frontend/lib/` source | Low | **Closed — merged:** PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, 2026-08-11) merged the specification-based reimplementation; PR #9 (`0eae53b89343ec0a4eb1200086b769011012c406`, 2026-08-12) merged docs synchronization. All nine `frontend/lib/` files verified tracked on remote `main`. Provenance/correction record: `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`. |
+| **CI-ACTIVATION** | GitHub Actions not active | Medium | **Inactive — PR #10 open (`chore/activate-github-actions-manual`, head `871c4f21c7f8e78dfef555916ffb5b939625af9e`):** `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` present on the PR branch (verified via GitHub Contents API) and match validated `infra/ci/` definitions exactly; no deployment job or real secret exists; CI activation remains pending PR merge and visible remote GitHub check results; `infra/ci/` and `infra/scripts/copy-workflows.sh` alone are not activation evidence. Phase 05 stays unstarted and unauthorized. |
 
 ---
 
 ## 5. Next Step
 
-Execute the GitHub Actions activation sequence (Phase 05 stays gated):
+Execute the CI activation review sequence (Phase 05 stays gated):
 
-1. Merge the docs-only Phase 04 status synchronization PR (PR A) after founder review; do not merge automatically.
-2. After PR A is merged, open a separate workflow PR (PR B) creating exactly `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` from the validated `infra/ci/` definitions, targeting `main`; leave it open for founder review.
-3. Treat CI as active only when the workflow files exist on remote `main` and real GitHub check results are visible and passing on a PR — file existence on an unmerged branch is not activation evidence.
-4. If pushing workflow files is rejected for missing GitHub Workflows permission, stop and report; the repository owner must reconnect the GitHub integration with Workflows Read & Write permission.
-5. Do not start Phase 05 until: PR A is merged, workflow files are present on remote `main`, GitHub Actions checks are visible and passing, `PROJECT_STATUS.md` reflects that evidence, and the founder explicitly authorizes Phase 05.
+1. PR #9 (docs synchronization) is merged at `0eae53b89343ec0a4eb1200086b769011012c406`.
+2. PR #10 (`chore/activate-github-actions-manual`, open, unmerged) contains exactly `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` matching validated `infra/ci/` definitions; no deployment job or real secret exists. Leave it open for founder review; do not merge automatically.
+3. Treat CI as active only when PR #10 is merged, the workflow files exist on remote `main`, and real GitHub check results are visible and passing — file existence on an unmerged branch is not activation evidence.
+4. Do not start Phase 05 until: PR #10 is merged, workflow files are present on remote `main`, GitHub Actions checks are visible and passing, `PROJECT_STATUS.md` reflects that evidence, and the founder explicitly authorizes Phase 05.
