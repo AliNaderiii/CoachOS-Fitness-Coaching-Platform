@@ -1,4 +1,4 @@
-from .base import *
+from .base import *  # noqa: F403  (test settings deliberately inherit everything)
 
 DEBUG = True
 SECRET_KEY = "test-secret-key-only-for-tests"

@@ -8,24 +8,27 @@ from datetime import timedelta
 
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.models import AuditEvent
 from apps.identity.permissions import IsAuthenticatedAndActive
-from .models import Organization, Location, Membership, Invitation
+
+from .models import Invitation, Location, Membership, Organization
 from .serializers import (
-    CreateOrganizationSerializer,
-    OrganizationSerializer,
-    LocationSerializer,
     CreateInvitationSerializer,
+    CreateOrganizationSerializer,
     InvitationSerializer,
+    LocationSerializer,
     MembershipSerializer,
+    OrganizationSerializer,
 )
 
 
-def _record_audit(action, actor=None, org=None, target_type="", target_id="", metadata=None, request=None):
+def _record_audit(
+    action, actor=None, org=None, target_type="", target_id="", metadata=None, request=None
+):
     ip = request.META.get("REMOTE_ADDR", "") if request else ""
     ip_hash = hashlib.sha256(ip.encode()).hexdigest() if ip else ""
     AuditEvent.objects.create(
@@ -45,7 +48,9 @@ class OrganizationListCreateView(APIView):
 
     def get(self, request):
         user = request.user
-        orgs = Organization.objects.filter(memberships__user=user, memberships__status="active").distinct()
+        orgs = Organization.objects.filter(
+            memberships__user=user, memberships__status="active"
+        ).distinct()
         data = OrganizationSerializer(orgs, many=True).data
         return Response({"organizations": data})
 
@@ -64,7 +69,10 @@ class OrganizationListCreateView(APIView):
                 name=data["name"],
                 slug=data["slug"],
                 owner_user=user,
-                settings={"default_locale": user.preferred_locale, "default_unit": user.preferred_unit},
+                settings={
+                    "default_locale": user.preferred_locale,
+                    "default_unit": user.preferred_unit,
+                },
             )
 
             # Primary location
@@ -86,7 +94,14 @@ class OrganizationListCreateView(APIView):
                 status="active",
             )
 
-        _record_audit("org.created", actor=user, org=org, target_type="Organization", target_id=org.id, request=request)
+        _record_audit(
+            "org.created",
+            actor=user,
+            org=org,
+            target_type="Organization",
+            target_id=org.id,
+            request=request,
+        )
 
         return Response(OrganizationSerializer(org).data, status=status.HTTP_201_CREATED)
 
@@ -101,7 +116,9 @@ class OrganizationDetailView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         # Server-side membership check
-        if not Membership.objects.filter(user=request.user, organization=org, status="active").exists():
+        if not Membership.objects.filter(
+            user=request.user, organization=org, status="active"
+        ).exists():
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         return Response(OrganizationSerializer(org).data)
@@ -112,7 +129,9 @@ class OrganizationDetailView(APIView):
         except Organization.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        mem = Membership.objects.filter(user=request.user, organization=org, role="owner", status="active").first()
+        mem = Membership.objects.filter(
+            user=request.user, organization=org, role="owner", status="active"
+        ).first()
         if not mem:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -121,7 +140,14 @@ class OrganizationDetailView(APIView):
             org.settings.update(request.data["settings"])
         org.save()
 
-        _record_audit("org.settings_updated", actor=request.user, org=org, target_type="Organization", target_id=org.id, request=request)
+        _record_audit(
+            "org.settings_updated",
+            actor=request.user,
+            org=org,
+            target_type="Organization",
+            target_id=org.id,
+            request=request,
+        )
         return Response(OrganizationSerializer(org).data)
 
 
@@ -134,7 +160,9 @@ class LocationView(APIView):
         except Organization.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if not Membership.objects.filter(user=request.user, organization=org, status="active").exists():
+        if not Membership.objects.filter(
+            user=request.user, organization=org, status="active"
+        ).exists():
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         loc = org.locations.filter(is_primary=True).first()
@@ -149,7 +177,9 @@ class LocationView(APIView):
         except Organization.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        mem = Membership.objects.filter(user=request.user, organization=org, role="owner", status="active").first()
+        mem = Membership.objects.filter(
+            user=request.user, organization=org, role="owner", status="active"
+        ).first()
         if not mem:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -173,7 +203,9 @@ class InvitationListCreateView(APIView):
         except Organization.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        mem = Membership.objects.filter(user=request.user, organization=org, status="active").first()
+        mem = Membership.objects.filter(
+            user=request.user, organization=org, status="active"
+        ).first()
         if not mem:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -186,7 +218,9 @@ class InvitationListCreateView(APIView):
         d = ser.validated_data
 
         if mem.role == "coach" and d["role"] != "athlete":
-            return Response({"detail": "Coach may only invite athletes"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Coach may only invite athletes"}, status=status.HTTP_403_FORBIDDEN
+            )
 
         raw_token = secrets.token_urlsafe(48)
         token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
@@ -200,7 +234,14 @@ class InvitationListCreateView(APIView):
             expires_at=timezone.now() + timedelta(days=7),
         )
 
-        _record_audit("invitation.created", actor=request.user, org=org, target_type="Invitation", target_id=inv.id, request=request)
+        _record_audit(
+            "invitation.created",
+            actor=request.user,
+            org=org,
+            target_type="Invitation",
+            target_id=inv.id,
+            request=request,
+        )
         # In production: send via outbox (raw_token only in email)
 
         return Response(InvitationSerializer(inv).data, status=status.HTTP_201_CREATED)
@@ -212,7 +253,9 @@ class InvitationListCreateView(APIView):
         except Organization.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        mem = Membership.objects.filter(user=request.user, organization=org, role="owner", status="active").first()
+        mem = Membership.objects.filter(
+            user=request.user, organization=org, role="owner", status="active"
+        ).first()
         if not mem:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -243,7 +286,10 @@ class AcceptInvitationView(APIView):
             # For simplicity in scaffold assume user already registered or create placeholder
             # In full flow user registers first or accepts during registration
             if not user:
-                return Response({"detail": "Must be authenticated or register first"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response(
+                    {"detail": "Must be authenticated or register first"},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
 
             Membership.objects.get_or_create(
                 user=user,
@@ -254,7 +300,14 @@ class AcceptInvitationView(APIView):
             inv.accepted_at = timezone.now()
             inv.save()
 
-        _record_audit("invitation.accepted", actor=user, org=inv.organization, target_type="Invitation", target_id=inv.id, request=request)
+        _record_audit(
+            "invitation.accepted",
+            actor=user,
+            org=inv.organization,
+            target_type="Invitation",
+            target_id=inv.id,
+            request=request,
+        )
         return Response({"message_key": "invitation.accepted"}, status=status.HTTP_200_OK)
 
 
@@ -267,7 +320,9 @@ class MemberListView(APIView):
         except Organization.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if not Membership.objects.filter(user=request.user, organization=org, status="active").exists():
+        if not Membership.objects.filter(
+            user=request.user, organization=org, status="active"
+        ).exists():
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         members = Membership.objects.filter(organization=org)
@@ -285,7 +340,9 @@ class MembershipUpdateView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         # Only owner
-        owner_mem = Membership.objects.filter(user=request.user, organization=org, role="owner", status="active").first()
+        owner_mem = Membership.objects.filter(
+            user=request.user, organization=org, role="owner", status="active"
+        ).first()
         if not owner_mem:
             return Response(status=status.HTTP_403_FORBIDDEN)
 

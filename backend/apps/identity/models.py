@@ -3,12 +3,10 @@ Phase 05 — Custom User Model (Identity)
 UUIDv7 PK, normalized email, Argon2id preferred, bilingual settings, no secrets in API.
 """
 
-import uuid
-from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils import timezone
+from django.utils import timezone as dj_timezone
 
 from apps.core.utils.id_generator import generate_uuid7
 
@@ -109,7 +107,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
-    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+    created_at = models.DateTimeField(default=dj_timezone.now, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = UserManager()
@@ -158,11 +156,11 @@ class PasswordResetToken(models.Model):
     token_hash = models.CharField(max_length=128, unique=True)
     expires_at = models.DateTimeField()
     used_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=dj_timezone.now)
 
     class Meta:
         indexes = [models.Index(fields=["token_hash"])]
 
     @property
     def is_valid(self):
-        return self.used_at is None and timezone.now() < self.expires_at
+        return self.used_at is None and dj_timezone.now() < self.expires_at

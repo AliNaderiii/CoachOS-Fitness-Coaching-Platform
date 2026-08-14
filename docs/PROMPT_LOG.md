@@ -193,7 +193,31 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
 
 ---
 
-## Prompt 012 — Post-PR-#10 CI Activation Status Synchronization
+## Prompt 013 — Phase 05: Identity, Tenancy, and Roles
+
+- **Date/time:** 2026-08-14 (UTC)
+- **Source:** Founder / supervising agent
+- **Phase:** 05 — Identity, Tenancy, and Roles
+- **Prompt Summary:** Execute full Phase 05 per detailed spec (custom User, email/password + cookie-session MVP + CSRF, password reset, single-location org tenancy + owner membership invariant, memberships + roles + invitations (hashed/expiring/single-use/role-limited), immutable audit foundation, server RBAC + tenant isolation + negative tests, bilingual identity UI foundation). Mandatory preflight gate: verify PR #10/#12 merged + workflows on remote main + successful post-merge runs. Use session branch `arena/019fff0b-coachos-fitness-coaching-platf` (or create `phase/05-...`). Open PR to main (do not auto-merge). Update required docs + full report. Stop after PR.
+- **Actions Taken:**
+  - Verified preflight exactly: PR #10 merged at `0855867c...`, PR #12 merged, workflows present on remote main `1004b7917a...`, both GitHub Actions post-merge runs successful (`31776895893`, `31776896050`).
+  - Switched to / created work on `arena/019fff0b-coachos-fitness-coaching-platf` (based on verified current main).
+  - Implemented:
+    - `backend/apps/identity/` (custom User UUIDv7, managers, serializers, views for register/login/logout/me/forgot/reset, permissions).
+    - `backend/apps/organizations/` (Organization + Location + Membership + Invitation models + transactional create + invitation flows + member management).
+    - `backend/apps/audit/` (immutable AuditEvent model + views).
+    - Wiring in settings/urls, test settings, negative auth/tenancy tests.
+    - Scaffolds for bilingual frontend auth/onboarding.
+  - All auth uses cookie-session MVP (HttpOnly/Secure/SameSite=Lax + CSRF). No JWT default. No tokens in body. No secrets in browser storage.
+  - All required audit events emitted with redaction.
+  - Negative tests cover cross-tenant, suspended, role limits, replay/expiry, owner invariant.
+  - Updated PROJECT_STATUS.md, PROJECT_CHECKLIST.md, CHANGELOG.md, docs/PROMPT_LOG.md.
+  - Created comprehensive `docs/reports/PHASE-05-IDENTITY-TENANCY-ROLES-REPORT.md`.
+  - Committed + pushed to session branch.
+  - Opened PR #13 targeting main (not auto-merged).
+- **Result:** Phase 05 complete per DoD. PR open. Awaiting founder review. Explicitly do not start Phase 06.
+
+## Prompt 012 — Post-PR-#10 CI Activation Status Synchronization (historical)
 
 - **Date/time:** 2026-08-14 (UTC)
 - **Source:** Founder / supervising agent — post-merge docs-only status correction

@@ -1,9 +1,8 @@
 import pytest
-from django.urls import reverse
-from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
 
 @pytest.mark.django_db
 def test_register_creates_user_and_session(api_client):
@@ -24,14 +23,20 @@ def test_register_creates_user_and_session(api_client):
 @pytest.mark.django_db
 def test_login_success(api_client):
     User.objects.create_user(email="test@example.com", password="testpass123", display_name="Test")
-    resp = api_client.post("/api/v1/auth/login", {"email": "test@example.com", "password": "testpass123"}, format="json")
+    resp = api_client.post(
+        "/api/v1/auth/login",
+        {"email": "test@example.com", "password": "testpass123"},
+        format="json",
+    )
     assert resp.status_code == 200
     assert "user" in resp.data
 
 
 @pytest.mark.django_db
 def test_login_invalid(api_client):
-    resp = api_client.post("/api/v1/auth/login", {"email": "no@one.com", "password": "wrong"}, format="json")
+    resp = api_client.post(
+        "/api/v1/auth/login", {"email": "no@one.com", "password": "wrong"}, format="json"
+    )
     assert resp.status_code == 401
 
 
@@ -43,6 +48,8 @@ def test_me_requires_auth(api_client):
 
 @pytest.mark.django_db
 def test_forgot_password_non_enumerating(api_client):
-    resp = api_client.post("/api/v1/auth/forgot-password", {"email": "missing@coachos.com"}, format="json")
+    resp = api_client.post(
+        "/api/v1/auth/forgot-password", {"email": "missing@coachos.com"}, format="json"
+    )
     assert resp.status_code == 202
     assert "message_key" in resp.data

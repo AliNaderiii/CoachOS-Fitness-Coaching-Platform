@@ -1,11 +1,11 @@
 from django.urls import path
 
 from .views import (
-    RegisterView,
+    ForgotPasswordView,
     LoginView,
     LogoutView,
     MeView,
-    ForgotPasswordView,
+    RegisterView,
     ResetPasswordView,
 )
 

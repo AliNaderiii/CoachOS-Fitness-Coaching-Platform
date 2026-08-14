@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Organization, Location, Membership, Invitation
+
+from .models import Invitation, Location, Membership, Organization
 
 
 class CreateOrganizationSerializer(serializers.Serializer):

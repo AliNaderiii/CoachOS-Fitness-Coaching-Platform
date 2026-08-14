@@ -17,7 +17,9 @@ class Organization(models.Model):
     - Single primary location enforced in MVP.
     """
 
-    id = models.CharField(primary_key=True, max_length=36, default=generate_uuid7, editable=False, db_index=True)
+    id = models.CharField(
+        primary_key=True, max_length=36, default=generate_uuid7, editable=False, db_index=True
+    )
     name = models.CharField(max_length=150)
     slug = models.SlugField(max_length=100, unique=True, db_index=True)
     owner_user = models.ForeignKey(
@@ -43,8 +45,12 @@ class Organization(models.Model):
 class Location(models.Model):
     """Single primary location for MVP organization."""
 
-    id = models.CharField(primary_key=True, max_length=36, default=generate_uuid7, editable=False, db_index=True)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="locations")
+    id = models.CharField(
+        primary_key=True, max_length=36, default=generate_uuid7, editable=False, db_index=True
+    )
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="locations"
+    )
     name = models.CharField(max_length=150)
     is_primary = models.BooleanField(default=True)
     address_line1 = models.CharField(max_length=255, blank=True, null=True)
@@ -88,9 +94,13 @@ class Membership(models.Model):
         ("archived", "Archived"),
     ]
 
-    id = models.CharField(primary_key=True, max_length=36, default=generate_uuid7, editable=False, db_index=True)
+    id = models.CharField(
+        primary_key=True, max_length=36, default=generate_uuid7, editable=False, db_index=True
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="memberships")
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="memberships"
+    )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="invited")
     created_at = models.DateTimeField(default=timezone.now)
@@ -117,8 +127,12 @@ class Invitation(models.Model):
     - Single use (accepted_at set on accept).
     """
 
-    id = models.CharField(primary_key=True, max_length=36, default=generate_uuid7, editable=False, db_index=True)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="invitations")
+    id = models.CharField(
+        primary_key=True, max_length=36, default=generate_uuid7, editable=False, db_index=True
+    )
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="invitations"
+    )
     invited_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name="sent_invitations")
     email = models.EmailField(max_length=255, db_index=True)
     role = models.CharField(max_length=20, choices=Membership.ROLE_CHOICES)

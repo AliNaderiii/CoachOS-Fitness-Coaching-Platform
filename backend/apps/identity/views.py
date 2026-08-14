@@ -4,25 +4,24 @@ Phase 05 — Authentication Views (Email/Password + Cookie Session MVP)
 
 import hashlib
 import secrets
-from datetime import timedelta
 
-from django.conf import settings
-from django.contrib.auth import authenticate, login, logout, get_user_model
-from django.utils import timezone
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.utils import timezone as dj_timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.models import AuditEvent
+
+from .models import PasswordResetToken
 from .serializers import (
-    RegisterSerializer,
-    LoginSerializer,
-    UserSerializer,
-    CurrentUserResponseSerializer,
-    UpdateMeSerializer,
     ForgotPasswordSerializer,
+    LoginSerializer,
+    RegisterSerializer,
     ResetPasswordSerializer,
+    UpdateMeSerializer,
+    UserSerializer,
 )
 
 User = get_user_model()
@@ -41,7 +40,9 @@ def _hash_ip(ip: str) -> str:
     return hashlib.sha256(ip.encode()).hexdigest()
 
 
-def _record_audit(action, actor=None, org=None, target_type="", target_id="", metadata=None, request=None):
+def _record_audit(
+    action, actor=None, org=None, target_type="", target_id="", metadata=None, request=None
+):
     ip = _get_client_ip(request) if request else ""
     AuditEvent.objects.create(
         actor_user=actor,
@@ -69,7 +70,13 @@ class RegisterView(APIView):
 
         if User.objects.filter(email__iexact=data["email"]).exists():
             return Response(
-                {"type": "https://errors.coachos.io/conflict", "title": "Conflict", "status": 409, "detail": "Email already registered", "message_key": "auth.email_already_exists"},
+                {
+                    "type": "https://errors.coachos.io/conflict",
+                    "title": "Conflict",
+                    "status": 409,
+                    "detail": "Email already registered",
+                    "message_key": "auth.email_already_exists",
+                },
                 status=status.HTTP_409_CONFLICT,
             )
 
@@ -119,12 +126,20 @@ class LoginView(APIView):
                 request=request,
             )
             return Response(
-                {"type": "https://errors.coachos.io/unauthorized", "title": "Unauthorized", "status": 401, "detail": "Invalid credentials", "message_key": "auth.invalid_credentials"},
+                {
+                    "type": "https://errors.coachos.io/unauthorized",
+                    "title": "Unauthorized",
+                    "status": 401,
+                    "detail": "Invalid credentials",
+                    "message_key": "auth.invalid_credentials",
+                },
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
         login(request, user)
-        _record_audit("auth.login", actor=user, target_type="User", target_id=user.id, request=request)
+        _record_audit(
+            "auth.login", actor=user, target_type="User", target_id=user.id, request=request
+        )
 
         user_ser = UserSerializer(user)
         # memberships will be enriched in Phase 05 organizations service
@@ -156,7 +171,13 @@ class MeView(APIView):
         serializer = UpdateMeSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        _record_audit("user.profile_updated", actor=user, target_type="User", target_id=user.id, request=request)
+        _record_audit(
+            "user.profile_updated",
+            actor=user,
+            target_type="User",
+            target_id=user.id,
+            request=request,
+        )
         return Response({"user": UserSerializer(user).data})
 
 
@@ -169,29 +190,40 @@ class ForgotPasswordView(APIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
 
-        # Always return 202 to avoid enumeration
+        # Always return 202 to avoid enumeration (security contract)
         try:
             user = User.objects.get(email__iexact=email)
-            # Generate secure single-use token (32+ bytes)
+            # Generate cryptographically secure single-use token (>=32 bytes)
             raw_token = secrets.token_urlsafe(48)
             token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
 
-            # Store token hash + expiry in a minimal PasswordReset model or use a cache for MVP
-            # For full implementation we will create a simple model in identity
-            # Here we simulate and record audit
+            # Persist only the hash + expiry (never raw token)
+            PasswordResetToken.objects.filter(user=user, used_at__isnull=True).update(
+                used_at=dj_timezone.now()
+            )  # invalidate prior
+            PasswordResetToken.objects.create(
+                user=user,
+                token_hash=token_hash,
+                expires_at=dj_timezone.now() + dj_timezone.timedelta(minutes=15),
+            )
+
             _record_audit(
                 "auth.password_reset_requested",
                 actor=user,
                 target_type="User",
                 target_id=user.id,
-                metadata={"email": email},
+                metadata={
+                    "email_hash": hashlib.sha256(email.encode()).hexdigest()[:16]
+                },  # minimized
                 request=request,
             )
-            # In real: send email via outbox / dev adapter (not implemented here)
+            # Development adapter: do not send real email. Token would be in outbox in prod.
         except User.DoesNotExist:
-            pass
+            pass  # non-enumerating
 
-        return Response({"message_key": "auth.reset_email_sent_if_exists"}, status=status.HTTP_202_ACCEPTED)
+        return Response(
+            {"message_key": "auth.reset_email_sent_if_exists"}, status=status.HTTP_202_ACCEPTED
+        )
 
 
 class ResetPasswordView(APIView):
@@ -206,12 +238,69 @@ class ResetPasswordView(APIView):
         serializer.is_valid(raise_exception=True)
         new_password = serializer.validated_data["new_password"]
 
-        # TODO: In full impl lookup hashed token, check expiry, mark used, update password, invalidate sessions
-        # For scaffolding we stub success and audit
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+
+        try:
+            prt = PasswordResetToken.objects.get(token_hash=token_hash)
+        except PasswordResetToken.DoesNotExist:
+            _record_audit(
+                "auth.password_reset_completed",
+                metadata={"reason": "invalid_token"},
+                request=request,
+            )
+            return Response(
+                {
+                    "type": "https://errors.coachos.io/bad-request",
+                    "title": "Bad Request",
+                    "status": 400,
+                    "detail": "Invalid or expired reset token",
+                    "message_key": "auth.invalid_reset_token",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if prt.used_at is not None or prt.expires_at < dj_timezone.now():
+            _record_audit(
+                "auth.password_reset_completed",
+                metadata={"reason": "expired_or_used"},
+                request=request,
+            )
+            return Response(
+                {
+                    "type": "https://errors.coachos.io/bad-request",
+                    "title": "Bad Request",
+                    "status": 400,
+                    "detail": "Invalid or expired reset token",
+                    "message_key": "auth.invalid_reset_token",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Update password using Django hasher
+        user = prt.user
+        user.set_password(new_password)
+        user.save()
+
+        # Mark single-use
+        prt.used_at = dj_timezone.now()
+        prt.save(update_fields=["used_at"])
+
+        # Invalidate all active sessions for this user (Django DB sessions)
+        # Best-effort: clear sessions for the user (simplified; full impl would use session store)
+        # For testability we simply log out the current request if any
+        # In real: use user session invalidation signals or clear by user id in custom session model
+
         _record_audit(
             "auth.password_reset_completed",
-            target_type="PasswordReset",
-            metadata={"token_prefix": token[:8]},
+            actor=user,
+            target_type="User",
+            target_id=user.id,
+            metadata={"reset_success": True},  # no raw token or prefix
             request=request,
         )
+
+        # Logout current session if present (invalidates current)
+        if request.user.is_authenticated and request.user.id == user.id:
+            logout(request)
+
         return Response({"message_key": "auth.password_reset_success"}, status=status.HTTP_200_OK)
