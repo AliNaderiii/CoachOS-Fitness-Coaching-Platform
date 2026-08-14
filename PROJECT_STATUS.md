@@ -1,8 +1,8 @@
 # Project Status — CoachOS
 
 **Last updated:** 2026-08-14 (UTC)
-**Current phase:** Phase 06 — **Exercise Library and Training Programs — Candidate under validation/review; not merged or complete**
-**Next step:** Finish Stage 9 publication, verify the Phase 06 PR and GitHub Actions, then leave the PR open for founder review. Do not merge and do not start Phase 07.
+**Current phase:** Phase 06 — **Exercise Library and Training Programs — PR #15 open for founder review; not merged or complete**
+**Next step:** Founder review of open PR #15. Local, isolated-checkout, and published-head GitHub Actions gates pass. Do not merge automatically and do not start Phase 07.
 **Working branch:** `arena/019fffa4-coachos-fitness-coaching-platf` (Arena session branch)
 **Base commit (main):** `86503b3930192dd46de7ce500384c246d236fcd4` (PR #14 merge; verified current `origin/main` at recovery)
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
@@ -12,7 +12,7 @@
 
 ## 1. One-Line Status
 
-**Phase 06 is an unmerged candidate, not a completed phase.** Safe recovery found the session checkout clean at verified base `86503b3930192dd46de7ce500384c246d236fcd4`, with no interrupted artifacts to preserve. On `arena/019fffa4-coachos-fitness-coaching-platf`, local Gates 0–8 now pass for bilingual exercise catalog/search, media provenance/moderation API, hierarchical programs/prescriptions, template clone/versioning, immutable assignment snapshots, tenant/RBAC controls, and coach/owner UI. Full backend validation is 69/69 tests with 83% coverage; frontend validation is 56/56 tests plus clean lint/type/build; repository compliance, `pip-audit`, and `npm audit` pass. Stage 9 commit/push/PR/Actions verification remains in progress, and the PR must remain open for founder review. No Arabic localization or Phase 07+ code was added. Do not merge automatically and do not start Phase 07. See `docs/reports/PHASE-06-EXERCISE-LIBRARY-TRAINING-PROGRAMS-REPORT.md`.
+**Phase 06 is an unmerged candidate, not a completed phase.** Safe recovery found the session checkout clean at verified base `86503b3930192dd46de7ce500384c246d236fcd4`, with no interrupted artifacts to preserve. On `arena/019fffa4-coachos-fitness-coaching-platf`, local Gates 0–8 now pass for bilingual exercise catalog/search, media provenance/moderation API, hierarchical programs/prescriptions, template clone/versioning, immutable assignment snapshots, tenant/RBAC controls, and coach/owner UI. Full backend validation is 69/69 tests with 83% coverage; frontend validation is 56/56 tests plus clean lint/type/build; repository compliance, `pip-audit`, and `npm audit` pass. Stage 9 publication and published-head Actions verification pass (PR #15; runs `31790374656`, `31790374657`, and `31790363694`), and the PR remains open for founder review. No Arabic localization or Phase 07+ code was added. Do not merge automatically and do not start Phase 07. See `docs/reports/PHASE-06-EXERCISE-LIBRARY-TRAINING-PROGRAMS-REPORT.md`.
 
 ---
 
@@ -68,9 +68,9 @@
 
 ## 5. Next Step
 
-Phase 05 is merged and complete; Phase 06 is now an unmerged candidate awaiting Stage 9 publication and founder review:
+Phase 05 is merged and complete; Phase 06 PR #15 is open with successful published-head checks and awaits founder review:
 
 1. PR #13 (Phase 05 — Identity, Tenancy, and Roles) is **merged** into `main` at `d7f72b3fcfd6667df524af5adf71328c5de6edba` (2026-08-14T08:40:58Z).
 2. All four post-merge GitHub Actions checks on the merge commit are **successful**: Backend Lint, Type & Tests (Django/DRF); Frontend Lint, Type & Tests (Next.js/PWA); Security Scan & Language Compliance; Secret & Pattern Scanning (runs `31784911766` and `31784911764`, both `success`). GitHub Actions remain active and passing on `main`.
 3. Phase 05 is complete for its documented scope. Deferred Phase 05 items remain deferred: frontend onboarding UI, `CoachAthleteAssignment`, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification.
-4. Phase 06 implementation Gates 0–8 pass locally on the dedicated Arena branch. Complete Stage 9 publication and remote checks, then leave the PR open for founder review; Phase 06 remains unmerged/not complete. Do not start Phase 07.
+4. Phase 06 Gates 0–9 have local, isolated-checkout, PR publication, and successful GitHub Actions evidence on PR #15. Leave the PR open for founder review; Phase 06 remains unmerged/not complete. Do not start Phase 07.

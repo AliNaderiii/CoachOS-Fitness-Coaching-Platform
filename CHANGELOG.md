@@ -15,7 +15,8 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 - Replaced the Phase 04 coach program placeholder with a bilingual responsive coach/owner catalog and program-builder workspace, typed API adapter, dictionary parity, normalized search, keyboard reorder alternatives, and component tests.
 - Added Phase 06 Stage 0 plan and implementation report. Local full validation: backend 69 tests/83% coverage; frontend 56 tests/lint/type/build; compliance scanner, `pip-audit`, and `npm audit` pass.
 - Upgraded vulnerable Next.js 14.2.35 to 16.3.1 and aligned ESLint 9 flat config, TypeScript 5.9.3, Vitest 4.1.10, and Vite 8.2.1; full `npm audit` reports zero vulnerabilities.
-- Phase 06 remains unmerged and is not declared complete until Stage 9 PR/check evidence and founder review. No Arabic localization or Phase 07+ code was added; do not start Phase 07.
+- Published PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) targeting `main`; pull-request runs `31790374656` and `31790374657` and push run `31790363694` succeeded on published head `a2d8b0a4…`. The PR remains open for founder review.
+- Phase 06 remains unmerged and is not declared complete. No Arabic localization or Phase 07+ code was added; do not start Phase 07.
 
 ### Changed — Post-Merge Phase 05 Status Synchronization (docs-only, no code/test/dependency/workflow changes)
 

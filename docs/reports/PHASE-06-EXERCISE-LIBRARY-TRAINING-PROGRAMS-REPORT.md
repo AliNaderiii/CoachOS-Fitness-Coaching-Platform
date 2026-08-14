@@ -4,8 +4,9 @@
 **Base SHA:** `86503b3930192dd46de7ce500384c246d236fcd4`  
 **Branch:** `arena/019fffa4-coachos-fitness-coaching-platf`  
 **Validated implementation SHA:** `059471b51c47e201b1b3053f9721d572041655fd`  
-**Pull request:** pending Stage 9 publication  
-**Status:** Gates 0–8 and isolated-checkout validation passed; Stage 9 remote publication/check verification pending. Phase 06 is **not merged and not declared complete**.
+**Pull request:** [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) — open, mergeable, targeting `main`
+
+**Status:** Gates 0–9 have implementation, isolated-checkout, publication, and successful remote-check evidence. The PR remains open for founder review; Phase 06 is **not merged and not declared complete**.
 
 ## 1. Safe recovery evidence
 
@@ -32,7 +33,7 @@ No interrupted Phase 06 diff, report, Stage 0 plan, app, migration, test, or Sta
 | 6 — API/authz/tenancy | Pass | Active owner/coach controls, athlete/suspended denial, canonical+current tenant visibility, cross-tenant 404/403, owner/linked-coach assignment policy, bounded-query tests. |
 | 7 — frontend | Pass | Coach/owner responsive dual-pane workspace, bilingual catalog filtering, normalized Persian search, prescription controls, keyboard reorder alternatives, dictionaries/tests; clean `npm ci`, lint, type-check, 56 tests, build. |
 | 8 — adversarial review | Pass with documented deferrals | Targeted 8-test negative suite passed; secret/language scanner passed; `npm audit` and `pip-audit` found zero known vulnerabilities; media/query/localization/accessibility targets reviewed below. |
-| 9 — docs/clean validation/PR/checks | In progress | Tracking/report committed and SHA `059471b5…` passed a fresh isolated clone validation; push, PR, and remote Actions verification remain pending at this report revision. |
+| 9 — docs/clean validation/PR/checks | Pass; founder review pending | SHA `059471b5…` passed a fresh isolated clone; branch pushed; PR #15 opened to `main`; pull-request runs `31790374656` and `31790374657` and push CI run `31790363694` completed successfully on published head `a2d8b0a4…`. PR left open. |
 
 ## 3. Delivered behavior
 
@@ -182,4 +183,12 @@ No Arabic localization and no Phase 07+ code was added. Specifically absent: wor
 
 ## 10. Publication record
 
-To be updated after the Stage 9 commit/push/PR/check run. The PR must remain open for founder review and must not be merged by this session.
+- PR: https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15
+- State at verification: `OPEN`, non-draft, `MERGEABLE`, base `main`, head `arena/019fffa4-coachos-fitness-coaching-platf`
+- Published head verified: `a2d8b0a42d2e374290101d1112f9132ca08b3165`
+- Pull-request Security & Vulnerability Scan `31790374656`: success
+- Pull-request CoachOS CI Quality Gates `31790374657`: success (backend, frontend, language compliance)
+- Push CoachOS CI Quality Gates `31790363694`: success
+- Non-blocking GitHub annotation: GitHub-hosted actions using Node.js 20 internals are forced to Node.js 24; application checks still succeeded. Workflow action-major modernization is deferred maintenance.
+
+The PR remains open for founder review and was not merged by this session.
