@@ -6,6 +6,7 @@ import hashlib
 import secrets
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.core.cache import cache
 from django.utils import timezone as dj_timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -23,6 +24,13 @@ from .serializers import (
     UpdateMeSerializer,
     UserSerializer,
 )
+
+# For invitation acceptance during registration (cross-app)
+try:
+    from apps.organizations.models import Invitation, Membership
+except Exception:
+    Invitation = None
+    Membership = None
 
 User = get_user_model()
 
@@ -65,8 +73,22 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        # Rate limit stub (production would use DRF throttling + Redis)
-        # For MVP we rely on later middleware / test enforcement
+        # Rate limiting via cache (existing foundation). Keyed by IP + email
+        ip = _get_client_ip(request)
+        rate_key = f"reg_rate:{ip}:{data['email']}"
+        attempts = cache.get(rate_key, 0)
+        if attempts >= 5:
+            return Response(
+                {
+                    "type": "https://errors.coachos.io/too-many-requests",
+                    "title": "Too Many Requests",
+                    "status": 429,
+                    "detail": "Too many registration attempts",
+                    "message_key": "auth.rate_limited",
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+        cache.set(rate_key, attempts + 1, timeout=60 * 5)  # 5 min window
 
         if User.objects.filter(email__iexact=data["email"]).exists():
             return Response(
@@ -87,6 +109,32 @@ class RegisterView(APIView):
             preferred_locale=data.get("preferred_locale", "fa-IR"),
         )
 
+        # Support invitation_token during registration (binds membership)
+        inv_token = data.get("invitation_token")
+        if inv_token:
+            token_hash = hashlib.sha256(inv_token.encode()).hexdigest()
+            try:
+                inv = Invitation.objects.get(token_hash=token_hash, accepted_at__isnull=True)
+                if not inv.is_expired and inv.email.lower() == data["email"].lower():
+                    Membership.objects.get_or_create(
+                        user=user,
+                        organization=inv.organization,
+                        role=inv.role,
+                        defaults={"status": "active"},
+                    )
+                    inv.accepted_at = dj_timezone.now()
+                    inv.save()
+                    _record_audit(
+                        "invitation.accepted",
+                        actor=user,
+                        org=inv.organization,
+                        target_type="Invitation",
+                        target_id=inv.id,
+                        request=request,
+                    )
+            except Exception:
+                pass  # safe fail
+
         # Login (establishes session cookie)
         login(request, user)
 
@@ -95,7 +143,7 @@ class RegisterView(APIView):
             actor=user,
             target_type="User",
             target_id=user.id,
-            metadata={"email": user.email},
+            metadata={"email_hash": hashlib.sha256(user.email.encode()).hexdigest()[:12]},
             request=request,
         )
 
@@ -103,7 +151,7 @@ class RegisterView(APIView):
         resp = {
             "user": user_ser.data,
             "memberships": [],
-            "csrf_token": request.META.get("CSRF_COOKIE", None),  # frontend reads via cookie
+            "csrf_token": request.META.get("CSRF_COOKIE", None),
         }
         return Response(resp, status=status.HTTP_201_CREATED)
 
@@ -117,12 +165,29 @@ class LoginView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        # Rate limit failed logins (cache)
+        ip = _get_client_ip(request)
+        fail_key = f"login_fail:{ip}:{data['email']}"
+        fails = cache.get(fail_key, 0)
+        if fails >= 5:
+            return Response(
+                {
+                    "type": "https://errors.coachos.io/too-many-requests",
+                    "title": "Too Many Requests",
+                    "status": 429,
+                    "detail": "Too many login attempts",
+                    "message_key": "auth.rate_limited",
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         user = authenticate(request, username=data["email"], password=data["password"])
         if not user or not user.is_active:
+            cache.set(fail_key, fails + 1, timeout=60 * 15)
             _record_audit(
                 "auth.login_failed",
                 target_type="User",
-                metadata={"email": data["email"]},
+                metadata={"email_hash": hashlib.sha256(data["email"].encode()).hexdigest()[:12]},
                 request=request,
             )
             return Response(
@@ -136,13 +201,13 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+        cache.delete(fail_key)
         login(request, user)
         _record_audit(
             "auth.login", actor=user, target_type="User", target_id=user.id, request=request
         )
 
         user_ser = UserSerializer(user)
-        # memberships will be enriched in Phase 05 organizations service
         resp = {
             "user": user_ser.data,
             "memberships": [],
