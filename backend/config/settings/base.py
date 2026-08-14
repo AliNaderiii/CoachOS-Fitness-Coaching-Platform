@@ -44,6 +44,10 @@ INSTALLED_APPS = [
     "corsheaders",
     # Internal apps (Phase 04 Core Foundation)
     "apps.core.apps.CoreConfig",
+    # Phase 05 Identity, Tenancy & Roles
+    "apps.identity.apps.IdentityConfig",
+    "apps.organizations.apps.OrganizationsConfig",
+    "apps.audit.apps.AuditConfig",
 ]
 
 MIDDLEWARE = [
@@ -110,6 +114,9 @@ else:
     }
 
 # Password validation
+# Phase 05 — Custom User Model
+AUTH_USER_MODEL = "identity.User"
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",

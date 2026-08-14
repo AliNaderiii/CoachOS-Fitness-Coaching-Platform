@@ -1,11 +1,7 @@
-"""Test environment settings — Explicitly isolated deterministic test settings."""
+from .base import *  # noqa: F403  (test settings deliberately inherit everything)
 
-from .base import *  # noqa: F403
-
-DEBUG = False
-SECRET_KEY = "django-insecure-test-key-for-pytest-execution-only"
-
-ALLOWED_HOSTS = ["*"]
+DEBUG = True
+SECRET_KEY = "test-secret-key-only-for-tests"
 
 DATABASES = {
     "default": {
@@ -14,12 +10,25 @@ DATABASES = {
     }
 }
 
+# Use in-memory cache for tests
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+
+# Disable rate limiting enforcement in tests unless explicit
+ALLOW_TENANT_HEADER_OVERRIDE = True
+
+# Faster password hasher for tests
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]
 
-SESSION_COOKIE_SECURE = False
+# Disable CSRF for API test client where needed
 CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
 
-# Enable test override for unit tests
-ALLOW_TENANT_HEADER_OVERRIDE = True
+# Enable test seam to capture raw reset tokens so actual forgot-password path is exercised
+# (raw token never appears in prod responses/logs/audit)
+TEST_CAPTURE_RESET_TOKENS = True

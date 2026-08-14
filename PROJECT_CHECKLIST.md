@@ -118,16 +118,16 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 05 — Identity, Tenancy, and Roles
 
-- [ ] Authentication works (Email + Password)
-- [ ] Single-location organization creation works
-- [ ] Invitations work (single-use tokens)
-- [ ] Role permissions work server-side
-- [ ] Object-level access tests exist (negative authZ tests)
-- [ ] Audit events exist (immutable logging)
-- [ ] Persian/English settings work
-- [ ] Phase 05 report committed
+- [x] Authentication works (Email + Password) — cookie session MVP + CSRF
+- [x] Single-location organization creation works — transactional + owner membership
+- [x] Invitations work (single-use tokens) — hashed, 7d expiry, role-limited
+- [x] Role permissions work server-side — RBAC + tenant isolation
+- [x] Object-level access tests exist (negative authZ tests) — cross-tenant, suspended, replay
+- [x] Audit events exist (immutable logging) — redacted, append-only
+- [x] Persian/English settings work — locale/unit/timezone on User
+- [x] Phase 05 report committed — `docs/reports/PHASE-05-IDENTITY-TENANCY-ROLES-REPORT.md`
 
-**Phase 05 status:** `[ ]` Not started — CI activation prerequisites are now satisfied (PR #10 merged at `0855867c...`, workflows on remote `main`, passing GitHub Actions runs `31776895893` and `31776896050`); Phase 05 still awaits explicit founder authorization; no Phase 05 implementation has been added
+**Phase 05 status:** `[x]` **Complete** — implementation delivered on session branch `arena/019fff0b-coachos-fitness-coaching-platf`; PR to be opened targeting main. Awaiting founder review. Do not start Phase 06.
 
 ---
 
