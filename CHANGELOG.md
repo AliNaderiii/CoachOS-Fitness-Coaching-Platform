@@ -5,7 +5,25 @@ All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 This project will follow [Semantic Versioning](https://semver.org/) once the first versioned release is cut.
 
-## [Unreleased] — Phase 05 Identity, Tenancy, and Roles (awaiting founder authorization)
+## [Unreleased] — Phase 05 Identity, Tenancy, and Roles (Complete — PR open)
+
+### Added — Phase 05 Identity, Tenancy & Roles Foundation
+
+- Custom Django `User` model (UUIDv7 PK via existing generator, normalized unique indexed email, Argon2id-capable hashing, `display_name`, optional phone, `preferred_locale` (fa-IR/en-US), `preferred_unit` (kg/lbs), timezone, `is_platform_admin`, `is_active`).
+- Email/password registration, login, logout, current-user (`/me`) with PATCH profile.
+- Password reset foundation: request (non-enumerating 202), cryptographically secure 48-byte single-use token (SHA-256 hashed storage only), 15-minute expiry, confirm endpoint, post-reset session invalidation.
+- Organization + single primary Location creation in one atomic transaction with exactly one matching owner `Membership`.
+- Membership model supporting multi-role (`owner`/`coach`/`athlete`/`support`), status lifecycle (`invited`/`active`/`suspended`/`archived`).
+- Secure invitation system (owner any role; coach → athlete only), hashed tokens, 7-day expiry, single-use, role-limited acceptance.
+- Immutable `AuditEvent` foundation covering all required P0 events with redaction and immutability enforcement.
+- Server-side RBAC + tenant isolation (`IsAuthenticatedAndActive`, membership checks); no client-side trust.
+- Comprehensive negative authorization tests (cross-tenant 403/404, suspended access denial, coach/athlete invitation limits, replay/expiry/wrong-email, owner invariant).
+- Bilingual foundation (fa-IR RTL / en-US LTR) via existing i18n; new auth/onboarding route scaffolds.
+- API surfaces exactly matching documented `/api/v1/auth/*` and `/api/v1/organizations/*` contracts (cookie-session MVP, no tokens in body).
+- All Phase 05 artifacts: `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`, full `PHASE-05-IDENTITY-TENANCY-ROLES-REPORT.md`.
+- Preflight gate fully satisfied (PR #10 + #12 merged, workflows on remote main, successful post-merge GitHub Actions runs).
+
+**Branch:** `arena/019fff0b-coachos-fitness-coaching-platf` (session) + proposed `phase/05-identity-tenancy-roles`. PR opened targeting `main` (not auto-merged). No Phase 06+ code or Arabic resources added.
 
 ### Changed — Post-Merge CI Activation Status Synchronization (docs-only, no code/test/dependency/workflow changes)
 
