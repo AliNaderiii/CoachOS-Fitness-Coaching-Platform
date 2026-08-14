@@ -5,7 +5,17 @@ All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 This project will follow [Semantic Versioning](https://semver.org/) once the first versioned release is cut.
 
-## [Unreleased] — Phase 05 Identity, Tenancy, and Roles (Merged — PR #13)
+## [Unreleased] — Phase 06 Exercise Library and Training Programs (Candidate; unmerged)
+
+### Added — Phase 06 candidate
+
+- Added bilingual canonical/organization-private exercise definitions, translations, aliases, Persian keyboard-variant-normalized search, catalog filters, media metadata, mandatory rights provenance, and platform-admin moderation API.
+- Added organization-scoped hierarchical programs and set prescriptions, atomic nested persistence, version increments, deep template clone, minimal coach-athlete assignment authorization, and immutable point-in-time assignment snapshots.
+- Added active-role and tenant-isolation enforcement with cross-tenant, athlete, suspended, unassigned-coach, media-rights, moderation, snapshot-integrity, and bounded-query tests.
+- Replaced the Phase 04 coach program placeholder with a bilingual responsive coach/owner catalog and program-builder workspace, typed API adapter, dictionary parity, normalized search, keyboard reorder alternatives, and component tests.
+- Added Phase 06 Stage 0 plan and implementation report. Local full validation: backend 69 tests/83% coverage; frontend 56 tests/lint/type/build; compliance scanner, `pip-audit`, and `npm audit` pass.
+- Upgraded vulnerable Next.js 14.2.35 to 16.3.1 and aligned ESLint 9 flat config, TypeScript 5.9.3, Vitest 4.1.10, and Vite 8.2.1; full `npm audit` reports zero vulnerabilities.
+- Phase 06 remains unmerged and is not declared complete until Stage 9 PR/check evidence and founder review. No Arabic localization or Phase 07+ code was added; do not start Phase 07.
 
 ### Changed — Post-Merge Phase 05 Status Synchronization (docs-only, no code/test/dependency/workflow changes)
 

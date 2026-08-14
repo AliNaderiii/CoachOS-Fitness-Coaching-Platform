@@ -1,10 +1,10 @@
 # Project Status — CoachOS
 
 **Last updated:** 2026-08-14 (UTC)
-**Current phase:** Phase 05 — **Identity, Tenancy, and Roles — Merged & Complete** (PR #13 merged into `main`)
-**Next step:** Phase 06 (Exercise Library and Training Programs) is the next product phase; it has **not started** and requires explicit founder authorization in a new dedicated branch. Do not begin Phase 06 automatically.
-**Working branch:** `arena/019fff78-coachos-fitness-coaching-platf` (environment-imposed session branch used for this docs-only status synchronization, in place of the suggested `chore/post-phase05-status-sync`)
-**Base commit (main):** `d7f72b3fcfd6667df524af5adf71328c5de6edba` (PR #13 merge — Phase 05 Identity, Tenancy, and Roles)
+**Current phase:** Phase 06 — **Exercise Library and Training Programs — Candidate under validation/review; not merged or complete**
+**Next step:** Finish Stage 9 publication, verify the Phase 06 PR and GitHub Actions, then leave the PR open for founder review. Do not merge and do not start Phase 07.
+**Working branch:** `arena/019fffa4-coachos-fitness-coaching-platf` (Arena session branch)
+**Base commit (main):** `86503b3930192dd46de7ce500384c246d236fcd4` (PR #14 merge; verified current `origin/main` at recovery)
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
 **License:** Proprietary / All Rights Reserved (ADR-012 — Copyright (c) 2026 CoachOS Technologies / Ali Naderi)
 
@@ -12,7 +12,7 @@
 
 ## 1. One-Line Status
 
-**Phase 05 — Identity, Tenancy, and Roles is merged and complete for its documented scope**: PR [#13](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/13) (`feat(phase-05): Identity, Tenancy, and Roles foundation`, head branch `arena/019fff0b-coachos-fitness-coaching-platf`) merged into `main` at merge commit `d7f72b3fcfd6667df524af5adf71328c5de6edba` on 2026-08-14T08:40:58Z. All four post-merge GitHub Actions checks on the merge commit are **successful**: **Backend Lint, Type & Tests (Django/DRF)**, **Frontend Lint, Type & Tests (Next.js/PWA)**, **Security Scan & Language Compliance**, and **Secret & Pattern Scanning** (workflow runs **CoachOS CI Quality Gates** run ID `31784911766` `success` and **Security & Vulnerability Scan** run ID `31784911764` `success`); GitHub Actions remain active and passing on `main`. Phase 05 delivered the custom UUIDv7 `User` model, email/password auth (cookie-session MVP + CSRF), password reset foundation, transactional single-location Organization creation with owner `Membership` invariant, multi-role memberships, hashed single-use role-limited invitations, immutable `AuditEvent` foundation, server-side RBAC + tenant isolation with negative authorization tests, and bilingual `fa-IR`/`en-US` settings — documented in `docs/reports/PHASE-05-IDENTITY-TENANCY-ROLES-REPORT.md`. Documented **deferred Phase 05 items remain deferred**: frontend onboarding UI, `CoachAthleteAssignment`, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification. The Phase 04 foundation and CI activation remain complete as previously recorded (PR #8 `dd7dea56...`, PR #9 `0eae53b8...`, PR #10 `0855867c...`). **Phase 06 (Exercise Library and Training Programs) is the next product phase; it has not started and requires explicit founder authorization. Do not begin Phase 06 automatically.**
+**Phase 06 is an unmerged candidate, not a completed phase.** Safe recovery found the session checkout clean at verified base `86503b3930192dd46de7ce500384c246d236fcd4`, with no interrupted artifacts to preserve. On `arena/019fffa4-coachos-fitness-coaching-platf`, local Gates 0–8 now pass for bilingual exercise catalog/search, media provenance/moderation API, hierarchical programs/prescriptions, template clone/versioning, immutable assignment snapshots, tenant/RBAC controls, and coach/owner UI. Full backend validation is 69/69 tests with 83% coverage; frontend validation is 56/56 tests plus clean lint/type/build; repository compliance, `pip-audit`, and `npm audit` pass. Stage 9 commit/push/PR/Actions verification remains in progress, and the PR must remain open for founder review. No Arabic localization or Phase 07+ code was added. Do not merge automatically and do not start Phase 07. See `docs/reports/PHASE-06-EXERCISE-LIBRARY-TRAINING-PROGRAMS-REPORT.md`.
 
 ---
 
@@ -62,15 +62,15 @@
 | **LEGAL** | Privacy Compliance (GDPR & Iran Data Residency) | High | Formal pre-DPIA documented; jurisdiction-specific legal review required before handling real production health telemetry. |
 | **P04-REMEDIATION** | Missing original `frontend/lib/` source | Low | **Closed — merged:** PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, 2026-08-11) merged the specification-based reimplementation; PR #9 (`0eae53b89343ec0a4eb1200086b769011012c406`, 2026-08-12) merged docs synchronization. All nine `frontend/lib/` files verified tracked on remote `main`. Provenance/correction record: `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`. |
 | **CI-ACTIVATION** | GitHub Actions activation | — | **Closed — PR #10 merged:** PR #10 (`chore/activate-github-actions-manual`) merged into `main` at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z). `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` verified present on remote `main` (`git ls-tree origin/main`); GitHub Actions workflows are active; post-merge runs succeeded; no deployment job or real secret exists. Actions remain active and passing on `main` through the PR #13 merge commit (`d7f72b3f...`). |
-| **P05-DEFERRED** | Phase 05 deferred scope | Low | **Open — deferred by decision:** Phase 05 merged complete for its documented scope via PR #13 (`d7f72b3fcfd6667df524af5adf71328c5de6edba`). Deferred items remain deferred pending later authorized phases: frontend onboarding UI, `CoachAthleteAssignment`, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification. |
+| **P05-DEFERRED** | Phase 05 deferred scope | Low | **Open — deferred by decision:** Phase 05 merged complete for its documented scope via PR #13 (`d7f72b3fcfd6667df524af5adf71328c5de6edba`). Deferred items remain deferred pending later authorized phases: frontend onboarding UI, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification. Phase 06 adds only the minimal tenant-scoped `CoachAthleteAssignment` relation required to authorize program assignment; broader lifecycle/UI remains deferred. |
 
 ---
 
 ## 5. Next Step
 
-Phase 05 is merged and complete; Phase 06 stays gated on explicit founder authorization:
+Phase 05 is merged and complete; Phase 06 is now an unmerged candidate awaiting Stage 9 publication and founder review:
 
 1. PR #13 (Phase 05 — Identity, Tenancy, and Roles) is **merged** into `main` at `d7f72b3fcfd6667df524af5adf71328c5de6edba` (2026-08-14T08:40:58Z).
 2. All four post-merge GitHub Actions checks on the merge commit are **successful**: Backend Lint, Type & Tests (Django/DRF); Frontend Lint, Type & Tests (Next.js/PWA); Security Scan & Language Compliance; Secret & Pattern Scanning (runs `31784911766` and `31784911764`, both `success`). GitHub Actions remain active and passing on `main`.
 3. Phase 05 is complete for its documented scope. Deferred Phase 05 items remain deferred: frontend onboarding UI, `CoachAthleteAssignment`, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification.
-4. Phase 06 (Exercise Library and Training Programs) is the next product phase. It has **not started** and requires explicit founder authorization; when authorized, it must begin in a new dedicated branch. Do not begin Phase 06 automatically.
+4. Phase 06 implementation Gates 0–8 pass locally on the dedicated Arena branch. Complete Stage 9 publication and remote checks, then leave the PR open for founder review; Phase 06 remains unmerged/not complete. Do not start Phase 07.

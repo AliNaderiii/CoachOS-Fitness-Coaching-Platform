@@ -260,3 +260,15 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
   - Updated `PROJECT_STATUS.md` (Phase 04 + CI activation complete, CI-ACTIVATION risk closed with remote evidence, Phase 05 gate on explicit founder authorization), `PROJECT_CHECKLIST.md` (GitHub Actions activation item `[x]` with remote evidence; Phase 05 kept `[ ]`), `CHANGELOG.md` (concise post-merge CI activation entry; historical Phase 04 records unchanged), and this prompt log.
   - Did not modify workflow files, application source, tests, dependencies, or historical Phase 04 reports; did not add any Phase 05 implementation.
   - Session branch `arena/019fff00-coachos-fitness-coaching-platf` used in place of the suggested `chore/post-ci-activation-status` (environment-imposed session branch); docs-only PR opened against `main` and left open for founder review; not merged.
+
+---
+
+## Prompt 015 — Phase 06 Interrupted-Session Safe Resume and Candidate Implementation
+
+- **Date:** 2026-08-14
+- **Phase:** 06 — Exercise Library and Training Programs
+- **Request:** Inspect and preserve any interrupted local diff before action; verify Gates 0–6 from artifacts/commands; finish Stage 7 frontend; perform Stage 8 adversarial and full validation; update report/tracking; publish one Phase 06 PR without merge or Phase 07 work.
+- **Recovery:** The Arena checkout was clean at verified `main` base `86503b3930192dd46de7ce500384c246d236fcd4`; status and both diff commands were empty. No interrupted Phase 06 artifact existed to recover. No reset, clean, force-push, or unsupported completion claim was made.
+- **Result at this revision:** Gates 0–8 pass locally. Added exercise/translation/alias/media-rights models and APIs; moderation; program hierarchy/prescriptions; template clone/versioning; minimal coach-athlete assignment authorization; immutable assignment snapshots; coach/owner bilingual program workspace; migrations and tests. Full backend: 69 passed, 83% coverage. Frontend after `npm ci`: lint/type-check, 56 tests, Next.js 16.3.1 build, and full `npm audit` pass. `pip-audit` and repository security/language scanner pass. Stage 9 remote publication/check verification remains pending; Phase 06 is not merged or declared complete.
+- **Scope:** No Arabic locale and no Phase 07+ workout execution, set logging, timers, pain/fatigue, durable offline sync, messaging, nutrition, billing, marketplace, AI, or wearables.
+- **Evidence:** `docs/reports/PHASE-06-STAGE-0-PLAN.md` and `docs/reports/PHASE-06-EXERCISE-LIBRARY-TRAINING-PROGRAMS-REPORT.md`.
