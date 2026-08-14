@@ -5,7 +5,15 @@ All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 This project will follow [Semantic Versioning](https://semver.org/) once the first versioned release is cut.
 
-## [Unreleased] — Phase 05 Identity, Tenancy, and Roles (Complete — PR open)
+## [Unreleased] — Phase 05 Identity, Tenancy, and Roles (Merged — PR #13)
+
+### Changed — Post-Merge Phase 05 Status Synchronization (docs-only, no code/test/dependency/workflow changes)
+
+- Recorded that Phase 05 PR #13 (`feat(phase-05): Identity, Tenancy, and Roles foundation`, head `arena/019fff0b-coachos-fitness-coaching-platf`) **merged** into `main` at merge commit `d7f72b3fcfd6667df524af5adf71328c5de6edba` on 2026-08-14T08:40:58Z.
+- Recorded that all four post-merge GitHub Actions checks on the merge commit are successful: **Backend Lint, Type & Tests (Django/DRF)**, **Frontend Lint, Type & Tests (Next.js/PWA)**, **Security Scan & Language Compliance**, and **Secret & Pattern Scanning** (workflow runs CoachOS CI Quality Gates `31784911766` `success`, Security & Vulnerability Scan `31784911764` `success`). GitHub Actions remain active and passing on `main`.
+- Marked Phase 05 — Identity, Tenancy, and Roles **merged and complete for its documented scope** in `PROJECT_STATUS.md` and `PROJECT_CHECKLIST.md`, replacing stale pre-merge wording (PR #13 open / awaiting review; implementation awaiting review).
+- Recorded that deferred Phase 05 items remain deferred: frontend onboarding UI, `CoachAthleteAssignment`, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification.
+- Recorded that Phase 06 (Exercise Library and Training Programs) is the next product phase; it has **not started** and requires explicit founder authorization in a new dedicated branch. No Phase 06 code, workflow files, application source, tests, or dependencies were modified; historical records below are unchanged.
 
 ### Added — Phase 05 Identity, Tenancy & Roles Foundation
 
@@ -23,7 +31,7 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 - All Phase 05 artifacts: `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`, full `PHASE-05-IDENTITY-TENANCY-ROLES-REPORT.md`.
 - Preflight gate fully satisfied (PR #10 + #12 merged, workflows on remote main, successful post-merge GitHub Actions runs).
 
-**Branch:** `arena/019fff0b-coachos-fitness-coaching-platf` (session) + proposed `phase/05-identity-tenancy-roles`. PR opened targeting `main` (not auto-merged). No Phase 06+ code or Arabic resources added.
+**Branch:** `arena/019fff0b-coachos-fitness-coaching-platf` (session) + proposed `phase/05-identity-tenancy-roles`. PR #13 opened targeting `main` (not auto-merged at delivery time; subsequently merged at `d7f72b3fcfd6667df524af5adf71328c5de6edba` on 2026-08-14T08:40:58Z — see post-merge status synchronization entry above). No Phase 06+ code or Arabic resources added.
 
 ### Changed — Post-Merge CI Activation Status Synchronization (docs-only, no code/test/dependency/workflow changes)
 
