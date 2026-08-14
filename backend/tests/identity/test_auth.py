@@ -1,7 +1,10 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth import get_user_model
 
 from apps.identity.models import PasswordResetToken
+from apps.organizations.models import Invitation, Membership, Organization
 
 User = get_user_model()
 
@@ -211,3 +214,86 @@ def test_password_reset_invalidates_all_sessions(api_client):
 
     # Cleanup
     identity_views._captured_reset_tokens.clear()
+
+
+@pytest.mark.django_db
+def test_register_with_invitation_is_atomic_rollback_on_membership_failure(api_client):
+    """Prove that when invitation binding fails after user creation starts,
+    the entire registration tx rolls back (no user, no membership, invitation untouched).
+    """
+
+    import hashlib
+
+    from django.utils import timezone as dj_tz
+
+    # Owner creates org + invitation for a specific email
+    api_client.post(
+        "/api/v1/auth/register",
+        {"email": "orgowner@ex.com", "password": "SecurePass123!", "display_name": "Owner"},
+        format="json",
+    )
+    create = api_client.post(
+        "/api/v1/organizations/", {"name": "AtomicOrg", "slug": "atomicorg"}, format="json"
+    )
+    assert create.status_code == 201
+    org_id = create.data["id"]
+    org = Organization.objects.get(id=org_id)
+
+    raw_token = "atomic-inv-token-1234567890123456789012345678901234"
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    inv = Invitation.objects.create(
+        organization=org,
+        invited_by=org.owner_user,
+        email="inviteduser@ex.com",
+        role="athlete",
+        token_hash=token_hash,
+        expires_at=dj_tz.now() + dj_tz.timedelta(days=1),
+    )
+
+    # Simulate failure inside the invitation binding block (after user create but before commit)
+    with patch("apps.organizations.models.Membership.objects.get_or_create") as mock_get_create:
+        mock_get_create.side_effect = Exception("Simulated DB failure during membership")
+
+        resp = api_client.post(
+            "/api/v1/auth/register",
+            {
+                "email": "inviteduser@ex.com",
+                "password": "SecurePass123!",
+                "display_name": "Invited",
+                "invitation_token": raw_token,
+            },
+            format="json",
+        )
+        # The view should surface the error, but crucially: no partial state
+        assert resp.status_code >= 400
+
+    # Rollback verification: no user created for the invited email
+    assert not User.objects.filter(email="inviteduser@ex.com").exists()
+
+    # Invitation must remain un-accepted (no partial commit)
+    inv.refresh_from_db()
+    assert inv.accepted_at is None
+
+    # No membership for that user
+    assert not Membership.objects.filter(
+        organization=org, user__email="inviteduser@ex.com"
+    ).exists()
+
+    # Happy path still works (no side effects from failed attempt)
+    resp2 = api_client.post(
+        "/api/v1/auth/register",
+        {
+            "email": "inviteduser@ex.com",
+            "password": "SecurePass123!",
+            "display_name": "Invited",
+            "invitation_token": raw_token,
+        },
+        format="json",
+    )
+    assert resp2.status_code == 201
+    user = User.objects.get(email="inviteduser@ex.com")
+    mem = Membership.objects.filter(user=user, organization=org, role="athlete").first()
+    assert mem is not None
+    assert mem.status == "active"
+    inv.refresh_from_db()
+    assert inv.accepted_at is not None

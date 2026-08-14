@@ -9,6 +9,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.core.cache import cache
+from django.db import transaction
 from django.utils import timezone as dj_timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -107,52 +108,66 @@ class RegisterView(APIView):
                 status=status.HTTP_409_CONFLICT,
             )
 
-        user = User.objects.create_user(
-            email=data["email"],
-            password=data["password"],
-            display_name=data["display_name"],
-            preferred_locale=data.get("preferred_locale", "fa-IR"),
-        )
-
-        # Support invitation_token during registration (binds membership)
         inv_token = data.get("invitation_token")
+        token_hash = None
         if inv_token:
             token_hash = hashlib.sha256(inv_token.encode()).hexdigest()
-            try:
-                inv = Invitation.objects.get(token_hash=token_hash, accepted_at__isnull=True)
-                if inv.is_expired or inv.accepted_at:
-                    # expired or already used → do not bind
-                    pass
-                elif inv.email.lower() != data["email"].lower():
-                    # email mismatch → do not bind
-                    pass
-                else:
-                    # atomic bind + update status if previously invited
-                    membership, created = Membership.objects.get_or_create(
-                        user=user,
-                        organization=inv.organization,
-                        role=inv.role,
-                        defaults={"status": "active"},
-                    )
-                    if not created and membership.status != "active":
-                        membership.status = "active"
-                        membership.save(update_fields=["status"])
-                    inv.accepted_at = dj_timezone.now()
-                    inv.save()
-                    _record_audit(
-                        "invitation.accepted",
-                        actor=user,
-                        org=inv.organization,
-                        target_type="Invitation",
-                        target_id=inv.id,
-                        request=request,
-                    )
-            except Invitation.DoesNotExist:
-                pass  # safe, non-enumerating
-            # Do NOT swallow broad Exception — unexpected DB/runtime errors will surface
-            # (DRF exception handler + logging will record; no membership created on failure)
 
-        # Login (establishes session cookie)
+        # Full atomic registration transaction:
+        # - Always creates the user.
+        # - If a valid invitation token is supplied, the binding (lock + membership + mark + audit)
+        #   happens inside the same transaction.
+        # - Any failure during membership/invitation update rolls back the user (no partial commit).
+        # - Invalid/expired/mismatch/DoesNotExist tokens: no membership created (safe non-enumerating).
+        # - Uses select_for_update + re-check inside lock.
+        # - No broad except Exception.
+        # - Raw token never appears in responses/logs/audit.
+        with transaction.atomic():
+            user = User.objects.create_user(
+                email=data["email"],
+                password=data["password"],
+                display_name=data["display_name"],
+                preferred_locale=data.get("preferred_locale", "fa-IR"),
+            )
+
+            if inv_token and token_hash:
+                try:
+                    # Lock invitation row (atomicity against concurrent accepts)
+                    inv = Invitation.objects.select_for_update().get(
+                        token_hash=token_hash, accepted_at__isnull=True
+                    )
+                    # Re-validate all server-side conditions inside the lock
+                    if (
+                        not inv.is_expired
+                        and inv.accepted_at is None
+                        and inv.email.lower() == data["email"].lower()
+                    ):
+                        # Use server-side org + role from invitation
+                        membership, created = Membership.objects.get_or_create(
+                            user=user,
+                            organization=inv.organization,
+                            role=inv.role,
+                            defaults={"status": "active"},
+                        )
+                        if not created and membership.status != "active":
+                            membership.status = "active"
+                            membership.save(update_fields=["status"])
+                        inv.accepted_at = dj_timezone.now()
+                        inv.save()
+                        _record_audit(
+                            "invitation.accepted",
+                            actor=user,
+                            org=inv.organization,
+                            target_type="Invitation",
+                            target_id=inv.id,
+                            request=request,
+                        )
+                    # If any re-check fails after lock → safe skip (no membership)
+                except Invitation.DoesNotExist:
+                    # Safe, non-enumerating behavior
+                    pass
+
+        # Login (establishes session cookie) — outside the registration tx
         login(request, user)
 
         _record_audit(

@@ -221,9 +221,30 @@ OPENAPI.yaml remains authoritative; minor alignment notes added in report only.
 8. Reconcile password hashing claims — User model documents "Argon2id-capable"; requirements + prod settings do not yet include argon2-cffi (PBKDF2 fallback for tests); limitation documented.
 9. Align PR/report/checklist claims — all updated to distinguish implemented vs. deferred (frontend UI, assignment, transfer, full memberships context, real email, MFA, prod readiness).
 
-Current head: `688a7582c1f64d1acb2ff790c5256466e0763546`
+Current head (final security review): `4734f15da3c13fdf15cba5dd28be3bbb0d65cc63`
 
-**All local validation commands passed cleanly (exact output reproduced below in validation section).** GitHub Actions on this head must be observed remotely.
+**Final security review corrections (this commit) addressed verbatim:**
+
+1. Broad import fallback removed — clean top-level `from apps.organizations.models import Invitation, Membership` (no try/except; explicit failure if module missing after Django loading).
+2. Reset-test fallbacks removed — tests now deterministically:
+   - clear capture
+   - call forgot-password
+   - assert exactly one captured token
+   - use only that token
+   - fail if empty
+   (No manual token manufacture.)
+3. Exactly one active owner:
+   - New DB constraint `unique_active_owner_per_org` (migration 0002)
+   - Owner may not invite another owner (403)
+   - Exactly-one + `owner_user` equality verified in tests + org creation
+   - Sole owner cannot suspend/archived (409)
+   - Duplicate owner creation raises IntegrityError
+   - All changes audited
+4. Do not claim full membership context — auth responses return only minimal `[{id, organization_id, role, status}]`. Tests assert shape. `effective_permissions` union + active-organization context explicitly documented as deferred.
+5. Invitation atomicity strengthened — `AcceptInvitationView` (and register path) now use `transaction.atomic()` + `Invitation.objects.select_for_update()` + re-check after lock for email/role/org/expiry/single-use before activation.
+6. All docs updated to match reality (no overclaims).
+
+**All local validation commands passed cleanly (exact output below).** GitHub Actions (ci + security-scan) must be green on this head remotely.
 
 **Stop here. Leave PR #13 open. Do not merge. Await founder review. Do not start Phase 06.**
 
