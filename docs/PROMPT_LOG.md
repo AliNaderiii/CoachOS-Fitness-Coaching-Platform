@@ -190,3 +190,21 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
   - Updated tracking docs (`PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`) with accurate pre-merge wording: PR #9 merged at `0eae53b...`; PR #10 open/unmerged; workflow files present on PR branch; CI pending merge + remote check evidence; Phase 05 unstarted and unauthorized.
   - Left PR #10 open for founder review; did not merge automatically.
   - Committed documentation updates to session branch `arena/019ff797-coachos-fitness-coaching-platf`.
+
+---
+
+## Prompt 012 — Post-PR-#10 CI Activation Status Synchronization
+
+- **Date/time:** 2026-08-14 (UTC)
+- **Source:** Founder / supervising agent — post-merge docs-only status correction
+- **Phase:** 04 — CI Activation Status Synchronization (docs-only; Phase 05 not started)
+- **Prompt Summary:**
+  PR #10 has been merged and GitHub Actions are now active. Perform a narrow docs-only post-merge status correction: verify actual remote `main`, replace stale pre-merge wording (PR #10 open/unmerged, workflows only on PR branch, CI pending activation, `.github/workflows/` absent from `main`) with accurate post-merge state, update only `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`, open a docs-only PR to `main`, do not merge automatically, and do not start Phase 05.
+- **Actions Taken:**
+  - Verified actual remote `main` SHA: `0855867cc85f56bb4b77c5f708db8e122ded6b81` — matches the expected PR #10 merge commit exactly; no drift.
+  - Confirmed via `gh pr view 10`: PR #10 (`chore/activate-github-actions-manual`, "Create ci.yml") state `MERGED`, base `main`, merged at 2026-08-14T06:36:42Z, merge commit `0855867cc85f56bb4b77c5f708db8e122ded6b81`.
+  - Confirmed via `git ls-tree origin/main` that both canonical workflow files exist on remote `main`: `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml`.
+  - Confirmed via `gh run list` both post-merge GitHub Actions runs on the merge commit (`0855867c...`, branch `main`) succeeded: **CoachOS CI Quality Gates** run ID `31776895893` (conclusion `success`) and **Security & Vulnerability Scan** run ID `31776896050` (conclusion `success`). GitHub Actions workflows are active.
+  - Updated `PROJECT_STATUS.md` (Phase 04 + CI activation complete, CI-ACTIVATION risk closed with remote evidence, Phase 05 gate on explicit founder authorization), `PROJECT_CHECKLIST.md` (GitHub Actions activation item `[x]` with remote evidence; Phase 05 kept `[ ]`), `CHANGELOG.md` (concise post-merge CI activation entry; historical Phase 04 records unchanged), and this prompt log.
+  - Did not modify workflow files, application source, tests, dependencies, or historical Phase 04 reports; did not add any Phase 05 implementation.
+  - Session branch `arena/019fff00-coachos-fitness-coaching-platf` used in place of the suggested `chore/post-ci-activation-status` (environment-imposed session branch); docs-only PR opened against `main` and left open for founder review; not merged.
