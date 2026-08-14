@@ -1,8 +1,8 @@
 # Phase 06 — Stage 0 Plan and Requirements Matrix
 
-**Date:** 2026-08-14  
-**Base:** `86503b3930192dd46de7ce500384c246d236fcd4` (`origin/main`)  
-**Branch:** `arena/019fffa4-coachos-fitness-coaching-platf`  
+**Date:** 2026-08-14
+**Base:** `86503b3930192dd46de7ce500384c246d236fcd4` (`origin/main`)
+**Branch:** `arena/019fffa4-coachos-fitness-coaching-platf`
 **Status:** Approved implementation in progress; this document is not a completion claim.
 
 ## Recovery record
