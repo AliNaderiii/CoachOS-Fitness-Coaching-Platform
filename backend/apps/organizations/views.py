@@ -283,13 +283,16 @@ class AcceptInvitationView(APIView):
 
         with transaction.atomic():
             user = request.user if request.user.is_authenticated else None
-            # For simplicity in scaffold assume user already registered or create placeholder
-            # In full flow user registers first or accepts during registration
             if not user:
+                # unauthenticated must go through register flow with token
                 return Response(
                     {"detail": "Must be authenticated or register first"},
                     status=status.HTTP_401_UNAUTHORIZED,
                 )
+
+            # Enforce email match for authenticated acceptance (security)
+            if user.email.lower() != inv.email.lower():
+                return Response(status=status.HTTP_403_FORBIDDEN)
 
             Membership.objects.get_or_create(
                 user=user,
@@ -320,13 +323,30 @@ class MemberListView(APIView):
         except Organization.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if not Membership.objects.filter(
+        active_mem = Membership.objects.filter(
             user=request.user, organization=org, status="active"
-        ).exists():
+        ).first()
+        if not active_mem:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
-        members = Membership.objects.filter(organization=org)
-        return Response({"members": MembershipSerializer(members, many=True).data})
+        # Role-based visibility per Phase 05 contract
+        role = active_mem.role
+        if role == "owner":
+            members = Membership.objects.filter(organization=org)
+        elif role == "coach":
+            # Coach sees self + athletes assigned to them (via future CoachAthleteAssignment)
+            # For Phase 05 we return self + any athlete memberships for simplicity
+            # (real assignment check can be added when CoachAthleteAssignment is introduced)
+            members = Membership.objects.filter(organization=org).filter(
+                user=request.user
+            ) | Membership.objects.filter(organization=org, role="athlete")
+        elif role == "athlete":
+            members = Membership.objects.filter(organization=org, user=request.user)
+        else:
+            # support / other limited read
+            members = Membership.objects.filter(organization=org).filter(user=request.user)
+
+        return Response({"members": MembershipSerializer(members.distinct(), many=True).data})
 
 
 class MembershipUpdateView(APIView):

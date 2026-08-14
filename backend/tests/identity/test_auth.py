@@ -127,3 +127,71 @@ def test_logout_invalidates_session(api_client):
     # Subsequent me should be unauthorized
     resp = api_client.get("/api/v1/auth/me")
     assert resp.status_code in (401, 403)
+
+
+@pytest.mark.django_db
+def test_password_reset_invalidates_all_sessions(api_client):
+    import hashlib
+    from datetime import timedelta as py_timedelta
+
+    from django.utils import timezone as dj_tz
+    from rest_framework.test import APIClient
+
+    from apps.identity.models import PasswordResetToken
+
+    # Register user
+    api_client.post(
+        "/api/v1/auth/register",
+        {"email": "multi@example.com", "password": "SecurePass123!", "display_name": "Multi"},
+        format="json",
+    )
+    user = User.objects.get(email="multi@example.com")
+
+    # Create second client (second session)
+    client2 = APIClient()
+    # Login second client
+    resp2 = client2.post(
+        "/api/v1/auth/login",
+        {"email": "multi@example.com", "password": "SecurePass123!"},
+        format="json",
+    )
+    assert resp2.status_code == 200
+
+    # Verify both can access /me
+    me1 = api_client.get("/api/v1/auth/me")
+    me2 = client2.get("/api/v1/auth/me")
+    assert me1.status_code == 200
+    assert me2.status_code == 200
+
+    # Request reset + create token
+    api_client.post("/api/v1/auth/forgot-password", {"email": "multi@example.com"}, format="json")
+    raw = "multisessiontoken123456789012345678901234567890"
+    th = hashlib.sha256(raw.encode()).hexdigest()
+    PasswordResetToken.objects.create(
+        user=user,
+        token_hash=th,
+        expires_at=dj_tz.now() + py_timedelta(minutes=15),
+    )
+
+    # Perform reset
+    resp = api_client.post(
+        f"/api/v1/auth/reset-password/{raw}", {"new_password": "NewSecurePass999!"}, format="json"
+    )
+    assert resp.status_code == 200
+
+    # Old sessions should be dead
+    me1_after = api_client.get("/api/v1/auth/me")
+    me2_after = client2.get("/api/v1/auth/me")
+    assert me1_after.status_code in (401, 403)
+    assert me2_after.status_code in (401, 403)
+
+    # New login with new password succeeds
+    new_client = APIClient()
+    login_resp = new_client.post(
+        "/api/v1/auth/login",
+        {"email": "multi@example.com", "password": "NewSecurePass999!"},
+        format="json",
+    )
+    assert login_resp.status_code == 200
+    me_new = new_client.get("/api/v1/auth/me")
+    assert me_new.status_code == 200

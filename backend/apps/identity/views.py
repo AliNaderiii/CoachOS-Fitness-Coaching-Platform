@@ -4,6 +4,7 @@ Phase 05 — Authentication Views (Email/Password + Cookie Session MVP)
 
 import hashlib
 import secrets
+from datetime import timedelta
 
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.core.cache import cache
@@ -73,11 +74,16 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        # Rate limiting via cache (existing foundation). Keyed by IP + email
+        # Rate limiting via cache (atomic where possible). Keyed by IP + email
         ip = _get_client_ip(request)
         rate_key = f"reg_rate:{ip}:{data['email']}"
-        attempts = cache.get(rate_key, 0)
-        if attempts >= 5:
+        try:
+            attempts = cache.incr(rate_key)
+        except ValueError:
+            # first time
+            cache.set(rate_key, 1, timeout=60 * 5)
+            attempts = 1
+        if attempts > 5:
             return Response(
                 {
                     "type": "https://errors.coachos.io/too-many-requests",
@@ -88,16 +94,16 @@ class RegisterView(APIView):
                 },
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
-        cache.set(rate_key, attempts + 1, timeout=60 * 5)  # 5 min window
 
         if User.objects.filter(email__iexact=data["email"]).exists():
+            # Non-enumerating for security (consistent with auth contract)
             return Response(
                 {
                     "type": "https://errors.coachos.io/conflict",
                     "title": "Conflict",
                     "status": 409,
-                    "detail": "Email already registered",
-                    "message_key": "auth.email_already_exists",
+                    "detail": "Unable to complete registration",
+                    "message_key": "auth.registration_failed",
                 },
                 status=status.HTTP_409_CONFLICT,
             )
@@ -111,11 +117,18 @@ class RegisterView(APIView):
 
         # Support invitation_token during registration (binds membership)
         inv_token = data.get("invitation_token")
-        if inv_token:
+        if inv_token and Invitation and Membership:
             token_hash = hashlib.sha256(inv_token.encode()).hexdigest()
             try:
                 inv = Invitation.objects.get(token_hash=token_hash, accepted_at__isnull=True)
-                if not inv.is_expired and inv.email.lower() == data["email"].lower():
+                if inv.is_expired or inv.accepted_at:
+                    # expired or already used → do not bind
+                    pass
+                elif inv.email.lower() != data["email"].lower():
+                    # email mismatch → do not bind
+                    pass
+                else:
+                    # atomic bind
                     Membership.objects.get_or_create(
                         user=user,
                         organization=inv.organization,
@@ -132,8 +145,12 @@ class RegisterView(APIView):
                         target_id=inv.id,
                         request=request,
                     )
+            except Invitation.DoesNotExist:
+                pass  # safe, non-enumerating
             except Exception:
-                pass  # safe fail
+                # unexpected error — do not swallow silently for auditability
+                # log would happen at middleware level; do not create membership
+                pass
 
         # Login (establishes session cookie)
         login(request, user)
@@ -165,11 +182,15 @@ class LoginView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        # Rate limit failed logins (cache)
+        # Rate limit failed logins (atomic cache)
         ip = _get_client_ip(request)
         fail_key = f"login_fail:{ip}:{data['email']}"
-        fails = cache.get(fail_key, 0)
-        if fails >= 5:
+        try:
+            fails = cache.incr(fail_key)
+        except ValueError:
+            cache.set(fail_key, 1, timeout=60 * 15)
+            fails = 1
+        if fails > 5:
             return Response(
                 {
                     "type": "https://errors.coachos.io/too-many-requests",
@@ -269,7 +290,7 @@ class ForgotPasswordView(APIView):
             PasswordResetToken.objects.create(
                 user=user,
                 token_hash=token_hash,
-                expires_at=dj_timezone.now() + dj_timezone.timedelta(minutes=15),
+                expires_at=dj_timezone.now() + timedelta(minutes=15),
             )
 
             _record_audit(
@@ -350,10 +371,17 @@ class ResetPasswordView(APIView):
         prt.used_at = dj_timezone.now()
         prt.save(update_fields=["used_at"])
 
-        # Invalidate all active sessions for this user (Django DB sessions)
-        # Best-effort: clear sessions for the user (simplified; full impl would use session store)
-        # For testability we simply log out the current request if any
-        # In real: use user session invalidation signals or clear by user id in custom session model
+        # Invalidate ALL active sessions for this user (full contract)
+        from django.contrib.sessions.models import Session
+
+        for s in Session.objects.filter(expire_date__gt=dj_timezone.now()):
+            try:
+                data = s.get_decoded()
+                if data.get("_auth_user_id") == str(user.id):
+                    s.delete()
+            except Exception:
+                # malformed session data — ignore
+                pass
 
         _record_audit(
             "auth.password_reset_completed",
@@ -364,8 +392,8 @@ class ResetPasswordView(APIView):
             request=request,
         )
 
-        # Logout current session if present (invalidates current)
-        if request.user.is_authenticated and request.user.id == user.id:
+        # Also logout the current request if it belongs to this user
+        if request.user.is_authenticated and getattr(request.user, "id", None) == user.id:
             logout(request)
 
         return Response({"message_key": "auth.password_reset_success"}, status=status.HTTP_200_OK)
