@@ -19,11 +19,9 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 
 ### Changed — Phase 04 Post-Merge Status Synchronization (docs-only, no code/test/dependency/workflow changes)
 
-- Recorded that PR [#8](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/8) merged into `main` on 2026-08-11T15:20:23Z at merge commit `dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, completing the Phase 04 post-merge frontend remediation.
-- Corrected stale pre-merge wording in `PROJECT_STATUS.md` and `PROJECT_CHECKLIST.md` that still described the remediation as awaiting PR review or in progress after it had merged.
-- Recorded remote verification that all nine `frontend/lib/` files are tracked on `main` (GitHub Contents API and `git ls-tree origin/main`) and that the broad `lib/` ignore rule remains with only the narrow `/frontend/lib/` exceptions.
-- Recorded that GitHub Actions remain inactive because `.github/workflows/` is absent from `main`; workflow activation is the next gated task via a separate PR (`.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` from the validated `infra/ci/` definitions), with visible remote check results as activation evidence.
-- Recorded that Phase 05 remains unstarted and awaits explicit founder authorization after CI activation review.
+- Recorded that PR #9 (docs synchronization, `arena/019ff171-coachos-fitness-coaching-platf`) merged into `main` on 2026-08-12T15:31:09Z at merge commit `0eae53b89343ec0a4eb1200086b769011012c406`, correcting tracking-document wording.
+- Recorded that PR #10 (`chore/activate-github-actions-manual`, open, unmerged, head `871c4f21c7f8e78dfef555916ffb5b939625af9e`) contains exactly `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml`, matching validated `infra/ci/` definitions; no deployment job or real secret exists; CI remains pending merge and remote GitHub check results.
+- Updated `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, and `docs/PROMPT_LOG.md` to reflect PR #9 merged, PR #10 open/unmerged, `.github/workflows/` files present on PR branch but absent from `main`, CI inactive, and Phase 05 unstarted and unauthorized.
 
 ## [0.4.0] — 2026-08-11 — Phase 04 Project Foundation and PWA Baseline
 

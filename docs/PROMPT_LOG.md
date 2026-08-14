@@ -171,3 +171,22 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
   - Updated `PROJECT_STATUS.md` (merged/complete status, closed P04-REMEDIATION risk, CI activation as next gated task, Phase 05 gate), `PROJECT_CHECKLIST.md` (remediation PR item completed with remote evidence, Phase 04 `[x]` complete, Phase 05 authorization gate), and `CHANGELOG.md` (post-merge status synchronization record).
   - Opened PR A — docs-only Phase 04 status synchronization: PR [#9](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/9) targeting `main` from `arena/019ff171-coachos-fitness-coaching-platf` (session branch delivering the requested `chore/close-phase04-remediation-status` work); left open for founder review; not merged.
   - Held GitHub Actions workflow activation (PR B) pending founder review and merge of PR A; did not start Phase 05.
+
+---
+
+## Prompt 011 — CI Activation PR Review (Manual Web-UI Branch)
+
+- **Date/time:** 2026-08-12 (UTC)
+- **Source:** Founder / supervising agent — manual CI activation via GitHub Web UI
+- **Phase:** 04 — CI Activation PR Review (`chore/activate-github-actions-manual`, PR #10)
+- **Prompt Summary:**
+  Review the manually created CI activation PR (`chore/activate-github-actions-manual`, PR #10, open, unmerged). Verify remote `.github/workflows/` paths against validated `infra/ci/` definitions. Update tracking docs with accurate pre-merge wording. Do not start Phase 05. Do not push workflow files through Arena App (lacks `Workflows: Read & Write` permission).
+- **Actions Taken:**
+  - Verified actual `main` SHA: `0eae53b89343ec0a4eb1200086b769011012c406` (PR #9 merge).
+  - Confirmed PR #10 (`chore/activate-github-actions-manual`, head `871c4f21c7f8e78dfef555916ffb5b939625af9e`) is open, unmerged, base `main`, URL: https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/10.
+  - Confirmed GitHub Contents API evidence: `.github/workflows/ci.yml` (sha `ad31cf7f...`) and `.github/workflows/security-scan.yml` (sha `4a69f252...`) both present on PR branch; both match `infra/ci/ci.yml` and `infra/ci/security-scan.yml` exactly (zero diff).
+  - Verified workflow content: PR targets `main`; push branches include `main`, `arena/**`, `phase/**`; Python 3.12 (`setup-python@v5`); Node 22 (`setup-node@v4`); npm cache uses `frontend/package-lock.json`; Ruff lint/format (`ruff check .`, `ruff format --check .`); backend Pytest (`pytest --cov=apps --cov=config --cov-report=term-missing`); frontend ESLint (`npm run lint`), TypeScript (`npm run type-check`), Vitest (`npm test`), production build (`npm run build`); secret scanning (`bash infra/scripts/check-secrets.sh`); no deployment job; no real secret.
+  - Verified no Phase 05 domain code added.
+  - Updated tracking docs (`PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`) with accurate pre-merge wording: PR #9 merged at `0eae53b...`; PR #10 open/unmerged; workflow files present on PR branch; CI pending merge + remote check evidence; Phase 05 unstarted and unauthorized.
+  - Left PR #10 open for founder review; did not merge automatically.
+  - Committed documentation updates to session branch `arena/019ff797-coachos-fitness-coaching-platf`.
