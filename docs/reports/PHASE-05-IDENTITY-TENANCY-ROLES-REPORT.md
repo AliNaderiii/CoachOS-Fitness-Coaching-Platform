@@ -134,11 +134,11 @@ No raw secrets, passwords, tokens, or health data in metadata. DB + ORM enforce 
 
 ## Frontend and Localization
 
-- Directories scaffolded for bilingual auth/onboarding flows
-- Existing `fa-IR`/`en-US` dictionaries and i18n foundation reused
-- RTL/LTR parity preserved
-- No Arabic added
-- Placeholder loading/error/empty states
+- Backend identity/tenancy foundation fully implemented and tested with bilingual settings (preferred_locale, etc.).
+- **Frontend bilingual registration/login/reset/organization/invitation UI is deferred** (no new frontend source files added in this phase; existing i18n dictionaries and locale engine are ready for future UI work).
+- RTL/LTR parity preserved at engine level.
+- No Arabic added.
+- Placeholder states documented as future work.
 
 ## API/OpenAPI Changes
 
