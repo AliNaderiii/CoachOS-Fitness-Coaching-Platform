@@ -130,6 +130,17 @@ class RegisterView(APIView):
                 preferred_locale=data.get("preferred_locale", "fa-IR"),
             )
 
+            # Registration audit must be inside the transaction for full atomicity
+            # (user + optional invitation binding + registration audit)
+            _record_audit(
+                "auth.registered",
+                actor=user,
+                target_type="User",
+                target_id=user.id,
+                metadata={"email_hash": hashlib.sha256(user.email.encode()).hexdigest()[:12]},
+                request=request,
+            )
+
             if inv_token and token_hash:
                 try:
                     # Lock invitation row (atomicity against concurrent accepts)
@@ -167,17 +178,8 @@ class RegisterView(APIView):
                     # Safe, non-enumerating behavior
                     pass
 
-        # Login (establishes session cookie) — outside the registration tx
+        # Login (establishes session cookie) — after the registration transaction commits
         login(request, user)
-
-        _record_audit(
-            "auth.registered",
-            actor=user,
-            target_type="User",
-            target_id=user.id,
-            metadata={"email_hash": hashlib.sha256(user.email.encode()).hexdigest()[:12]},
-            request=request,
-        )
 
         user_ser = UserSerializer(user)
         # Return real active memberships (minimal; full effective-permissions + active-org context deferred)

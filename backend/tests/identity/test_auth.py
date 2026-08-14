@@ -297,3 +297,84 @@ def test_register_with_invitation_is_atomic_rollback_on_membership_failure(api_c
     assert mem.status == "active"
     inv.refresh_from_db()
     assert inv.accepted_at is not None
+
+
+@pytest.mark.django_db
+def test_register_with_invitation_is_atomic_rollback_on_registration_audit_failure(api_client):
+    """When the 'auth.registered' audit write fails inside the transaction,
+    the entire registration (user + membership + invitation acceptance) rolls back.
+    """
+    import hashlib
+
+    from django.utils import timezone as dj_tz
+
+    from apps.audit.models import AuditEvent
+
+    # Owner creates org + invitation
+    api_client.post(
+        "/api/v1/auth/register",
+        {"email": "orgowner2@ex.com", "password": "SecurePass123!", "display_name": "Owner2"},
+        format="json",
+    )
+    create = api_client.post(
+        "/api/v1/organizations/", {"name": "AuditFailOrg", "slug": "auditfail"}, format="json"
+    )
+    assert create.status_code == 201
+    org_id = create.data["id"]
+    org = Organization.objects.get(id=org_id)
+
+    raw_token = "audit-fail-inv-token-12345678901234567890123456789012"
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    inv = Invitation.objects.create(
+        organization=org,
+        invited_by=org.owner_user,
+        email="auditfail@ex.com",
+        role="athlete",
+        token_hash=token_hash,
+        expires_at=dj_tz.now() + dj_tz.timedelta(days=1),
+    )
+
+    # Force the registration audit (auth.registered) to fail
+    original_create = AuditEvent.objects.create
+
+    def failing_audit_create(**kwargs):
+        if kwargs.get("action") == "auth.registered":
+            raise Exception("Simulated registration audit failure")
+        return original_create(**kwargs)
+
+    with patch("apps.audit.models.AuditEvent.objects.create", side_effect=failing_audit_create):
+        resp = api_client.post(
+            "/api/v1/auth/register",
+            {
+                "email": "auditfail@ex.com",
+                "password": "SecurePass123!",
+                "display_name": "AuditFail",
+                "invitation_token": raw_token,
+            },
+            format="json",
+        )
+        assert resp.status_code >= 400
+
+    # Full rollback: no user, invitation not accepted, no membership
+    assert not User.objects.filter(email="auditfail@ex.com").exists()
+    inv.refresh_from_db()
+    assert inv.accepted_at is None
+    assert not Membership.objects.filter(organization=org, user__email="auditfail@ex.com").exists()
+
+    # Happy path still works afterwards
+    resp2 = api_client.post(
+        "/api/v1/auth/register",
+        {
+            "email": "auditfail@ex.com",
+            "password": "SecurePass123!",
+            "display_name": "AuditFail",
+            "invitation_token": raw_token,
+        },
+        format="json",
+    )
+    assert resp2.status_code == 201
+    user = User.objects.get(email="auditfail@ex.com")
+    mem = Membership.objects.filter(user=user, organization=org, role="athlete").first()
+    assert mem is not None and mem.status == "active"
+    inv.refresh_from_db()
+    assert inv.accepted_at is not None
