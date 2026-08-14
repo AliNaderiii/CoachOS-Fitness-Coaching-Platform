@@ -1,10 +1,10 @@
 # Project Status — CoachOS
 
-**Last updated:** 2026-08-12 (UTC)
-**Current phase:** Phase 04 — Post-merge frontend reimplementation remediation (**merged and complete via PR #8**); docs synchronization PR #9 merged (`0eae53b...`); CI activation PR #10 (`chore/activate-github-actions-manual`) open and unmerged
-**Next step:** GitHub Actions workflow activation (PR #10 open; `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` present on branch `chore/activate-github-actions-manual` but CI still pending merge and remote check evidence); Phase 05 remains unstarted and unauthorized
-**Working branch:** `arena/019ff797-coachos-fitness-coaching-platf`
-**Base commit (main):** `0eae53b89343ec0a4eb1200086b769011012c406` (PR #9 merge — docs synchronization)
+**Last updated:** 2026-08-14 (UTC)
+**Current phase:** Phase 04 — **Complete**, including CI activation: remediation PR #8 merged, docs synchronization PR #9 merged, and CI activation PR #10 merged at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z); GitHub Actions workflows are active on remote `main` with both post-merge runs successful
+**Next step:** Phase 05 — Identity, Tenancy, and Roles remains **unstarted** and awaits explicit founder authorization; no Phase 05 implementation has been added
+**Working branch:** `arena/019fff00-coachos-fitness-coaching-platf`
+**Base commit (main):** `0855867cc85f56bb4b77c5f708db8e122ded6b81` (PR #10 merge — CI activation)
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
 **License:** Proprietary / All Rights Reserved (ADR-012 — Copyright (c) 2026 CoachOS Technologies / Ali Naderi)
 
@@ -12,7 +12,7 @@
 
 ## 1. One-Line Status
 
-The Phase 04 post-merge remediation is **merged and complete** via PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, 2026-08-11); docs synchronization PR #9 (`0eae53b89343ec0a4eb1200086b769011012c406`) is merged; CI activation PR #10 (`chore/activate-github-actions-manual`, head `871c4f21c7f8e78dfef555916ffb5b939625af9e`) is open and unmerged, with `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` present on the PR branch but CI still pending merge and remote check evidence. The files implement exact `fa-IR`/`en-US` locale governance, matching bilingual dictionaries, deterministic Jalali/Gregorian display, Persian normalization, Unicode BiDi isolation, public-only configuration validation, a foundation-only typed API client, and SSR-safe `/sw.js` registration, tracked through narrow `/frontend/lib/` exceptions inside the retained broad `lib/` ignore rule. The remediation is a founder-authorized specification-based reimplementation — not a restoration; provenance and corrections remain recorded in `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md` (original Phase 04 report unchanged). **Phase 05 remains unstarted and unauthorized.**
+The Phase 04 foundation and CI activation are **complete**: remediation PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, 2026-08-11) is merged; docs synchronization PR #9 (`0eae53b89343ec0a4eb1200086b769011012c406`, 2026-08-12) is merged; CI activation PR #10 (`chore/activate-github-actions-manual`) is **merged** into `main` at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z). Both canonical workflow files — `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` — are present on remote `main`, GitHub Actions workflows are active, and both post-merge workflow runs on the merge commit succeeded: **CoachOS CI Quality Gates** (run ID `31776895893`, conclusion `success`) and **Security & Vulnerability Scan** (run ID `31776896050`, conclusion `success`). The `frontend/lib/` files implement exact `fa-IR`/`en-US` locale governance, matching bilingual dictionaries, deterministic Jalali/Gregorian display, Persian normalization, Unicode BiDi isolation, public-only configuration validation, a foundation-only typed API client, and SSR-safe `/sw.js` registration, tracked through narrow `/frontend/lib/` exceptions inside the retained broad `lib/` ignore rule. The remediation is a founder-authorized specification-based reimplementation — not a restoration; provenance and corrections remain recorded in `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md` (original Phase 04 report unchanged). **Phase 05 remains unstarted, unauthorized, and awaits explicit founder authorization; no Phase 05 implementation has been added.**
 
 ---
 
@@ -32,7 +32,7 @@ The Phase 04 post-merge remediation is **merged and complete** via PR #8 (`dd7de
 | **Frontend CSP & Headers** | Environment-specific CSP (dev HMR vs production without `unsafe-eval`), object-src 'none', frame-ancestors 'none' | `security-headers.test.ts` (3 tests passing) |
 | **Error Handling & Security** | RFC 7807 Problem Details envelope with `message_key`, zero internal stack traces in client responses, log redaction, HttpOnly session cookie config | `test_errors.py`, `test_drf_exceptions.py`, `test_security_headers.py`, `test_secret_leakage.py` passing |
 | **Entity Identifiers** | Time-ordered UUIDv7 generator (`id_generator.py`) with validation | `test_uuidv7.py` passing; verified time-ordering trend |
-| **Local Quality-Gate Definitions** | `infra/ci/ci.yml`, `infra/ci/security-scan.yml`, `infra/scripts/check-secrets.sh` | Commands pass locally; GitHub Actions are not active and workflow activation requires a separate PR |
+| **CI Quality Gates (Active)** | `.github/workflows/ci.yml`, `.github/workflows/security-scan.yml` (canonical, on remote `main` via PR #10 merge `0855867c...`), mirrored definitions `infra/ci/ci.yml`, `infra/ci/security-scan.yml`, `infra/scripts/check-secrets.sh` | GitHub Actions active; post-merge runs on merge commit succeeded — CoachOS CI Quality Gates run `31776895893` (success), Security & Vulnerability Scan run `31776896050` (success) |
 | **License & IP** | Transitioned to Proprietary / All Rights Reserved notice in `LICENSE` and ADR-012 | `LICENSE` file updated; ADR-012 accepted per founder mandate |
 | **Hosting & Data Residency** | Comprehensive 10-dimension evaluation of PaaS, EU Cloud, Bare VPS, Dual-Region in `HOSTING_AND_DATA_RESIDENCY_DECISION.md` | Decision gate established; zero cloud credentials in Git |
 
@@ -61,15 +61,15 @@ The Phase 04 post-merge remediation is **merged and complete** via PR #8 (`dd7de
 | **TODO-CSP-001** | CSP Strict Nonce Migration | Low | Next.js development uses `'unsafe-inline'`; production eliminates `unsafe-eval`; migration to per-request cryptographic nonce planned before production pilot. |
 | **LEGAL** | Privacy Compliance (GDPR & Iran Data Residency) | High | Formal pre-DPIA documented; jurisdiction-specific legal review required before handling real production health telemetry. |
 | **P04-REMEDIATION** | Missing original `frontend/lib/` source | Low | **Closed — merged:** PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, 2026-08-11) merged the specification-based reimplementation; PR #9 (`0eae53b89343ec0a4eb1200086b769011012c406`, 2026-08-12) merged docs synchronization. All nine `frontend/lib/` files verified tracked on remote `main`. Provenance/correction record: `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`. |
-| **CI-ACTIVATION** | GitHub Actions not active | Medium | **Inactive — PR #10 open (`chore/activate-github-actions-manual`, head `871c4f21c7f8e78dfef555916ffb5b939625af9e`):** `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` present on the PR branch (verified via GitHub Contents API) and match validated `infra/ci/` definitions exactly; no deployment job or real secret exists; CI activation remains pending PR merge and visible remote GitHub check results; `infra/ci/` and `infra/scripts/copy-workflows.sh` alone are not activation evidence. Phase 05 stays unstarted and unauthorized. |
+| **CI-ACTIVATION** | GitHub Actions activation | — | **Closed — PR #10 merged:** PR #10 (`chore/activate-github-actions-manual`) merged into `main` at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z). `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` verified present on remote `main` (`git ls-tree origin/main`); GitHub Actions workflows are active; post-merge runs on the merge commit succeeded — CoachOS CI Quality Gates run ID `31776895893` (`success`) and Security & Vulnerability Scan run ID `31776896050` (`success`); no deployment job or real secret exists. Phase 05 stays unstarted and unauthorized. |
 
 ---
 
 ## 5. Next Step
 
-Execute the CI activation review sequence (Phase 05 stays gated):
+CI activation is complete; Phase 05 stays gated on explicit founder authorization:
 
-1. PR #9 (docs synchronization) is merged at `0eae53b89343ec0a4eb1200086b769011012c406`.
-2. PR #10 (`chore/activate-github-actions-manual`, open, unmerged) contains exactly `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` matching validated `infra/ci/` definitions; no deployment job or real secret exists. Leave it open for founder review; do not merge automatically.
-3. Treat CI as active only when PR #10 is merged, the workflow files exist on remote `main`, and real GitHub check results are visible and passing — file existence on an unmerged branch is not activation evidence.
-4. Do not start Phase 05 until: PR #10 is merged, workflow files are present on remote `main`, GitHub Actions checks are visible and passing, `PROJECT_STATUS.md` reflects that evidence, and the founder explicitly authorizes Phase 05.
+1. PR #9 (docs synchronization) is merged at `0eae53b89343ec0a4eb1200086b769011012c406` (2026-08-12).
+2. PR #10 (`chore/activate-github-actions-manual`) is **merged** into `main` at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z), adding exactly `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml`; no deployment job or real secret exists.
+3. CI is **active**: both workflow files exist on remote `main`, and real GitHub Actions runs on the merge commit are visible and passing — CoachOS CI Quality Gates (run ID `31776895893`, `success`) and Security & Vulnerability Scan (run ID `31776896050`, `success`).
+4. Phase 04 foundation and CI activation are complete. Phase 05 remains **unstarted** and awaits explicit founder authorization; no Phase 05 implementation has been added. Do not begin Phase 05 automatically.

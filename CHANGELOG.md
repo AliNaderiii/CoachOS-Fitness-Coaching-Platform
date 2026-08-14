@@ -7,6 +7,14 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 
 ## [Unreleased] — Phase 05 Identity, Tenancy, and Roles (awaiting founder authorization)
 
+### Changed — Post-Merge CI Activation Status Synchronization (docs-only, no code/test/dependency/workflow changes)
+
+- Recorded that CI activation PR #10 (`chore/activate-github-actions-manual`) **merged** into `main` at merge commit `0855867cc85f56bb4b77c5f708db8e122ded6b81` on 2026-08-14T06:36:42Z.
+- Recorded that both canonical workflow files — `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` — are present on remote `main` and GitHub Actions workflows are active.
+- Recorded both successful post-merge workflow runs on the merge commit: **CoachOS CI Quality Gates** run ID `31776895893` (conclusion `success`) and **Security & Vulnerability Scan** run ID `31776896050` (conclusion `success`).
+- Marked Phase 04 foundation and CI activation complete in `PROJECT_STATUS.md` and `PROJECT_CHECKLIST.md`; PR #8 and PR #9 remain merged as previously recorded.
+- Phase 05 remains unstarted and awaits explicit founder authorization; no Phase 05 implementation has been added. No workflow files, application source, tests, or dependencies were modified.
+
 ### Fixed — Phase 04 Post-Merge Frontend Reimplementation
 
 - Recorded that the nine `frontend/lib/` files documented by Phase 04 were absent from merged `main`, authoritative original source was unrecoverable, and the founder authorized a specification-based reimplementation. This is not described as restoration or original-source recovery.

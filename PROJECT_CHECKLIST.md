@@ -10,7 +10,7 @@
 | `[!]` | Blocked |
 | `[-]` | Deferred by decision |
 
-**Last updated:** 2026-08-12 (UTC)
+**Last updated:** 2026-08-14 (UTC)
 
 Evidence links point to repository paths, commits, or GitHub artifacts. Update after every meaningful task and at phase end.
 
@@ -99,7 +99,7 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Backend scaffold works (Django + DRF) — evidence: `backend/` Django 5.2 + DRF 3.18, 37 Pytest tests passing, middleware pipeline, RFC 7807 problem details
 - [x] PWA foundation (Manifest, installable shell, Service Worker) works — evidence: `frontend/public/manifest.json`, `frontend/public/sw.js`, `frontend/public/icons/`, `frontend/app/[locale]/offline/page.tsx`, `frontend/components/pwa/`
 - [x] Database and migrations work — evidence: PostgreSQL 16 connection config, initial foundation syncdb/migrations tested in test/dev
-- [!] GitHub Actions activation — PR #10 (`chore/activate-github-actions-manual`) open/unmerged: `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` present on branch and match validated `infra/ci/` definitions exactly; no deployment job or real secret exists; CI activation requires PR merge + visible remote GitHub check results; `infra/ci/` and `infra/scripts/copy-workflows.sh` alone are not activation evidence; Phase 05 stays gated until merge and check evidence
+- [x] GitHub Actions activation — evidence: PR #10 (`chore/activate-github-actions-manual`) **merged** into `main` at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z); `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` verified present on remote `main` (`git ls-tree origin/main`); GitHub Actions workflows active; post-merge runs on the merge commit succeeded — CoachOS CI Quality Gates run ID `31776895893` (conclusion `success`) and Security & Vulnerability Scan run ID `31776896050` (conclusion `success`); no deployment job or real secret exists
 - [x] Local lint/type/test commands work — evidence: Ruff lint + format (clean), ESLint (clean), TypeScript `tsc --noEmit` (clean), Pytest (37 passed), Vitest (49 passed)
 - [x] Health checks work — evidence: `GET /healthz` (200 OK liveness), `GET /readyz` (DB + Redis readiness), `GET /api/v1/meta` (public system metadata)
 - [x] Phase 04 report committed — evidence: `docs/reports/PHASE-04-FOUNDATION-REPORT.md`
@@ -110,9 +110,9 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Clean tracked-only validation completed — `npm ci`, frontend lint/type-check/49 tests/build, backend Ruff/37 tests, compliance/language/PWA scans, `git diff --check`, `git check-ignore`, and `git ls-files frontend/lib`
 - [x] Separate correction report committed — evidence: `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`; original report retained unchanged
 - [x] Post-merge remediation PR merged — evidence: PR [#8](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/8) merged into `main` on 2026-08-11T15:20:23Z at merge commit `dd7dea56945d96a6a2d595afb5154b6828c4e3b6`; all nine `frontend/lib/` files verified present and tracked on remote `main` via GitHub Contents API and `git ls-tree origin/main`; broad `lib/` ignore rule retained with only `/frontend/lib/` exceptions
-- [x] Post-merge status synchronization PR #9 merged (`0eae53b...`, 2026-08-12); CI activation PR #10 (`chore/activate-github-actions-manual`) open and unmerged; `.github/workflows/` files present on PR branch (`ci.yml`, `security-scan.yml`) matching `infra/ci/` exactly; CI still pending merge and remote check evidence; Phase 05 remains unstarted and unauthorized
+- [x] Post-merge status synchronization PR #9 merged (`0eae53b...`, 2026-08-12); CI activation PR #10 (`chore/activate-github-actions-manual`) **merged** at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z); `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` present on remote `main`; GitHub Actions active with successful post-merge runs (`31776895893`, `31776896050`); Phase 05 remains unstarted and unauthorized
 
-**Phase 04 status:** `[x]` Complete — original foundation merged via PR #7; post-merge frontend remediation merged via PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`) on 2026-08-11; docs synchronization PR #9 (`0eae53b89343ec0a4eb1200086b769011012c406`) merged 2026-08-12; CI activation PR #10 (`chore/activate-github-actions-manual`, head `871c4f21c7f8e78dfef555916ffb5b939625af9e`) open and unmerged (workflows present on branch, CI pending merge + remote check evidence); Phase 05 stays unstarted and unauthorized
+**Phase 04 status:** `[x]` Complete — original foundation merged via PR #7; post-merge frontend remediation merged via PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`) on 2026-08-11; docs synchronization PR #9 (`0eae53b89343ec0a4eb1200086b769011012c406`) merged 2026-08-12; CI activation PR #10 (`chore/activate-github-actions-manual`) merged at `0855867cc85f56bb4b77c5f708db8e122ded6b81` on 2026-08-14 with both workflows on remote `main` and successful post-merge runs (CoachOS CI Quality Gates `31776895893` success, Security & Vulnerability Scan `31776896050` success); Phase 05 stays unstarted and unauthorized
 
 ---
 
@@ -127,7 +127,7 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [ ] Persian/English settings work
 - [ ] Phase 05 report committed
 
-**Phase 05 status:** `[ ]` Not started — awaits explicit founder authorization after CI activation: PR #10 (`chore/activate-github-actions-manual`) must merge, `.github/workflows/` must exist on remote `main`, and visible passing GitHub check results must be present; no Phase 05 code added
+**Phase 05 status:** `[ ]` Not started — CI activation prerequisites are now satisfied (PR #10 merged at `0855867c...`, workflows on remote `main`, passing GitHub Actions runs `31776895893` and `31776896050`); Phase 05 still awaits explicit founder authorization; no Phase 05 implementation has been added
 
 ---
 
