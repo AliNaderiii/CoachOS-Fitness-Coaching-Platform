@@ -3,9 +3,9 @@
 **Date:** 2026-08-14  
 **Base SHA:** `86503b3930192dd46de7ce500384c246d236fcd4`  
 **Branch:** `arena/019fffa4-coachos-fitness-coaching-platf`  
-**Head SHA:** pending final commit  
+**Validated implementation SHA:** `059471b51c47e201b1b3053f9721d572041655fd`  
 **Pull request:** pending Stage 9 publication  
-**Status:** Gates 0–8 passed locally; Stage 9 publication/check verification pending. Phase 06 is **not merged and not declared complete**.
+**Status:** Gates 0–8 and isolated-checkout validation passed; Stage 9 remote publication/check verification pending. Phase 06 is **not merged and not declared complete**.
 
 ## 1. Safe recovery evidence
 
@@ -32,7 +32,7 @@ No interrupted Phase 06 diff, report, Stage 0 plan, app, migration, test, or Sta
 | 6 — API/authz/tenancy | Pass | Active owner/coach controls, athlete/suspended denial, canonical+current tenant visibility, cross-tenant 404/403, owner/linked-coach assignment policy, bounded-query tests. |
 | 7 — frontend | Pass | Coach/owner responsive dual-pane workspace, bilingual catalog filtering, normalized Persian search, prescription controls, keyboard reorder alternatives, dictionaries/tests; clean `npm ci`, lint, type-check, 56 tests, build. |
 | 8 — adversarial review | Pass with documented deferrals | Targeted 8-test negative suite passed; secret/language scanner passed; `npm audit` and `pip-audit` found zero known vulnerabilities; media/query/localization/accessibility targets reviewed below. |
-| 9 — docs/clean validation/PR/checks | In progress | Tracking/report prepared; commit, isolated-checkout rerun, push, PR, and remote Actions verification remain pending at this report revision. |
+| 9 — docs/clean validation/PR/checks | In progress | Tracking/report committed and SHA `059471b5…` passed a fresh isolated clone validation; push, PR, and remote Actions verification remain pending at this report revision. |
 
 ## 3. Delivered behavior
 
@@ -118,6 +118,10 @@ npm audit           -> found 0 vulnerabilities
 ```
 
 The Vite runner emits a non-failing forward-compatibility notice about native config loading; it does not affect test results.
+
+### Isolated clean-checkout-equivalent validation
+
+A fresh clone of commit `059471b51c47e201b1b3053f9721d572041655fd` was created at `/tmp/coachos-phase06-validation` with no copied dependency directories. A new Python virtual environment and `npm ci` install were used. Backend Ruff/format/check/migration drift/69 tests, frontend lint/type/56 tests/build/`npm audit`, and the repository compliance scanner all passed; final clone status was clean.
 
 ## 7. Stage 8 adversarial review
 
