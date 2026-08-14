@@ -294,12 +294,16 @@ class AcceptInvitationView(APIView):
             if user.email.lower() != inv.email.lower():
                 return Response(status=status.HTTP_403_FORBIDDEN)
 
-            Membership.objects.get_or_create(
+            # Correctly transition invited->active or create as active
+            membership, created = Membership.objects.get_or_create(
                 user=user,
                 organization=inv.organization,
                 role=inv.role,
                 defaults={"status": "active"},
             )
+            if not created and membership.status != "active":
+                membership.status = "active"
+                membership.save(update_fields=["status"])
             inv.accepted_at = timezone.now()
             inv.save()
 
@@ -329,17 +333,14 @@ class MemberListView(APIView):
         if not active_mem:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
-        # Role-based visibility per Phase 05 contract
+        # Role-based visibility per Phase 05 contract (assignment model deferred)
         role = active_mem.role
         if role == "owner":
             members = Membership.objects.filter(organization=org)
         elif role == "coach":
-            # Coach sees self + athletes assigned to them (via future CoachAthleteAssignment)
-            # For Phase 05 we return self + any athlete memberships for simplicity
-            # (real assignment check can be added when CoachAthleteAssignment is introduced)
-            members = Membership.objects.filter(organization=org).filter(
-                user=request.user
-            ) | Membership.objects.filter(organization=org, role="athlete")
+            # Until CoachAthleteAssignment exists, coach sees ONLY their own membership.
+            # This prevents over-exposure of all athletes. Assignment relation deferred.
+            members = Membership.objects.filter(organization=org, user=request.user)
         elif role == "athlete":
             members = Membership.objects.filter(organization=org, user=request.user)
         else:
@@ -368,6 +369,28 @@ class MembershipUpdateView(APIView):
 
         new_status = request.data.get("status")
         if new_status in dict(Membership.STATUS_CHOICES):
+            # Enforce owner invariant: the sole active owner cannot be suspended/archived
+            # (ownership transfer is explicitly deferred for this phase)
+            if (
+                mem.role == "owner"
+                and mem.status == "active"
+                and new_status in ("suspended", "archived")
+            ):
+                active_owner_count = Membership.objects.filter(
+                    organization=org, role="owner", status="active"
+                ).count()
+                if active_owner_count <= 1:
+                    return Response(
+                        {
+                            "type": "https://errors.coachos.io/conflict",
+                            "title": "Conflict",
+                            "status": 409,
+                            "detail": "Cannot suspend or archive the only active owner. Ownership transfer is deferred.",
+                            "message_key": "membership.owner_transfer_required",
+                        },
+                        status=status.HTTP_409_CONFLICT,
+                    )
+
             old = mem.status
             mem.status = new_status
             mem.save()

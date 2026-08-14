@@ -6,6 +6,7 @@ import hashlib
 import secrets
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.core.cache import cache
 from django.utils import timezone as dj_timezone
@@ -25,6 +26,10 @@ from .serializers import (
     UpdateMeSerializer,
     UserSerializer,
 )
+
+# Test-only seam for capturing raw reset tokens (never used in prod; raw tokens never returned in responses/logs/audit)
+# Only populated when settings.TEST_CAPTURE_RESET_TOKENS is truthy
+_captured_reset_tokens = []  # module level list for test access (cleared between tests)
 
 # For invitation acceptance during registration (cross-app)
 try:
@@ -128,13 +133,16 @@ class RegisterView(APIView):
                     # email mismatch → do not bind
                     pass
                 else:
-                    # atomic bind
-                    Membership.objects.get_or_create(
+                    # atomic bind + update status if previously invited
+                    membership, created = Membership.objects.get_or_create(
                         user=user,
                         organization=inv.organization,
                         role=inv.role,
                         defaults={"status": "active"},
                     )
+                    if not created and membership.status != "active":
+                        membership.status = "active"
+                        membership.save(update_fields=["status"])
                     inv.accepted_at = dj_timezone.now()
                     inv.save()
                     _record_audit(
@@ -147,10 +155,8 @@ class RegisterView(APIView):
                     )
             except Invitation.DoesNotExist:
                 pass  # safe, non-enumerating
-            except Exception:
-                # unexpected error — do not swallow silently for auditability
-                # log would happen at middleware level; do not create membership
-                pass
+            # Do NOT swallow broad Exception — unexpected DB/runtime errors will surface
+            # (DRF exception handler + logging will record; no membership created on failure)
 
         # Login (establishes session cookie)
         login(request, user)
@@ -165,9 +171,17 @@ class RegisterView(APIView):
         )
 
         user_ser = UserSerializer(user)
+        # Return real active memberships for this user (minimal; full effective_permissions context deferred)
+        memberships = []
+        if Membership:
+            memberships = list(
+                Membership.objects.filter(user=user, status="active").values(
+                    "id", "organization_id", "role", "status"
+                )
+            )
         resp = {
             "user": user_ser.data,
-            "memberships": [],
+            "memberships": memberships,
             "csrf_token": request.META.get("CSRF_COOKIE", None),
         }
         return Response(resp, status=status.HTTP_201_CREATED)
@@ -229,9 +243,17 @@ class LoginView(APIView):
         )
 
         user_ser = UserSerializer(user)
+        # Return real active memberships (minimal implementation; full effective-permissions + active-org deferred)
+        memberships = []
+        if Membership:
+            memberships = list(
+                Membership.objects.filter(user=user, status="active").values(
+                    "id", "organization_id", "role", "status"
+                )
+            )
         resp = {
             "user": user_ser.data,
-            "memberships": [],
+            "memberships": memberships,
         }
         return Response(resp, status=status.HTTP_200_OK)
 
@@ -248,8 +270,15 @@ class MeView(APIView):
     def get(self, request):
         user = request.user
         ser = UserSerializer(user)
-        # Placeholder memberships until full org implementation
-        data = {"user": ser.data, "memberships": []}
+        # Return real active memberships (minimal; full effective-permissions + active-org context deferred to later phase)
+        memberships = []
+        if Membership:
+            memberships = list(
+                Membership.objects.filter(user=user, status="active").values(
+                    "id", "organization_id", "role", "status"
+                )
+            )
+        data = {"user": ser.data, "memberships": memberships}
         return Response(data)
 
     def patch(self, request):
@@ -304,6 +333,15 @@ class ForgotPasswordView(APIView):
                 request=request,
             )
             # Development adapter: do not send real email. Token would be in outbox in prod.
+
+            # Test seam ONLY (never in prod responses/logs/audit)
+            if getattr(settings, "TEST_CAPTURE_RESET_TOKENS", False):
+                # Attach to request for test access (safe, scoped to test request)
+                if not hasattr(request, "_captured_reset_tokens"):
+                    request._captured_reset_tokens = []
+                request._captured_reset_tokens.append(raw_token)
+                # Also append to module-level for robust test access across APIClient instances
+                _captured_reset_tokens.append(raw_token)
         except User.DoesNotExist:
             pass  # non-enumerating
 

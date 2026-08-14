@@ -28,3 +28,7 @@ PASSWORD_HASHERS = [
 # Disable CSRF for API test client where needed
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
+
+# Enable test seam to capture raw reset tokens so actual forgot-password path is exercised
+# (raw token never appears in prod responses/logs/audit)
+TEST_CAPTURE_RESET_TOKENS = True
