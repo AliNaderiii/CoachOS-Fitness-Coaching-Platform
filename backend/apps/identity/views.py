@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.models import AuditEvent
+from apps.organizations.models import Invitation, Membership
 
 from .models import PasswordResetToken
 from .serializers import (
@@ -30,13 +31,6 @@ from .serializers import (
 # Test-only seam for capturing raw reset tokens (never used in prod; raw tokens never returned in responses/logs/audit)
 # Only populated when settings.TEST_CAPTURE_RESET_TOKENS is truthy
 _captured_reset_tokens = []  # module level list for test access (cleared between tests)
-
-# For invitation acceptance during registration (cross-app)
-try:
-    from apps.organizations.models import Invitation, Membership
-except Exception:
-    Invitation = None
-    Membership = None
 
 User = get_user_model()
 
@@ -122,7 +116,7 @@ class RegisterView(APIView):
 
         # Support invitation_token during registration (binds membership)
         inv_token = data.get("invitation_token")
-        if inv_token and Invitation and Membership:
+        if inv_token:
             token_hash = hashlib.sha256(inv_token.encode()).hexdigest()
             try:
                 inv = Invitation.objects.get(token_hash=token_hash, accepted_at__isnull=True)
@@ -171,14 +165,12 @@ class RegisterView(APIView):
         )
 
         user_ser = UserSerializer(user)
-        # Return real active memberships for this user (minimal; full effective_permissions context deferred)
-        memberships = []
-        if Membership:
-            memberships = list(
-                Membership.objects.filter(user=user, status="active").values(
-                    "id", "organization_id", "role", "status"
-                )
+        # Return real active memberships (minimal; full effective-permissions + active-org context deferred)
+        memberships = list(
+            Membership.objects.filter(user=user, status="active").values(
+                "id", "organization_id", "role", "status"
             )
+        )
         resp = {
             "user": user_ser.data,
             "memberships": memberships,
@@ -243,14 +235,12 @@ class LoginView(APIView):
         )
 
         user_ser = UserSerializer(user)
-        # Return real active memberships (minimal implementation; full effective-permissions + active-org deferred)
-        memberships = []
-        if Membership:
-            memberships = list(
-                Membership.objects.filter(user=user, status="active").values(
-                    "id", "organization_id", "role", "status"
-                )
+        # Return minimal active memberships (effective-permissions + active-org context deferred)
+        memberships = list(
+            Membership.objects.filter(user=user, status="active").values(
+                "id", "organization_id", "role", "status"
             )
+        )
         resp = {
             "user": user_ser.data,
             "memberships": memberships,
@@ -270,14 +260,12 @@ class MeView(APIView):
     def get(self, request):
         user = request.user
         ser = UserSerializer(user)
-        # Return real active memberships (minimal; full effective-permissions + active-org context deferred to later phase)
-        memberships = []
-        if Membership:
-            memberships = list(
-                Membership.objects.filter(user=user, status="active").values(
-                    "id", "organization_id", "role", "status"
-                )
+        # Return minimal active memberships (effective-permissions + active-org context deferred)
+        memberships = list(
+            Membership.objects.filter(user=user, status="active").values(
+                "id", "organization_id", "role", "status"
             )
+        )
         data = {"user": ser.data, "memberships": memberships}
         return Response(data)
 

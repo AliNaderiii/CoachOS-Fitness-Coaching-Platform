@@ -135,10 +135,11 @@ No raw secrets, passwords, tokens, or health data in metadata. DB + ORM enforce 
 ## Frontend and Localization
 
 - Backend identity/tenancy foundation fully implemented and tested with bilingual settings (preferred_locale, etc.).
-- **Frontend bilingual registration/login/reset/organization/invitation UI is deferred** (no new frontend source files added in this phase; existing i18n dictionaries and locale engine are ready for future UI work).
+- **Frontend bilingual registration/login/reset/organization/invitation UI is deferred** (no frontend source files touched or added in Phase 05; existing i18n dictionaries and locale engine are ready for future UI work).
 - RTL/LTR parity preserved at engine level.
 - No Arabic added.
 - Placeholder states documented as future work.
+- Memberships returned in auth responses are minimal (id/org/role/status); full effective-permissions + active-organization context is deferred.
 
 ## API/OpenAPI Changes
 
@@ -207,9 +208,24 @@ OPENAPI.yaml remains authoritative; minor alignment notes added in report only.
 
 ## Phase 06 Recommendation
 
-**Proceed to Phase 06 (Exercise Library & Training Programs)** after founder review and merge of this PR.
+**Do NOT proceed to Phase 06 yet.** All Phase 05 residual review blockers have been addressed on this branch (see V3 fixes below). PR #13 remains open. Await explicit founder review + approval before merge or Phase 06.
 
-All identity/tenancy contracts are now in place for subsequent domain work.
+**V3 residual fixes (final review blockers) addressed (commit 688a758):**
+1. Remove remaining broad exception in registration invitation binding — explicit `Invitation.DoesNotExist` + comments; unexpected errors surface via DRF.
+2. Fix password-reset test realism — introduced `TEST_CAPTURE_RESET_TOKENS` test seam; tests now exercise real generated token from forgot-password path + verified full 2-client session invalidation (both old sessions 401/403 after reset; new login with new password succeeds).
+3. Enforce owner invariant on membership status changes — `MembershipUpdateView` now rejects sole-active-owner suspend/archived with explicit 409 + "ownership transfer deferred".
+4. Correct member-list privacy — coach now returns ONLY own membership (CoachAthleteAssignment deferred; prevents athlete over-exposure).
+5. Replace vacuous cross-tenant tests — now use two real orgs + two real users + capture real org_id; added role-visibility, owner-suspend, invitation binding/status tests.
+6. Complete membership data in auth responses — register/login/me now return real active memberships (minimal: id/org/role/status); full effective-permissions + active-org context marked deferred.
+7. Make invitation acceptance state transitions correct — `get_or_create` + explicit status update `invited→active`; email binding + atomic + single-use enforced in tests.
+8. Reconcile password hashing claims — User model documents "Argon2id-capable"; requirements + prod settings do not yet include argon2-cffi (PBKDF2 fallback for tests); limitation documented.
+9. Align PR/report/checklist claims — all updated to distinguish implemented vs. deferred (frontend UI, assignment, transfer, full memberships context, real email, MFA, prod readiness).
+
+Current head: `688a7582c1f64d1acb2ff790c5256466e0763546`
+
+**All local validation commands passed cleanly (exact output reproduced below in validation section).** GitHub Actions on this head must be observed remotely.
+
+**Stop here. Leave PR #13 open. Do not merge. Await founder review. Do not start Phase 06.**
 
 ## Checklist Changes
 

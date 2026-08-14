@@ -222,6 +222,13 @@ class InvitationListCreateView(APIView):
                 {"detail": "Coach may only invite athletes"}, status=status.HTTP_403_FORBIDDEN
             )
 
+        # Owner may not invite another owner (enforce exactly-one active owner invariant)
+        if mem.role == "owner" and d["role"] == "owner":
+            return Response(
+                {"detail": "Owner role may not be invited; ownership transfer is deferred"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         raw_token = secrets.token_urlsafe(48)
         token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
 
@@ -278,23 +285,30 @@ class AcceptInvitationView(APIView):
         if inv.is_used or inv.is_expired:
             return Response(status=status.HTTP_410_GONE)
 
-        # Create / activate membership (transactional)
+        # Atomic acceptance with row lock to prevent concurrent double-accept
         from django.db import transaction
 
         with transaction.atomic():
+            # Lock the invitation row
+            inv = Invitation.objects.select_for_update().get(pk=inv.pk)
+
+            # Re-check after lock (race condition defense)
+            if inv.is_used or inv.is_expired:
+                return Response(status=status.HTTP_410_GONE)
+
             user = request.user if request.user.is_authenticated else None
             if not user:
-                # unauthenticated must go through register flow with token
                 return Response(
                     {"detail": "Must be authenticated or register first"},
                     status=status.HTTP_401_UNAUTHORIZED,
                 )
 
-            # Enforce email match for authenticated acceptance (security)
             if user.email.lower() != inv.email.lower():
                 return Response(status=status.HTTP_403_FORBIDDEN)
 
-            # Correctly transition invited->active or create as active
+            # Verify role/org consistency from server-side invitation
+            # (already enforced by token lookup)
+
             membership, created = Membership.objects.get_or_create(
                 user=user,
                 organization=inv.organization,
@@ -304,6 +318,7 @@ class AcceptInvitationView(APIView):
             if not created and membership.status != "active":
                 membership.status = "active"
                 membership.save(update_fields=["status"])
+
             inv.accepted_at = timezone.now()
             inv.save()
 

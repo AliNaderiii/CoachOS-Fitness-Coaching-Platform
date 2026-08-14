@@ -110,6 +110,14 @@ class Membership(models.Model):
         verbose_name = "membership"
         verbose_name_plural = "memberships"
         unique_together = [("user", "organization", "role")]
+        constraints = [
+            # Exactly one active owner per organization (DB invariant)
+            models.UniqueConstraint(
+                fields=["organization"],
+                condition=models.Q(role="owner", status="active"),
+                name="unique_active_owner_per_org",
+            ),
+        ]
         indexes = [
             models.Index(fields=["user", "organization"]),
             models.Index(fields=["organization", "role", "status"]),

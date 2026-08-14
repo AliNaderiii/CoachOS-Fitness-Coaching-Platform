@@ -1,8 +1,5 @@
-import hashlib
-
 import pytest
 from django.contrib.auth import get_user_model
-from django.utils import timezone as dj_timezone
 
 from apps.identity.models import PasswordResetToken
 
@@ -23,6 +20,9 @@ def test_register_creates_user_and_session(api_client):
     assert "user" in resp.data
     assert resp.data["user"]["email"] == "coach.reza@example.com"
     assert User.objects.filter(email="coach.reza@example.com").exists()
+    # Minimal memberships returned (full effective-permissions + active-org context deferred)
+    assert "memberships" in resp.data
+    assert isinstance(resp.data["memberships"], list)
 
 
 @pytest.mark.django_db
@@ -64,6 +64,11 @@ def test_forgot_password_non_enumerating(api_client):
 
 @pytest.mark.django_db
 def test_password_reset_full_lifecycle(api_client):
+    from apps.identity import views as identity_views
+
+    # Clear capture deterministically
+    identity_views._captured_reset_tokens.clear()
+
     # Register user
     api_client.post(
         "/api/v1/auth/register",
@@ -76,49 +81,25 @@ def test_password_reset_full_lifecycle(api_client):
     )
     user = User.objects.get(email="resetuser@example.com")
 
-    # Request reset — use test seam to capture the actual generated token
+    # Request reset using real forgot-password path (exercises token generation)
     resp = api_client.post(
         "/api/v1/auth/forgot-password", {"email": "resetuser@example.com"}, format="json"
     )
     assert resp.status_code == 202
 
-    # Capture the real generated token via test seam (never exposed in prod)
-    raw = None
-    try:
-        wsgi_req = getattr(resp, "wsgi_request", None)
-        if (
-            wsgi_req
-            and hasattr(wsgi_req, "_captured_reset_tokens")
-            and wsgi_req._captured_reset_tokens
-        ):
-            raw = wsgi_req._captured_reset_tokens[-1]
-    except Exception:
-        pass
+    # Deterministic capture seam: exactly one token must have been generated
+    assert len(identity_views._captured_reset_tokens) == 1, (
+        "Exactly one reset token must be captured from forgot-password"
+    )
+    raw = identity_views._captured_reset_tokens[-1]
+    assert raw is not None and len(raw) > 20  # cryptographically sized
 
-    if not raw:
-        # Fallback: query the latest valid token for the user (safe in test)
-        latest = (
-            PasswordResetToken.objects.filter(user=user, used_at__isnull=True)
-            .order_by("-created_at")
-            .first()
-        )
-        if latest:
-            pass  # token exists, but we need matching raw
-    if not raw:
-        # Ultimate fallback (rare): create matching one
-        raw = "testtoken12345678901234567890123456789012345678"
-        th = hashlib.sha256(raw.encode()).hexdigest()
-        PasswordResetToken.objects.create(
-            user=user,
-            token_hash=th,
-            expires_at=dj_timezone.now() + dj_timezone.timedelta(minutes=15),
-        )
-
-    # Valid reset using real generated token
+    # Valid reset using the *captured* generated token (no manufactured tokens)
     resp = api_client.post(
         f"/api/v1/auth/reset-password/{raw}", {"new_password": "NewSecurePass456!"}, format="json"
     )
     assert resp.status_code == 200
+
     # Verify token was marked used
     prt = (
         PasswordResetToken.objects.filter(user=user, used_at__isnull=False)
@@ -141,6 +122,9 @@ def test_password_reset_full_lifecycle(api_client):
     )
     assert resp.status_code == 400
 
+    # Cleanup
+    identity_views._captured_reset_tokens.clear()
+
 
 @pytest.mark.django_db
 def test_logout_invalidates_session(api_client):
@@ -159,15 +143,12 @@ def test_logout_invalidates_session(api_client):
 
 @pytest.mark.django_db
 def test_password_reset_invalidates_all_sessions(api_client):
-    from datetime import timedelta as py_timedelta
 
-    from django.utils import timezone as dj_tz
     from rest_framework.test import APIClient
 
     from apps.identity import views as identity_views
-    from apps.identity.models import PasswordResetToken
 
-    # Clear any prior captured tokens for this test run
+    # Clear deterministically
     identity_views._captured_reset_tokens.clear()
 
     # Register user (establishes first session)
@@ -176,7 +157,6 @@ def test_password_reset_invalidates_all_sessions(api_client):
         {"email": "multi@example.com", "password": "SecurePass123!", "display_name": "Multi"},
         format="json",
     )
-    user = User.objects.get(email="multi@example.com")
 
     # Create second client (second session) and login
     client2 = APIClient()
@@ -199,30 +179,14 @@ def test_password_reset_invalidates_all_sessions(api_client):
     )
     assert resp_fp.status_code == 202
 
-    # Retrieve the REAL token that was generated via the test seam
-    raw = None
-    if identity_views._captured_reset_tokens:
-        raw = identity_views._captured_reset_tokens[-1]
-    if not raw:
-        # Last-resort: use latest un-used token hash and create matching raw (only for test)
-        latest = (
-            PasswordResetToken.objects.filter(user=user, used_at__isnull=True)
-            .order_by("-created_at")
-            .first()
-        )
-        if latest:
-            raw = "multisession-fallback-raw-should-not-happen"
-            th = hashlib.sha256(raw.encode()).hexdigest()
-            # ensure it exists
-            if not PasswordResetToken.objects.filter(token_hash=th).exists():
-                PasswordResetToken.objects.create(
-                    user=user,
-                    token_hash=th,
-                    expires_at=dj_tz.now() + py_timedelta(minutes=15),
-                )
-    assert raw is not None, "Real reset token must be captured from forgot-password path"
+    # Deterministic: assert exactly one captured token
+    assert len(identity_views._captured_reset_tokens) == 1, (
+        "Exactly one reset token must be captured"
+    )
+    raw = identity_views._captured_reset_tokens[-1]
+    assert raw is not None
 
-    # Perform reset using the real token
+    # Perform reset using the captured (real generated) token only
     resp = api_client.post(
         f"/api/v1/auth/reset-password/{raw}", {"new_password": "NewSecurePass999!"}, format="json"
     )
@@ -245,5 +209,5 @@ def test_password_reset_invalidates_all_sessions(api_client):
     me_new = new_client.get("/api/v1/auth/me")
     assert me_new.status_code == 200
 
-    # Cleanup captured list
+    # Cleanup
     identity_views._captured_reset_tokens.clear()

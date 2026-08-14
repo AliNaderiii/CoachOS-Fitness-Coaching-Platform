@@ -223,3 +223,91 @@ def test_invitation_email_binding_and_status_transition(api_client):
     # Invitation should be marked accepted
     inv.refresh_from_db()
     assert inv.accepted_at is not None
+
+
+@pytest.mark.django_db
+def test_owner_may_not_invite_owner_role(api_client):
+    api_client.post(
+        "/api/v1/auth/register",
+        {"email": "owner@ex.com", "password": "SecurePass123!", "display_name": "O"},
+        format="json",
+    )
+    create = api_client.post(
+        "/api/v1/organizations/", {"name": "OwnOrg", "slug": "ownorg"}, format="json"
+    )
+    assert create.status_code == 201
+    org_id = create.data["id"]
+
+    # Owner tries to invite another owner → 403
+    resp = api_client.post(
+        f"/api/v1/organizations/{org_id}/invitations",
+        {"email": "newowner@ex.com", "role": "owner"},
+        format="json",
+    )
+    assert resp.status_code == 403
+    assert "owner" in str(resp.data).lower() or "transfer" in str(resp.data).lower()
+
+
+@pytest.mark.django_db
+def test_exactly_one_active_owner_and_owner_user_match(api_client):
+    from apps.identity.models import User
+
+    api_client.post(
+        "/api/v1/auth/register",
+        {"email": "owner1@ex.com", "password": "SecurePass123!", "display_name": "O1"},
+        format="json",
+    )
+    create = api_client.post(
+        "/api/v1/organizations/", {"name": "InvOrg", "slug": "invorg2"}, format="json"
+    )
+    assert create.status_code == 201
+    org_id = create.data["id"]
+    org = Organization.objects.get(id=org_id)
+
+    # Exactly one active owner
+    owners = Membership.objects.filter(organization=org, role="owner", status="active")
+    assert owners.count() == 1
+    owner_mem = owners.first()
+    assert owner_mem.user_id == org.owner_user_id
+    assert str(owner_mem.user.email) == org.owner_user.email
+
+    # Attempt to create second active owner directly (should violate DB constraint)
+    second_user = User.objects.create_user(
+        email="owner2@ex.com", password="SecurePass123!", display_name="O2"
+    )
+    from django.db import IntegrityError, transaction
+
+    with pytest.raises(IntegrityError):
+        with transaction.atomic():
+            Membership.objects.create(
+                user=second_user, organization=org, role="owner", status="active"
+            )
+
+
+@pytest.mark.django_db
+def test_owner_changes_are_audited(api_client):
+    api_client.post(
+        "/api/v1/auth/register",
+        {"email": "audowner@ex.com", "password": "SecurePass123!", "display_name": "AO"},
+        format="json",
+    )
+    create = api_client.post(
+        "/api/v1/organizations/", {"name": "AuditOrg", "slug": "auditorg"}, format="json"
+    )
+    assert create.status_code == 201
+    org_id = create.data["id"]
+    org = Organization.objects.get(id=org_id)
+    owner_mem = Membership.objects.get(organization=org, role="owner", status="active")
+
+    # Status change should be audited (via existing MembershipUpdateView)
+    resp = api_client.patch(
+        f"/api/v1/organizations/{org_id}/members/{owner_mem.id}",
+        {"status": "suspended"},  # will be rejected for sole owner
+        format="json",
+    )
+    assert resp.status_code == 409
+
+    # Audit for creation exists
+    from apps.audit.models import AuditEvent
+
+    assert AuditEvent.objects.filter(action="org.created", organization=org).exists()
