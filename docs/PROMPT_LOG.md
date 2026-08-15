@@ -296,4 +296,30 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
 - **Implementation:** Chose preferred API integration. Removed hardcoded exercise catalog and local-only save. Workspace loads organizations from the authenticated cookie session, calls `listExercises` with search/equipment/locale, calls `createProgram` with the current hierarchy, and renders loading/empty/error/unauthorized/retry/saving/success/failure states. Added mocked API integration tests.
 - **Contract:** Updated OpenAPI 3.1 for 13 actual Phase 06 operations and serializer-aligned schemas, cookie-session/CSRF, RFC 7807, tenant authorization, media rights, and immutable snapshots. Marked Phase 07+ paths planned. Spec validates and all 191 local refs resolve.
 - **Backend review:** Added cross-tenant private detail/org mutation, foreign private exercise in program, and multi-role owner precedence tests; corrected assignment effective-role union. Backend 72 tests; frontend 59 tests/lint/type/build pass locally.
-- **State:** Fresh isolated clone of `de08e47d…` passes all required backend/frontend commands, OpenAPI validation, compliance, and clean status. Final Actions runs `31880019393`, `31880019224`, and `31880015763` pass. PR #15 remains open/unmerged; no Phase 07 or Arabic additions.
+- **State:** Fresh isolated clone of `de08e47d…` passes all required backend/frontend commands, OpenAPI validation, compliance, and clean status. Final Actions runs `31880019393`, `31880019224`, and `31880015763` pass. At this review revision PR #15 remained open/unmerged; it subsequently merged as recorded below. No Phase 07 or Arabic additions.
+
+---
+
+## Post-Phase-06 Merge Record
+
+- **Date/time:** 2026-08-15T13:47:52Z (UTC)
+- **Action:** Pull Request [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) (`feat(phase-06): exercise library and training programs`, head `arena/019fffa4-coachos-fitness-coaching-platf`) merged into `main` at merge commit `9e09c4785283ffd688e355cb9c1cf7af39c83d3c`.
+- **Predecessor evidence:** Phase 05 PR #13 is merged at `d7f72b3fcfd6667df524af5adf71328c5de6edba`; post-Phase-05 docs synchronization PR #14 is merged at `86503b3930192dd46de7ce500384c246d236fcd4`.
+- **Implementation validation:** OpenAPI 3.1 validates with all 191 local references resolved; 72 backend tests passed; 59 frontend tests plus lint, type-check, and production build passed; clean-checkout/final candidate Actions runs `31880019393`, `31880019224`, and `31880015763` succeeded.
+- **Post-merge check evidence:** **CoachOS CI Quality Gates** run ID [`31888177718`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31888177718) completed `success` on push SHA `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` (backend, frontend, and security/language jobs all `success`). **Security & Vulnerability Scan** run ID [`31888175915`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31888175915) completed `success` on the same push SHA (secret/pattern scan `success`).
+- **Result:** Phase 06 — Exercise Library and Training Programs is merged and complete for its documented scope. Formal accessibility certification, device-matrix validation, penetration testing, production media storage/upload/signing/transcoding, production `pg_trgm` load tuning, broader assignment lifecycle/UI, and all Phase 07+ domains remain deferred. Phase 07 is next but is not started and requires explicit founder authorization.
+
+---
+
+## Prompt 018 — Post-PR-#15 Phase 06 Status Synchronization (docs-only)
+
+- **Date/time:** 2026-08-15 (UTC)
+- **Source:** Founder / supervising agent — post-merge docs-only status correction
+- **Phase:** 06 — Post-merge status synchronization (docs-only; Phase 07 not started)
+- **Prompt Summary:** Verify current remote `main`, PR #15 merge evidence, and post-merge Actions; correct stale PR-open/Phase-incomplete wording only in `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, and `docs/PROMPT_LOG.md`; preserve deferred scope; open a docs-only PR to `main` without merging; do not start Phase 07.
+- **Actions Taken:**
+  - Fetched and verified remote `main` and `refs/heads/main` at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c`; this matches the supplied last-verified SHA exactly, with no drift.
+  - Verified via GitHub that PR #15 is `MERGED`, base `main`, merged at 2026-08-15T13:47:52Z, with merge commit `9e09c4785283ffd688e355cb9c1cf7af39c83d3c`; also verified PR #13 and PR #14 remain merged.
+  - Verified both post-merge push workflows on the exact merge SHA completed successfully: CoachOS CI Quality Gates `31888177718` and Security & Vulnerability Scan `31888175915`; their four jobs all concluded `success`.
+  - Updated only the four authorized tracking documents with merged/complete Phase 06 status, OpenAPI/backend/frontend/build/CI evidence, deferred-scope boundaries, and the explicit Phase 07 authorization gate. Historical Phase 06 reports were not modified; no application code, migrations, workflows, tests, or dependencies were changed.
+  - Used environment-imposed session branch `arena/01a005b4-coachos-fitness-coaching-platf` instead of the suggested `chore/post-phase06-status-sync`; did not start Phase 07.
