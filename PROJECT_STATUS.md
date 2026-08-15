@@ -1,8 +1,8 @@
 # Project Status — CoachOS
 
 **Last updated:** 2026-08-14 (UTC)
-**Current phase:** Phase 06 — **PR #15 review correction in progress; not merged or complete**
-**Next step:** Push the baseline-preserving correction and verify corrected-head GitHub Actions, then leave PR #15 open for founder review. Isolated corrected validation passes. Do not merge or start Phase 07.
+**Current phase:** Phase 06 — **PR #15 corrected and open for founder review; not merged or complete**
+**Next step:** Founder review of corrected PR #15. Baseline-preserving isolated validation and corrected-head GitHub Actions pass. Do not merge automatically or start Phase 07.
 **Working branch:** `arena/019fffa4-coachos-fitness-coaching-platf` (Arena session branch)
 **Base commit (main):** `86503b3930192dd46de7ce500384c246d236fcd4` (PR #14 merge; verified current `origin/main` at recovery)
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
@@ -12,7 +12,7 @@
 
 ## 1. One-Line Status
 
-**PR #15 remains an unmerged Phase 06 candidate under blocking review correction.** The exercise/program domain and coach/owner UI remain in scope, but the original head included an unapproved major frontend toolchain migration. The correction restores the Phase 05 baseline exactly (Next.js 14.2.35, existing package lock, `.eslintrc.json`, `next lint`, TypeScript/Vitest/Vite/jsdom versions, generated types, and route typing), removes the flat ESLint config/rule overrides, and adapts Phase 06 source to that baseline. Local baseline frontend validation passes 56 tests plus lint/type/build. Corrected isolated-checkout evidence passes; remote Actions evidence is pending; prior green runs are not accepted as corrected-head evidence. No Arabic or Phase 07+ code is added. Do not merge and do not start Phase 07.
+**PR #15 remains an unmerged Phase 06 candidate under blocking review correction.** The exercise/program domain and coach/owner UI remain in scope, but the original head included an unapproved major frontend toolchain migration. The correction restores the Phase 05 baseline exactly (Next.js 14.2.35, existing package lock, `.eslintrc.json`, `next lint`, TypeScript/Vitest/Vite/jsdom versions, generated types, and route typing), removes the flat ESLint config/rule overrides, and adapts Phase 06 source to that baseline. Local baseline frontend validation passes 56 tests plus lint/type/build. Corrected isolated-checkout and remote Actions evidence pass; prior green runs are not accepted as corrected-head evidence. No Arabic or Phase 07+ code is added. Do not merge and do not start Phase 07.
 
 ---
 
@@ -73,4 +73,4 @@ Phase 05 is merged and complete; Phase 06 PR #15 is open under blocking baseline
 1. PR #13 (Phase 05 — Identity, Tenancy, and Roles) is **merged** into `main` at `d7f72b3fcfd6667df524af5adf71328c5de6edba` (2026-08-14T08:40:58Z).
 2. All four post-merge GitHub Actions checks on the merge commit are **successful**: Backend Lint, Type & Tests (Django/DRF); Frontend Lint, Type & Tests (Next.js/PWA); Security Scan & Language Compliance; Secret & Pattern Scanning (runs `31784911766` and `31784911764`, both `success`). GitHub Actions remain active and passing on `main`.
 3. Phase 05 is complete for its documented scope. Deferred Phase 05 items remain deferred: frontend onboarding UI, `CoachAthleteAssignment`, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification.
-4. The original PR #15 checks validated an unapproved toolchain migration and are superseded. Complete corrected clean-checkout and Actions validation under the unchanged Phase 05 frontend baseline, then leave the PR open for founder review. Do not start Phase 07.
+4. The original PR #15 checks are superseded. Corrected isolated validation and Actions runs `31879015578`, `31879015703`, and `31879013603` pass under the unchanged Phase 05 frontend baseline. Leave the PR open for founder review. Do not start Phase 07.
