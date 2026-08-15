@@ -7,7 +7,7 @@
 **Corrected implementation SHA:** `f962478ee8a91f13fa65828cbf5b7519fbf955e3`
 **Pull request:** [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) — open, mergeable, targeting `main`
 
-**Status:** Final review corrections are implemented locally: OpenAPI is reconciled, the coach/owner workspace uses real session organization/catalog/program APIs, and additional tenant/role tests pass. Fresh corrected checkout and new-head GitHub Actions evidence are pending. PR #15 remains open and Phase 06 is **not merged and not declared complete**.
+**Status:** Final review corrections and fresh isolated-checkout validation pass. New-head GitHub Actions evidence is pending. PR #15 remains open and Phase 06 is **not merged and not declared complete**.
 
 ## 1. Safe recovery evidence
 
@@ -32,9 +32,9 @@ No interrupted Phase 06 diff, report, Stage 0 plan, app, migration, test, or Sta
 | 4 — hierarchy | Pass | Atomic Program → Phase → Week → Day → Workout → Item → SetPrescription creation/replacement and sibling-order constraints. |
 | 5 — templates/version/snapshot | Pass | Deep clone independence, edit version increment, ordered server snapshot, model-level snapshot payload immutability test. |
 | 6 — API/authz/tenancy | Pass | Active owner/coach controls, athlete/suspended denial, canonical+current tenant visibility, cross-tenant 404/403, owner/linked-coach assignment policy, bounded-query tests. |
-| 7 — frontend | Pass locally; clean rerun pending | Coach/owner workspace resolves real session organizations, calls catalog filters, persists through createProgram, and handles loading/empty/error/unauthorized/retry/save states. Baseline lint/type-check, 59 tests, and build pass locally. |
+| 7 — frontend | Pass | Coach/owner workspace resolves real session organizations, calls catalog filters, persists through createProgram, and handles loading/empty/error/unauthorized/retry/save states. Fresh baseline install, lint/type-check, 59 tests, and build pass. |
 | 8 — adversarial review | Pass under corrected baseline | Domain negative tests, repository scanner, localization tests, baseline lint, and accessibility-target tests pass. No dependency-audit remediation is claimed in Phase 06. |
-| 9 — docs/clean validation/PR/checks | Final correction validation pending | Previous baseline-correction checks pass, but final OpenAPI/UI-integration changes require a new clean checkout and new-head Actions evidence. |
+| 9 — docs/clean validation/PR/checks | Remote checks pending | Fresh isolated clone of final implementation SHA `de08e47d…` passed backend 72, frontend 59/build, OpenAPI validation, compliance, and clean status. New-head Actions pending. |
 
 ## 3. Delivered behavior
 
@@ -133,7 +133,7 @@ npm run build       -> Next.js 14.2.35; 18 static pages generated
 
 ### Isolated clean-checkout validation
 
-A fresh clone of corrected implementation SHA `f962478ee8a91f13fa65828cbf5b7519fbf955e3` was created at `/tmp/coachos-pr15-corrected-validation` without copied dependency directories. A new Python virtual environment and baseline `npm ci` install were used. Backend Ruff/format/check/migration drift/69 tests, frontend baseline `next lint`/type-check/Vitest 1.6.0 56 tests/Next.js 14.2.35 build, and repository compliance all passed. Final clone status was clean. The earlier Next.js 16 validation is superseded and not acceptance evidence.
+A fresh clone of final implementation SHA `de08e47d3014aa1de941f9d4cfbf5e5d21a6ef59` was created at `/tmp/coachos-pr15-final-validation` without copied dependencies. A new Python virtual environment and baseline `npm ci` were used. Required backend commands passed with 72 tests; required frontend commands passed with 59 tests and an 18-page Next.js 14.2.35 build; OpenAPI 3.1 spec validation passed with 191 local refs resolved; repository compliance passed; final clone status was clean.
 
 ## 8. Stage 8 adversarial review
 
