@@ -147,7 +147,7 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Coach/owner workspace uses actual session organization, exercise catalog, and create-program APIs with loading/empty/error/unauthorized/retry states
 - [x] Phase 06 report prepared on the Phase 06 branch
 
-**Phase 06 status:** `[~]` PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) remains open. Final review corrections now reconcile OpenAPI, integrate the coach/owner workspace with real APIs, and add tenant/multi-role negatives. Local backend 72 tests and frontend 59 tests/lint/type/build pass; final clean-checkout passes; new-head Actions are pending. Phase 06 is not merged or complete; do not start Phase 07.
+**Phase 06 status:** `[~]` PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) remains open. Final review corrections now reconcile OpenAPI, integrate the coach/owner workspace with real APIs, and add tenant/multi-role negatives. Local backend 72 tests and frontend 59 tests/lint/type/build pass; final clean-checkout and runs `31880019393`, `31880019224`, and `31880015763` pass. Phase 06 is not merged or complete; do not start Phase 07.
 
 ---
 

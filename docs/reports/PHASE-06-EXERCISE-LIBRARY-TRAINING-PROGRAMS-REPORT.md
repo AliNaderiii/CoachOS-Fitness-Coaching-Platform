@@ -7,7 +7,7 @@
 **Corrected implementation SHA:** `f962478ee8a91f13fa65828cbf5b7519fbf955e3`
 **Pull request:** [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) — open, mergeable, targeting `main`
 
-**Status:** Final review corrections and fresh isolated-checkout validation pass. New-head GitHub Actions evidence is pending. PR #15 remains open and Phase 06 is **not merged and not declared complete**.
+**Status:** Final review corrections, fresh isolated-checkout validation, and corrected-head GitHub Actions pass. PR #15 remains open for founder review and Phase 06 is **not merged and not declared complete**.
 
 ## 1. Safe recovery evidence
 
@@ -34,7 +34,7 @@ No interrupted Phase 06 diff, report, Stage 0 plan, app, migration, test, or Sta
 | 6 — API/authz/tenancy | Pass | Active owner/coach controls, athlete/suspended denial, canonical+current tenant visibility, cross-tenant 404/403, owner/linked-coach assignment policy, bounded-query tests. |
 | 7 — frontend | Pass | Coach/owner workspace resolves real session organizations, calls catalog filters, persists through createProgram, and handles loading/empty/error/unauthorized/retry/save states. Fresh baseline install, lint/type-check, 59 tests, and build pass. |
 | 8 — adversarial review | Pass under corrected baseline | Domain negative tests, repository scanner, localization tests, baseline lint, and accessibility-target tests pass. No dependency-audit remediation is claimed in Phase 06. |
-| 9 — docs/clean validation/PR/checks | Remote checks pending | Fresh isolated clone of final implementation SHA `de08e47d…` passed backend 72, frontend 59/build, OpenAPI validation, compliance, and clean status. New-head Actions pending. |
+| 9 — docs/clean validation/PR/checks | Pass; founder review pending | Fresh isolated clone of final implementation SHA `de08e47d…` passed backend 72, frontend 59/build, OpenAPI validation, compliance, and clean status. Published head `23eddb33…` passed runs `31880019393`, `31880019224`, and `31880015763`. |
 
 ## 3. Delivered behavior
 
@@ -198,6 +198,7 @@ Restored unchanged relative to Phase 05: `package.json`, `package-lock.json`, `.
 - Pull-request CoachOS CI Quality Gates `31790374657`: success (backend, frontend, language compliance)
 - Push CoachOS CI Quality Gates `31790363694`: success
 - **Corrected baseline-preserving head `2d90473651de2e94b1a3aca375c7552a1edb3e81`:** Security run `31879015578`, pull-request CI `31879015703`, and push CI `31879013603` all succeeded. These corrected runs supersede the original toolchain-migration checks.
+- **Final OpenAPI/UI-integration head `23eddb336f0e639498ec9e7ab85b632f5565e726`:** Security run `31880019393`, pull-request CI `31880019224`, and push CI `31880015763` all succeeded.
 - Non-blocking GitHub annotation: GitHub-hosted actions using Node.js 20 internals are forced to Node.js 24; application checks still succeeded. Workflow action-major modernization is deferred maintenance.
 
 The PR remains open for founder review and was not merged by this session.
