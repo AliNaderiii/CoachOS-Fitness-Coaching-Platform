@@ -269,6 +269,18 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
 - **Phase:** 06 — Exercise Library and Training Programs
 - **Request:** Inspect and preserve any interrupted local diff before action; verify Gates 0–6 from artifacts/commands; finish Stage 7 frontend; perform Stage 8 adversarial and full validation; update report/tracking; publish one Phase 06 PR without merge or Phase 07 work.
 - **Recovery:** The Arena checkout was clean at verified `main` base `86503b3930192dd46de7ce500384c246d236fcd4`; status and both diff commands were empty. No interrupted Phase 06 artifact existed to recover. No reset, clean, force-push, or unsupported completion claim was made.
-- **Result at this revision:** Gates 0–9 have real evidence. Added exercise/translation/alias/media-rights models and APIs; moderation; program hierarchy/prescriptions; template clone/versioning; minimal coach-athlete assignment authorization; immutable assignment snapshots; coach/owner bilingual program workspace; migrations and tests. Full backend: 69 passed, 83% coverage. Frontend after `npm ci`: lint/type-check, 56 tests, Next.js 16.3.1 build, and full `npm audit` pass. `pip-audit`, isolated-clone validation, and repository security/language scanner pass. PR #15 is open to `main`; pull-request runs `31790374656` and `31790374657` plus push run `31790363694` succeeded on published head `a2d8b0a4…`. Phase 06 is not merged or declared complete.
+- **Result at this revision (superseded by Prompt 016 review correction):** Domain artifacts and tests were delivered, but the frontend validation included an unapproved major toolchain migration. Its green checks are not accepted as final Phase 06 evidence. PR #15 remains unmerged.
 - **Scope:** No Arabic locale and no Phase 07+ workout execution, set logging, timers, pain/fatigue, durable offline sync, messaging, nutrition, billing, marketplace, AI, or wearables.
 - **Evidence:** `docs/reports/PHASE-06-STAGE-0-PLAN.md` and `docs/reports/PHASE-06-EXERCISE-LIBRARY-TRAINING-PROGRAMS-REPORT.md`.
+
+
+---
+
+## Prompt 016 — PR #15 Phase 06 Review Correction: Preserve Frontend Baseline
+
+- **Date:** 2026-08-14
+- **Phase:** 06 review correction
+- **Request:** Remove the unapproved Next.js/ESLint/Vitest/Vite/TypeScript/jsdom migration and weakened lint overrides; preserve the Phase 05 frontend baseline; rerun clean backend/frontend validation and corrected-head Actions; leave PR #15 open.
+- **Workspace safety:** Initial correction inspection found local HEAD at base `86503b3` with the full PR diff materialized as uncommitted/untracked files. The complete state was preserved in stash `preserve-materialized-pr15-before-review-correction-2026-08-14`; the remote PR branch was fetched and fast-forwarded without reset, clean, force-push, or loss.
+- **Correction in progress:** Restored baseline `package.json`, `package-lock.json`, `.eslintrc.json`, `tsconfig.json`, generated `next-env.d.ts`, and locale layout typing from `origin/main`; removed `eslint.config.mjs`. Phase 06 UI passes baseline `next lint`, TypeScript, Vitest 1.6.0 (56 tests), and Next.js 14.2.35 build. Corrected clean-checkout and Actions evidence pending.
+- **Scope:** No dependency upgrade, disabled lint rule, Arabic resource, or Phase 07+ code. PR remains open and unmerged.

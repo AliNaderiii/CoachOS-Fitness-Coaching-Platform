@@ -3,10 +3,11 @@
 **Date:** 2026-08-14
 **Base SHA:** `86503b3930192dd46de7ce500384c246d236fcd4`
 **Branch:** `arena/019fffa4-coachos-fitness-coaching-platf`
-**Validated implementation SHA:** `059471b51c47e201b1b3053f9721d572041655fd`
+**Original reviewed head:** `368fe57e2a6901c41a3aa24044770c4891a050e8`
+**Corrected head:** pending correction commit
 **Pull request:** [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) — open, mergeable, targeting `main`
 
-**Status:** Gates 0–9 have implementation, isolated-checkout, publication, and successful remote-check evidence. The PR remains open for founder review; Phase 06 is **not merged and not declared complete**.
+**Status:** Review correction in progress. The unapproved frontend toolchain migration has been removed locally; corrected clean-checkout and remote-check evidence are pending. PR #15 remains open and Phase 06 is **not merged and not declared complete**.
 
 ## 1. Safe recovery evidence
 
@@ -32,8 +33,8 @@ No interrupted Phase 06 diff, report, Stage 0 plan, app, migration, test, or Sta
 | 5 — templates/version/snapshot | Pass | Deep clone independence, edit version increment, ordered server snapshot, model-level snapshot payload immutability test. |
 | 6 — API/authz/tenancy | Pass | Active owner/coach controls, athlete/suspended denial, canonical+current tenant visibility, cross-tenant 404/403, owner/linked-coach assignment policy, bounded-query tests. |
 | 7 — frontend | Pass | Coach/owner responsive dual-pane workspace, bilingual catalog filtering, normalized Persian search, prescription controls, keyboard reorder alternatives, dictionaries/tests; clean `npm ci`, lint, type-check, 56 tests, build. |
-| 8 — adversarial review | Pass with documented deferrals | Targeted 8-test negative suite passed; secret/language scanner passed; `npm audit` and `pip-audit` found zero known vulnerabilities; media/query/localization/accessibility targets reviewed below. |
-| 9 — docs/clean validation/PR/checks | Pass; founder review pending | SHA `059471b5…` passed a fresh isolated clone; branch pushed; PR #15 opened to `main`; pull-request runs `31790374656` and `31790374657` and push CI run `31790363694` completed successfully on published head `a2d8b0a4…`. PR left open. |
+| 8 — adversarial review | Revalidation pending | Original domain negative tests passed. Security/localization/accessibility checks will be rerun on the baseline-preserving corrected head; no dependency-audit remediation is claimed in Phase 06. |
+| 9 — docs/clean validation/PR/checks | Revalidation pending | Prior checks validated the now-rejected toolchain migration and are not completion evidence. Corrected-head clean-checkout and Actions results must replace them. |
 
 ## 3. Delivered behavior
 
@@ -65,7 +66,7 @@ No interrupted Phase 06 diff, report, Stage 0 plan, app, migration, test, or Sta
 - Persian-normalized bilingual catalog search, equipment filter, selected exercise and prescription editing preview.
 - Semantic tree, live result count, visible focus inherited from design system, 44px controls, and button alternatives to drag-and-drop.
 - Typed training API adapter for catalog list, program create, and clone.
-- Next.js upgraded from vulnerable 14.2.35 to 16.3.1; ESLint 9 flat config, TypeScript 5.9.3, Vitest 4.1.10, Vite 8.2.1, and compatible plugin updates remove all `npm audit` findings. Async locale params were adapted for Next.js 16.
+- The Phase 06 UI is adapted to the unchanged Phase 05 frontend baseline: Next.js 14.2.35, the existing React/TypeScript/Vite/Vitest versions, `.eslintrc.json`, and `next lint`. No lint rules are disabled and no generated/config route-type migration remains.
 
 ## 4. Migrations
 
@@ -107,22 +108,21 @@ Bounded-query assertions: catalog list ≤9 SQL queries for five exercises; nest
 
 ## 6. Frontend validation
 
-Required sequence rerun after dependency remediation:
+Baseline-preserving local correction validation:
 
 ```text
-npm ci              -> 499 packages; 0 vulnerabilities
-npm run lint        -> exit 0, no warnings/errors
-npm run type-check  -> exit 0
-npm test            -> 12 files passed; 56 tests passed
-npm run build       -> Next.js 16.3.1; compiled; 17 static pages; fa-IR/en-US program routes generated
-npm audit           -> found 0 vulnerabilities
+npm ci              -> baseline lockfile installed (562 packages)
+npm run lint        -> Next.js 14 `next lint`; no warnings/errors
+npm run type-check  -> exit 0 under baseline TypeScript
+npm test            -> Vitest 1.6.0; 12 files and 56 tests passed
+npm run build       -> Next.js 14.2.35; 18 static pages generated
 ```
 
-The Vite runner emits a non-failing forward-compatibility notice about native config loading; it does not affect test results.
+`npm ci` reports the known baseline dependency-audit findings. Phase 06 does not alter dependencies or claim to remediate them; any major toolchain/security migration requires a separate proposal and review.
 
-### Isolated clean-checkout-equivalent validation
+### Isolated clean-checkout validation
 
-A fresh clone of commit `059471b51c47e201b1b3053f9721d572041655fd` was created at `/tmp/coachos-phase06-validation` with no copied dependency directories. A new Python virtual environment and `npm ci` install were used. Backend Ruff/format/check/migration drift/69 tests, frontend lint/type/56 tests/build/`npm audit`, and the repository compliance scanner all passed; final clone status was clean.
+Pending corrected commit. The earlier isolated validation used the rejected Next.js 16/ESLint 9 toolchain and is retained only as historical evidence, not as acceptance evidence for this correction.
 
 ## 7. Stage 8 adversarial review
 
@@ -134,7 +134,7 @@ A fresh clone of commit `059471b51c47e201b1b3053f9721d572041655fd` was created a
 - **Query count:** explicit bounded-query tests pass; deep reads use prefetches; list response caps are present.
 - **Localization:** dictionary key parity test passes; scanner finds no Arabic locale resources; normalizer behavior does not imply Arabic product support.
 - **Accessibility target:** semantic labels/tree/live status, keyboard alternatives, focus design, logical CSS, RTL/LTR tests, and minimum touch controls are covered. Formal WCAG certification and device/manual screen-reader testing remain Phase 13 validation work.
-- **Supply chain/secrets:** repository scanner, `pip-audit`, and full `npm audit` pass with zero findings.
+- **Supply chain/secrets:** repository scanner and `pip-audit` passed. Frontend dependencies are restored byte-for-byte to the Phase 05 baseline; its existing npm audit findings are not silently remediated or presented as Phase 06 success.
 
 ## 8. Exact implementation file inventory
 
@@ -149,7 +149,6 @@ A fresh clone of commit `059471b51c47e201b1b3053f9721d572041655fd` was created a
 - `frontend/components/training/TrainingWorkspace.tsx`
 - `frontend/lib/api/training.ts`
 - `frontend/tests/training-workspace.test.tsx`
-- `frontend/eslint.config.mjs`
 - `docs/reports/PHASE-06-STAGE-0-PLAN.md`
 - this report
 
@@ -157,19 +156,10 @@ A fresh clone of commit `059471b51c47e201b1b3053f9721d572041655fd` was created a
 
 - `backend/apps/core/urls.py`
 - `backend/config/settings/base.py`
-- `frontend/app/[locale]/layout.tsx`
 - `frontend/app/[locale]/(app)/coach/programs/page.tsx`
 - `frontend/lib/i18n/dictionaries/en-US.json`
 - `frontend/lib/i18n/dictionaries/fa-IR.json`
-- `frontend/package.json`
-- `frontend/package-lock.json`
-- `frontend/tsconfig.json`
-- `frontend/next-env.d.ts`
 - `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`
-
-### Removed/superseded
-
-- `frontend/.eslintrc.json` (superseded by ESLint 9 flat configuration)
 
 ## 9. Deferred and explicitly excluded
 
@@ -181,7 +171,13 @@ A fresh clone of commit `059471b51c47e201b1b3053f9721d572041655fd` was created a
 
 No Arabic localization and no Phase 07+ code was added. Specifically absent: workout execution, actual-set logging, timers, pain/fatigue, advanced offline sync, messaging, nutrition, billing, marketplace, AI, and wearables.
 
-## 10. Publication record
+## 10. Review correction record
+
+The original PR head included an unapproved major frontend dependency/configuration migration. During correction, an Arena workspace materialized the PR diff as uncommitted files while local HEAD was the base SHA. That complete state was preserved in stash `preserve-materialized-pr15-before-review-correction-2026-08-14`, the remote PR branch was fetched and fast-forwarded without reset or force, and baseline frontend files were restored from `origin/main`.
+
+Restored unchanged relative to Phase 05: `package.json`, `package-lock.json`, `.eslintrc.json`, `tsconfig.json`, `next-env.d.ts`, and locale layout parameter typing. `eslint.config.mjs` is removed. No baseline lint rule is disabled.
+
+## 11. Publication record
 
 - PR: https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15
 - State at verification: `OPEN`, non-draft, `MERGEABLE`, base `main`, head `arena/019fffa4-coachos-fitness-coaching-platf`
