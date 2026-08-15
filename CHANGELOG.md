@@ -5,7 +5,21 @@ All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 This project will follow [Semantic Versioning](https://semver.org/) once the first versioned release is cut.
 
-## [Unreleased] — Phase 05 Identity, Tenancy, and Roles (Merged — PR #13)
+## [Unreleased] — Phase 06 Exercise Library and Training Programs (Candidate; unmerged)
+
+### Added — Phase 06 candidate
+
+- Added bilingual canonical/organization-private exercise definitions, translations, aliases, Persian keyboard-variant-normalized search, catalog filters, media metadata, mandatory rights provenance, and platform-admin moderation API.
+- Added organization-scoped hierarchical programs and set prescriptions, atomic nested persistence, version increments, deep template clone, minimal coach-athlete assignment authorization, and immutable point-in-time assignment snapshots.
+- Added active-role and tenant-isolation enforcement with cross-tenant, athlete, suspended, unassigned-coach, media-rights, moderation, snapshot-integrity, and bounded-query tests.
+- Replaced the Phase 04 coach program placeholder with a bilingual responsive coach/owner catalog and program-builder workspace, typed API adapter, dictionary parity, normalized search, keyboard reorder alternatives, and component tests.
+- Added Phase 06 Stage 0 plan and implementation report. Domain validation recorded separately from frontend baseline validation.
+- **Review correction:** removed the unapproved Next.js/ESLint/Vitest/Vite/TypeScript/jsdom migration and lockfile rewrite. Restored the Phase 05 frontend package manifest, lockfile, `.eslintrc.json`, `next lint`, TypeScript config, generated `next-env.d.ts`, and locale layout typing exactly; removed the ESLint 9 flat config and all rule overrides. Phase 06 frontend code passes the unchanged baseline lint/type/test/build commands, including a fresh isolated clone. Corrected-head Actions runs `31879015578`, `31879015703`, and `31879013603` pass. Any toolchain migration requires a separate proposal and PR.
+- **Final review correction:** reconciled `docs/OPENAPI.yaml` to 13 implemented Phase 06 operations with current cookie-session/CSRF, tenant, media-rights, hierarchy, and snapshot schemas; OpenAPI 3.1 validates and 191 local refs resolve. Phase 07+ paths are explicitly marked planned.
+- Replaced the three-item hardcoded frontend catalog/local-only save with actual session organization loading, `listExercises`, and `createProgram`; added loading, empty, error, unauthorized, retry, save-success, and save-failure tests.
+- Hardened program-assignment effective multi-role handling and added cross-tenant private exercise/detail/org_id and owner-role precedence tests. Fresh isolated validation passes: backend 72, frontend 59/build, OpenAPI 3.1 with 191 refs, compliance, and clean status. Final Actions runs `31880019393`, `31880019224`, and `31880015763` pass.
+- Published PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) targeting `main`; pull-request runs `31790374656` and `31790374657` and push run `31790363694` succeeded on published head `a2d8b0a4…`. The PR remains open for founder review.
+- Phase 06 remains unmerged and is not declared complete. No Arabic localization or Phase 07+ code was added; do not start Phase 07.
 
 ### Changed — Post-Merge Phase 05 Status Synchronization (docs-only, no code/test/dependency/workflow changes)
 

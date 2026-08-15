@@ -260,3 +260,40 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
   - Updated `PROJECT_STATUS.md` (Phase 04 + CI activation complete, CI-ACTIVATION risk closed with remote evidence, Phase 05 gate on explicit founder authorization), `PROJECT_CHECKLIST.md` (GitHub Actions activation item `[x]` with remote evidence; Phase 05 kept `[ ]`), `CHANGELOG.md` (concise post-merge CI activation entry; historical Phase 04 records unchanged), and this prompt log.
   - Did not modify workflow files, application source, tests, dependencies, or historical Phase 04 reports; did not add any Phase 05 implementation.
   - Session branch `arena/019fff00-coachos-fitness-coaching-platf` used in place of the suggested `chore/post-ci-activation-status` (environment-imposed session branch); docs-only PR opened against `main` and left open for founder review; not merged.
+
+---
+
+## Prompt 015 — Phase 06 Interrupted-Session Safe Resume and Candidate Implementation
+
+- **Date:** 2026-08-14
+- **Phase:** 06 — Exercise Library and Training Programs
+- **Request:** Inspect and preserve any interrupted local diff before action; verify Gates 0–6 from artifacts/commands; finish Stage 7 frontend; perform Stage 8 adversarial and full validation; update report/tracking; publish one Phase 06 PR without merge or Phase 07 work.
+- **Recovery:** The Arena checkout was clean at verified `main` base `86503b3930192dd46de7ce500384c246d236fcd4`; status and both diff commands were empty. No interrupted Phase 06 artifact existed to recover. No reset, clean, force-push, or unsupported completion claim was made.
+- **Result at this revision (superseded by Prompt 016 review correction):** Domain artifacts and tests were delivered, but the frontend validation included an unapproved major toolchain migration. Its green checks are not accepted as final Phase 06 evidence. PR #15 remains unmerged.
+- **Scope:** No Arabic locale and no Phase 07+ workout execution, set logging, timers, pain/fatigue, durable offline sync, messaging, nutrition, billing, marketplace, AI, or wearables.
+- **Evidence:** `docs/reports/PHASE-06-STAGE-0-PLAN.md` and `docs/reports/PHASE-06-EXERCISE-LIBRARY-TRAINING-PROGRAMS-REPORT.md`.
+
+
+---
+
+## Prompt 016 — PR #15 Phase 06 Review Correction: Preserve Frontend Baseline
+
+- **Date:** 2026-08-14
+- **Phase:** 06 review correction
+- **Request:** Remove the unapproved Next.js/ESLint/Vitest/Vite/TypeScript/jsdom migration and weakened lint overrides; preserve the Phase 05 frontend baseline; rerun clean backend/frontend validation and corrected-head Actions; leave PR #15 open.
+- **Workspace safety:** Initial correction inspection found local HEAD at base `86503b3` with the full PR diff materialized as uncommitted/untracked files. The complete state was preserved in stash `preserve-materialized-pr15-before-review-correction-2026-08-14`; the remote PR branch was fetched and fast-forwarded without reset, clean, force-push, or loss.
+- **Correction in progress:** Restored baseline `package.json`, `package-lock.json`, `.eslintrc.json`, `tsconfig.json`, generated `next-env.d.ts`, and locale layout typing from `origin/main`; removed `eslint.config.mjs`. Phase 06 UI passes baseline `next lint`, TypeScript, Vitest 1.6.0 (56 tests), and Next.js 14.2.35 build. A fresh isolated clone of corrected implementation SHA `f962478e…` passed all required backend/frontend/compliance commands with clean status; corrected published-head Actions runs `31879015578`, `31879015703`, and `31879013603` all pass.
+- **Scope:** No dependency upgrade, disabled lint rule, Arabic resource, or Phase 07+ code. PR remains open and unmerged.
+
+
+---
+
+## Prompt 017 — PR #15 Phase 06 Final Review Corrections
+
+- **Date:** 2026-08-15
+- **Phase:** 06 final review correction
+- **Request:** Reconcile implemented Phase 06 routes/schemas in OpenAPI; either integrate the frontend workspace with actual APIs or label it prototype; review tenant/media/assignment boundaries; clean-validate and leave PR open.
+- **Implementation:** Chose preferred API integration. Removed hardcoded exercise catalog and local-only save. Workspace loads organizations from the authenticated cookie session, calls `listExercises` with search/equipment/locale, calls `createProgram` with the current hierarchy, and renders loading/empty/error/unauthorized/retry/saving/success/failure states. Added mocked API integration tests.
+- **Contract:** Updated OpenAPI 3.1 for 13 actual Phase 06 operations and serializer-aligned schemas, cookie-session/CSRF, RFC 7807, tenant authorization, media rights, and immutable snapshots. Marked Phase 07+ paths planned. Spec validates and all 191 local refs resolve.
+- **Backend review:** Added cross-tenant private detail/org mutation, foreign private exercise in program, and multi-role owner precedence tests; corrected assignment effective-role union. Backend 72 tests; frontend 59 tests/lint/type/build pass locally.
+- **State:** Fresh isolated clone of `de08e47d…` passes all required backend/frontend commands, OpenAPI validation, compliance, and clean status. Final Actions runs `31880019393`, `31880019224`, and `31880015763` pass. PR #15 remains open/unmerged; no Phase 07 or Arabic additions.

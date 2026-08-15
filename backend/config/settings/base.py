@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     "apps.identity.apps.IdentityConfig",
     "apps.organizations.apps.OrganizationsConfig",
     "apps.audit.apps.AuditConfig",
+    # Phase 06 Exercise Library & Training Programs
+    "apps.exercises.apps.ExercisesConfig",
+    "apps.programs.apps.ProgramsConfig",
 ]
 
 MIDDLEWARE = [

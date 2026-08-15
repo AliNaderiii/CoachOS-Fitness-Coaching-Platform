@@ -127,25 +127,27 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Persian/English settings work — locale/unit/timezone on User
 - [x] Phase 05 report committed — `docs/reports/PHASE-05-IDENTITY-TENANCY-ROLES-REPORT.md`
 - [x] Phase 05 implementation PR merged — evidence: PR [#13](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/13) (`feat(phase-05): Identity, Tenancy, and Roles foundation`, head `arena/019fff0b-coachos-fitness-coaching-platf`) **merged** into `main` at merge commit `d7f72b3fcfd6667df524af5adf71328c5de6edba` on 2026-08-14T08:40:58Z; all four post-merge GitHub Actions checks on the merge commit successful — Backend Lint, Type & Tests (Django/DRF); Frontend Lint, Type & Tests (Next.js/PWA); Security Scan & Language Compliance; Secret & Pattern Scanning (runs `31784911766`, `31784911764`, both `success`)
-- [-] Deferred Phase 05 items (deferred by decision, pending later authorized phases): frontend onboarding UI, `CoachAthleteAssignment`, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, compliance certification
+- [-] Deferred Phase 05 items (deferred by decision, pending later authorized phases): frontend onboarding UI, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, compliance certification. Phase 06 adds only the minimal tenant-scoped `CoachAthleteAssignment` relation needed for program-assignment authorization; broader lifecycle/UI remains deferred.
 
-**Phase 05 status:** `[x]` **Merged & Complete** — merged into `main` via PR #13 at `d7f72b3fcfd6667df524af5adf71328c5de6edba` (2026-08-14T08:40:58Z) with all post-merge GitHub Actions checks passing; complete for its documented scope with deferred items recorded above. Phase 06 has not started and requires explicit founder authorization. Do not start Phase 06 automatically.
+**Phase 05 status:** `[x]` **Merged & Complete** — merged into `main` via PR #13 at `d7f72b3fcfd6667df524af5adf71328c5de6edba` (2026-08-14T08:40:58Z) with all post-merge GitHub Actions checks passing; complete for its documented scope with deferred items recorded above. Phase 06 was subsequently authorized and is now an unmerged candidate on its dedicated Arena branch.
 
 ---
 
 ## Phase 06 — Exercise Library and Training Programs
 
-- [ ] Exercise schema works
-- [ ] Bilingual exercise search & Persian character variant folding works
-- [ ] Media rights metadata exists
-- [ ] Program builder works (hierarchical phases/weeks/days/items/prescriptions)
-- [ ] Reusable templates work
-- [ ] Program assignments work (immutable snapshot creation)
-- [ ] Admin moderation queue works
-- [ ] Coach tests exist
-- [ ] Phase 06 report committed
+- [x] Exercise schema works
+- [x] Bilingual exercise search & Persian character variant folding works
+- [x] Media rights metadata exists
+- [x] Program builder works (hierarchical phases/weeks/days/items/prescriptions)
+- [x] Reusable templates work
+- [x] Program assignments work (immutable snapshot creation)
+- [x] Admin moderation queue API works
+- [x] Coach tests exist — 17 Phase 06 backend tests; 72 full backend tests
+- [x] OpenAPI 3.1 contract reconciled to implemented Phase 06 routes; 191 local refs resolved; Phase 07+ paths marked planned
+- [x] Coach/owner workspace uses actual session organization, exercise catalog, and create-program APIs with loading/empty/error/unauthorized/retry states
+- [x] Phase 06 report prepared on the Phase 06 branch
 
-**Phase 06 status:** `[ ]` Not started
+**Phase 06 status:** `[~]` PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) remains open. Final review corrections now reconcile OpenAPI, integrate the coach/owner workspace with real APIs, and add tenant/multi-role negatives. Local backend 72 tests and frontend 59 tests/lint/type/build pass; final clean-checkout and runs `31880019393`, `31880019224`, and `31880015763` pass. Phase 06 is not merged or complete; do not start Phase 07.
 
 ---
 
