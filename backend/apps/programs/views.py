@@ -32,6 +32,16 @@ def _org(org_id):
     return Organization.objects.filter(id=org_id, archived_at__isnull=True).first()
 
 
+def _active_roles(user, organization):
+    if not organization:
+        return set()
+    return set(
+        Membership.objects.filter(
+            user=user, organization=organization, status="active"
+        ).values_list("role", flat=True)
+    )
+
+
 def _audit(action, request, organization, target_type, target_id):
     AuditEvent.objects.create(
         actor_user=request.user,
@@ -195,19 +205,23 @@ class ProgramAssignmentView(APIView):
 
     def get(self, request):
         organization = _org(request.query_params.get("org_id"))
-        membership = _membership(request.user, organization) if organization else None
-        if not organization or not membership:
+        roles = _active_roles(request.user, organization)
+        if not organization or not roles:
             return Response(status=status.HTTP_403_FORBIDDEN)
         query = ProgramAssignment.objects.filter(organization=organization)
         athlete_id = request.query_params.get("athlete_id")
-        if membership.role == "athlete":
-            query = query.filter(athlete_user=request.user)
-        elif membership.role == "coach":
+        # Effective permissions are the union of active roles, with owner scope
+        # taking precedence over coach and athlete restrictions.
+        if "owner" in roles:
+            pass
+        elif "coach" in roles:
             allowed = CoachAthleteAssignment.objects.filter(
                 organization=organization, coach_user=request.user, is_active=True
             ).values_list("athlete_user_id", flat=True)
             query = query.filter(athlete_user_id__in=allowed)
-        elif membership.role != "owner":
+        elif "athlete" in roles:
+            query = query.filter(athlete_user=request.user)
+        else:
             return Response(status=status.HTTP_403_FORBIDDEN)
         if athlete_id:
             query = query.filter(athlete_user_id=athlete_id)
@@ -217,10 +231,8 @@ class ProgramAssignmentView(APIView):
     @transaction.atomic
     def post(self, request):
         organization = _org(request.data.get("org_id"))
-        membership = (
-            _membership(request.user, organization, ["owner", "coach"]) if organization else None
-        )
-        if not organization or not membership:
+        roles = _active_roles(request.user, organization)
+        if not organization or not roles.intersection({"owner", "coach"}):
             return Response(status=status.HTTP_403_FORBIDDEN)
         athlete = User.objects.filter(
             id=request.data.get("athlete_user_id"), is_active=True
@@ -230,7 +242,8 @@ class ProgramAssignmentView(APIView):
                 {"athlete_user_id": ["Active organization athlete required."]}, status=400
             )
         if (
-            membership.role == "coach"
+            "owner" not in roles
+            and "coach" in roles
             and not CoachAthleteAssignment.objects.filter(
                 organization=organization,
                 coach_user=request.user,

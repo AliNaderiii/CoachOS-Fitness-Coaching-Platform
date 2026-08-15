@@ -236,6 +236,41 @@ def test_coach_can_assign_only_linked_tenant_athlete(api_client):
 
 
 @pytest.mark.django_db
+def test_program_rejects_private_exercise_from_another_tenant(api_client):
+    org_a, owner_a = make_org("program-a")
+    org_b, owner_b = make_org("program-b")
+    foreign_exercise = make_exercise(org_b, owner_b)
+    api_client.force_authenticate(owner_a)
+    response = api_client.post(
+        "/api/v1/programs", program_payload(org_a, foreign_exercise), format="json"
+    )
+    assert response.status_code == 400
+    assert not Program.objects.filter(organization=org_a).exists()
+
+
+@pytest.mark.django_db
+def test_owner_role_precedes_coach_role_for_unlinked_assignment(api_client):
+    org, owner = make_org("multi-role")
+    Membership.objects.create(user=owner, organization=org, role="coach", status="active")
+    athlete = User.objects.create_user(email="multi-role-athlete@example.com")
+    Membership.objects.create(user=athlete, organization=org, role="athlete", status="active")
+    exercise = make_exercise(org, owner)
+    api_client.force_authenticate(owner)
+    program = api_client.post("/api/v1/programs", program_payload(org, exercise), format="json")
+    response = api_client.post(
+        "/api/v1/program-assignments",
+        {
+            "org_id": org.id,
+            "source_program_id": program.data["id"],
+            "athlete_user_id": athlete.id,
+            "start_date": "2026-08-20",
+        },
+        format="json",
+    )
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
 def test_program_tenant_role_and_suspension_controls(api_client):
     org_a, owner_a = make_org("orga")
     org_b, owner_b = make_org("orgb")

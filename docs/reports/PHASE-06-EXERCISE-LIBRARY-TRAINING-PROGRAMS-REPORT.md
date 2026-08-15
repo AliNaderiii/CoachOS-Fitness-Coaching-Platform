@@ -7,7 +7,7 @@
 **Corrected implementation SHA:** `f962478ee8a91f13fa65828cbf5b7519fbf955e3`
 **Pull request:** [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) — open, mergeable, targeting `main`
 
-**Status:** The unapproved frontend toolchain migration is removed. Corrected isolated-checkout and published-head GitHub Actions validation pass under the unchanged Phase 05 baseline. PR #15 remains open and Phase 06 is **not merged and not declared complete**.
+**Status:** Final review corrections are implemented locally: OpenAPI is reconciled, the coach/owner workspace uses real session organization/catalog/program APIs, and additional tenant/role tests pass. Fresh corrected checkout and new-head GitHub Actions evidence are pending. PR #15 remains open and Phase 06 is **not merged and not declared complete**.
 
 ## 1. Safe recovery evidence
 
@@ -32,9 +32,9 @@ No interrupted Phase 06 diff, report, Stage 0 plan, app, migration, test, or Sta
 | 4 — hierarchy | Pass | Atomic Program → Phase → Week → Day → Workout → Item → SetPrescription creation/replacement and sibling-order constraints. |
 | 5 — templates/version/snapshot | Pass | Deep clone independence, edit version increment, ordered server snapshot, model-level snapshot payload immutability test. |
 | 6 — API/authz/tenancy | Pass | Active owner/coach controls, athlete/suspended denial, canonical+current tenant visibility, cross-tenant 404/403, owner/linked-coach assignment policy, bounded-query tests. |
-| 7 — frontend | Pass | Coach/owner responsive dual-pane workspace, bilingual catalog filtering, normalized Persian search, prescription controls, keyboard reorder alternatives, dictionaries/tests; clean `npm ci`, lint, type-check, 56 tests, build. |
+| 7 — frontend | Pass locally; clean rerun pending | Coach/owner workspace resolves real session organizations, calls catalog filters, persists through createProgram, and handles loading/empty/error/unauthorized/retry/save states. Baseline lint/type-check, 59 tests, and build pass locally. |
 | 8 — adversarial review | Pass under corrected baseline | Domain negative tests, repository scanner, localization tests, baseline lint, and accessibility-target tests pass. No dependency-audit remediation is claimed in Phase 06. |
-| 9 — docs/clean validation/PR/checks | Pass; founder review pending | Fresh isolated clone of corrected implementation SHA `f962478e…` passed all required commands. Corrected published head `2d904736…` passed pull-request runs `31879015578`/`31879015703` and push run `31879013603`. PR remains open. |
+| 9 — docs/clean validation/PR/checks | Final correction validation pending | Previous baseline-correction checks pass, but final OpenAPI/UI-integration changes require a new clean checkout and new-head Actions evidence. |
 
 ## 3. Delivered behavior
 
@@ -65,10 +65,20 @@ No interrupted Phase 06 diff, report, Stage 0 plan, app, migration, test, or Sta
 - Responsive master/detail program workspace under both `/fa-IR/coach/programs` and `/en-US/coach/programs`.
 - Persian-normalized bilingual catalog search, equipment filter, selected exercise and prescription editing preview.
 - Semantic tree, live result count, visible focus inherited from design system, 44px controls, and button alternatives to drag-and-drop.
-- Typed training API adapter for catalog list, program create, and clone.
+- Actual cookie-session organization context loaded from `/organizations/`; users select among their active memberships.
+- Exercise catalog/search/equipment filters call `listExercises`; no fake production catalog or silent fallback exists.
+- Program save builds the current one-day hierarchy and calls `createProgram`; API success IDs and API failure/unauthorized states are surfaced.
+- Loading, organization-empty, catalog-empty, error, unauthorized, retry, saving, success, and failure states have mocked integration tests.
+- Typed training API adapter covers organization context, catalog list, program create, and clone.
 - The Phase 06 UI is adapted to the unchanged Phase 05 frontend baseline: Next.js 14.2.35, the existing React/TypeScript/Vite/Vitest versions, `.eslintrc.json`, and `next lint`. No lint rules are disabled and no generated/config route-type migration remains.
 
-## 4. Migrations
+## 4. API contract reconciliation
+
+`docs/OPENAPI.yaml` now documents only actual Phase 06 route behavior as implemented for exercises, moderation, programs, clone, coach-athlete authorization, and immutable program assignments. Implemented operations override global optional bearer security with current cookie-session security and note CSRF on mutations. Request/response schemas match serializer field names (`org_id`, `exercises`, `media_assets`, `snapshot_payload`, nested hierarchy), and storage keys/raw URLs are absent from responses. Historical Phase 07+ contracts are explicitly marked planned, not implemented.
+
+Validation: OpenAPI 3.1 spec validation passed, YAML parsed, 191 local `$ref` values resolved, and 13 Phase 06 operations were enumerated.
+
+## 5. Migrations
 
 1. `backend/apps/exercises/migrations/0001_initial.py`
    - Exercise, ExerciseTranslation, ExerciseAlias, MediaAsset, MediaRights
@@ -85,7 +95,7 @@ python manage.py migrate --noinput -> exercises.0001_initial OK; programs.0001_i
 python manage.py check -> System check identified no issues (0 silenced)
 ```
 
-## 5. Backend validation
+## 6. Backend validation
 
 Environment: isolated repository-local virtual environment, Python 3.11.2, Django 5.2.17.
 
@@ -95,18 +105,19 @@ ruff format --check .                                  -> 66 files already forma
 python manage.py check                                 -> 0 issues
 python manage.py makemigrations --check --dry-run      -> No changes detected
 pytest --cov=apps --cov=config --cov-report=term-missing
-                                                       -> 69 passed in 3.51s; 83% total coverage
+                                                       -> prior coverage run 69 passed; 83% total coverage
+pytest -q                                             -> 72 passed after final review tests
 pytest tests/exercises tests/programs -q -k
   'tenant or role or suspens or media or moderation or query or coach'
                                                        -> 8 passed, 5 deselected
 pip-audit -r requirements.txt -r requirements-dev.txt  -> No known vulnerabilities found
 ```
 
-Phase 06-specific final targeted suite: **14 tests passed** (8 exercise + 6 program). Full suite: **69 passed**.
+Phase 06-specific suite: **17 tests passed** (9 exercise + 8 program). Full backend suite: **72 passed**. New negatives cover cross-tenant private detail/org_id mutation, foreign-tenant private exercises in programs, and effective owner precedence for multi-role assignment.
 
 Bounded-query assertions: catalog list ≤9 SQL queries for five exercises; nested program detail ≤15 SQL queries.
 
-## 6. Frontend validation
+## 7. Frontend validation
 
 Baseline-preserving local correction validation:
 
@@ -114,7 +125,7 @@ Baseline-preserving local correction validation:
 npm ci              -> baseline lockfile installed (562 packages)
 npm run lint        -> Next.js 14 `next lint`; no warnings/errors
 npm run type-check  -> exit 0 under baseline TypeScript
-npm test            -> Vitest 1.6.0; 12 files and 56 tests passed
+npm test            -> Vitest 1.6.0; 12 files and 59 tests passed
 npm run build       -> Next.js 14.2.35; 18 static pages generated
 ```
 
@@ -124,7 +135,7 @@ npm run build       -> Next.js 14.2.35; 18 static pages generated
 
 A fresh clone of corrected implementation SHA `f962478ee8a91f13fa65828cbf5b7519fbf955e3` was created at `/tmp/coachos-pr15-corrected-validation` without copied dependency directories. A new Python virtual environment and baseline `npm ci` install were used. Backend Ruff/format/check/migration drift/69 tests, frontend baseline `next lint`/type-check/Vitest 1.6.0 56 tests/Next.js 14.2.35 build, and repository compliance all passed. Final clone status was clean. The earlier Next.js 16 validation is superseded and not acceptance evidence.
 
-## 7. Stage 8 adversarial review
+## 8. Stage 8 adversarial review
 
 - **Authentication/authorization:** all APIs retain authenticated-active defaults; mutation requires active owner/coach; platform moderation requires `is_platform_admin`; athletes/suspended users denied.
 - **Tenant isolation:** private exercise and all program queries are organization-scoped after active membership checks; foreign detail is concealed with 404 where applicable; negative tests cover separate tenants.
@@ -134,9 +145,10 @@ A fresh clone of corrected implementation SHA `f962478ee8a91f13fa65828cbf5b7519f
 - **Query count:** explicit bounded-query tests pass; deep reads use prefetches; list response caps are present.
 - **Localization:** dictionary key parity test passes; scanner finds no Arabic locale resources; normalizer behavior does not imply Arabic product support.
 - **Accessibility target:** semantic labels/tree/live status, keyboard alternatives, focus design, logical CSS, RTL/LTR tests, and minimum touch controls are covered. Formal WCAG certification and device/manual screen-reader testing remain Phase 13 validation work.
+- **OpenAPI:** OpenAPI 3.1 validates with `openapi-spec-validator`; YAML parses; all 191 local refs resolve. Thirteen implemented Phase 06 operations match routes/serializers; Phase 07+ path items are explicitly marked planned.
 - **Supply chain/secrets:** repository scanner and `pip-audit` passed. Frontend dependencies are restored byte-for-byte to the Phase 05 baseline; its existing npm audit findings are not silently remediated or presented as Phase 06 success.
 
-## 8. Exact implementation file inventory
+## 9. Exact implementation file inventory
 
 ### Added
 
@@ -146,6 +158,7 @@ A fresh clone of corrected implementation SHA `f962478ee8a91f13fa65828cbf5b7519f
 - `backend/apps/programs/migrations/{__init__.py,0001_initial.py}`
 - `backend/tests/exercises/test_exercise_api.py`
 - `backend/tests/programs/test_program_api.py`
+- `docs/OPENAPI.yaml` (additive reconciliation of implemented Phase 06 operations and explicit planned statuses)
 - `frontend/components/training/TrainingWorkspace.tsx`
 - `frontend/lib/api/training.ts`
 - `frontend/tests/training-workspace.test.tsx`
@@ -161,23 +174,22 @@ A fresh clone of corrected implementation SHA `f962478ee8a91f13fa65828cbf5b7519f
 - `frontend/lib/i18n/dictionaries/fa-IR.json`
 - `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`
 
-## 9. Deferred and explicitly excluded
+## 10. Deferred and explicitly excluded
 
 - Platform-admin MFA (identity/security roadmap prerequisite) and admin moderation UI; moderation API is present.
 - Real object upload/signing/thumbnail processing; only metadata/provenance and safe private keys are implemented.
 - PostgreSQL `pg_trgm` relevance/GIN optimization; deterministic normalized indexed matching is implemented and tested portably. Production load tuning remains later performance validation.
 - Formal WCAG 2.2 AA certification, manual screen-reader/device matrix, penetration testing, and production hosting validation remain Phase 13.
-- Frontend active-organization/session wiring remains dependent on the broader onboarding/effective-org context; the typed API boundary and coach/owner workspace are present.
 
 No Arabic localization and no Phase 07+ code was added. Specifically absent: workout execution, actual-set logging, timers, pain/fatigue, advanced offline sync, messaging, nutrition, billing, marketplace, AI, and wearables.
 
-## 10. Review correction record
+## 11. Review correction record
 
 The original PR head included an unapproved major frontend dependency/configuration migration. During correction, an Arena workspace materialized the PR diff as uncommitted files while local HEAD was the base SHA. That complete state was preserved in stash `preserve-materialized-pr15-before-review-correction-2026-08-14`, the remote PR branch was fetched and fast-forwarded without reset or force, and baseline frontend files were restored from `origin/main`.
 
 Restored unchanged relative to Phase 05: `package.json`, `package-lock.json`, `.eslintrc.json`, `tsconfig.json`, `next-env.d.ts`, and locale layout parameter typing. `eslint.config.mjs` is removed. No baseline lint rule is disabled.
 
-## 11. Publication record
+## 12. Publication record
 
 - PR: https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15
 - State at verification: `OPEN`, non-draft, `MERGEABLE`, base `main`, head `arena/019fffa4-coachos-fitness-coaching-platf`

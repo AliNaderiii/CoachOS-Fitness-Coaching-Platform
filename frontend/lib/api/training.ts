@@ -1,5 +1,15 @@
-import { request } from "./client";
 import type { Locale } from "../i18n/config";
+import { request } from "./client";
+
+export interface OrganizationContext {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface OrganizationListResponse {
+  organizations: OrganizationContext[];
+}
 
 export interface ExerciseTranslation {
   locale: Locale;
@@ -42,13 +52,45 @@ export interface SetPrescriptionInput {
   tempo?: string;
 }
 
+export interface WorkoutItemInput {
+  exercise_id: string;
+  sequence_order: number;
+  group_key?: string;
+  segment: "warmup" | "main" | "cooldown";
+  rest_seconds_between_sets: number;
+  coach_notes?: string;
+  prescriptions: SetPrescriptionInput[];
+}
+
 export interface ProgramInput {
   org_id: string;
   title: string;
   description?: string;
   target_goal: "hypertrophy" | "strength" | "fat_loss" | "endurance" | "general_fitness";
   is_template: boolean;
-  phases: unknown[];
+  phases: Array<{
+    name: string;
+    sequence_order: number;
+    duration_weeks: number;
+    weeks: Array<{
+      week_number: number;
+      focus_note?: string;
+      days: Array<{
+        day_number: number;
+        title: string;
+        workouts: Array<{
+          title: string;
+          estimated_minutes?: number;
+          sequence_order: number;
+          items: WorkoutItemInput[];
+        }>;
+      }>;
+    }>;
+  }>;
+}
+
+export function listOrganizations(locale: Locale) {
+  return request<OrganizationListResponse>("organizations/", { locale });
 }
 
 function searchParams(orgId: string, filters: ExerciseFilters): string {

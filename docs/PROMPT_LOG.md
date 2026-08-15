@@ -284,3 +284,16 @@ Append-only history of founder/supervising-agent prompts and resulting actions.
 - **Workspace safety:** Initial correction inspection found local HEAD at base `86503b3` with the full PR diff materialized as uncommitted/untracked files. The complete state was preserved in stash `preserve-materialized-pr15-before-review-correction-2026-08-14`; the remote PR branch was fetched and fast-forwarded without reset, clean, force-push, or loss.
 - **Correction in progress:** Restored baseline `package.json`, `package-lock.json`, `.eslintrc.json`, `tsconfig.json`, generated `next-env.d.ts`, and locale layout typing from `origin/main`; removed `eslint.config.mjs`. Phase 06 UI passes baseline `next lint`, TypeScript, Vitest 1.6.0 (56 tests), and Next.js 14.2.35 build. A fresh isolated clone of corrected implementation SHA `f962478e…` passed all required backend/frontend/compliance commands with clean status; corrected published-head Actions runs `31879015578`, `31879015703`, and `31879013603` all pass.
 - **Scope:** No dependency upgrade, disabled lint rule, Arabic resource, or Phase 07+ code. PR remains open and unmerged.
+
+
+---
+
+## Prompt 017 — PR #15 Phase 06 Final Review Corrections
+
+- **Date:** 2026-08-15
+- **Phase:** 06 final review correction
+- **Request:** Reconcile implemented Phase 06 routes/schemas in OpenAPI; either integrate the frontend workspace with actual APIs or label it prototype; review tenant/media/assignment boundaries; clean-validate and leave PR open.
+- **Implementation:** Chose preferred API integration. Removed hardcoded exercise catalog and local-only save. Workspace loads organizations from the authenticated cookie session, calls `listExercises` with search/equipment/locale, calls `createProgram` with the current hierarchy, and renders loading/empty/error/unauthorized/retry/saving/success/failure states. Added mocked API integration tests.
+- **Contract:** Updated OpenAPI 3.1 for 13 actual Phase 06 operations and serializer-aligned schemas, cookie-session/CSRF, RFC 7807, tenant authorization, media rights, and immutable snapshots. Marked Phase 07+ paths planned. Spec validates and all 191 local refs resolve.
+- **Backend review:** Added cross-tenant private detail/org mutation, foreign private exercise in program, and multi-role owner precedence tests; corrected assignment effective-role union. Backend 72 tests; frontend 59 tests/lint/type/build pass locally.
+- **State:** Final clean-checkout and new-head Actions pending. PR #15 remains open/unmerged; no Phase 07 or Arabic additions.

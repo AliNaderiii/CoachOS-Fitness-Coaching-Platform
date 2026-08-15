@@ -146,6 +146,24 @@ def test_catalog_visibility_is_canonical_plus_current_tenant_only(api_client):
 
 
 @pytest.mark.django_db
+def test_private_detail_and_org_id_mutation_cannot_cross_tenants(api_client):
+    org_a, owner_a = make_org("detail-a")
+    org_b, owner_b = make_org("detail-b")
+    api_client.force_authenticate(owner_a)
+    created = api_client.post("/api/v1/exercises", exercise_payload(org_a.id), format="json")
+    assert created.status_code == 201
+
+    api_client.force_authenticate(owner_b)
+    hidden = api_client.get(f"/api/v1/exercises/{created.data['id']}", {"org_id": org_b.id})
+    assert hidden.status_code == 404
+
+    payload = exercise_payload(org_a.id)
+    payload["media_assets"][0]["storage_key"] = "org/cross-tenant/demo.mp4"
+    denied = api_client.post("/api/v1/exercises", payload, format="json")
+    assert denied.status_code == 403
+
+
+@pytest.mark.django_db
 def test_athlete_cannot_create_and_suspended_coach_cannot_read(api_client):
     org, owner = make_org()
     athlete = User.objects.create_user(email="athlete@example.com")

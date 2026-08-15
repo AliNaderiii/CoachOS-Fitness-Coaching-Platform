@@ -142,10 +142,12 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Reusable templates work
 - [x] Program assignments work (immutable snapshot creation)
 - [x] Admin moderation queue API works
-- [x] Coach tests exist
+- [x] Coach tests exist — 17 Phase 06 backend tests; 72 full backend tests
+- [x] OpenAPI 3.1 contract reconciled to implemented Phase 06 routes; 191 local refs resolved; Phase 07+ paths marked planned
+- [x] Coach/owner workspace uses actual session organization, exercise catalog, and create-program APIs with loading/empty/error/unauthorized/retry states
 - [x] Phase 06 report prepared on the Phase 06 branch
 
-**Phase 06 status:** `[~]` PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) is open under blocking review correction. The unapproved frontend toolchain migration is removed locally and the Phase 05 baseline lint/toolchain is restored without disabled rules. Corrected isolated validation and corrected-head runs `31879015578`, `31879015703`, and `31879013603` pass. Phase 06 is not merged or complete; do not start Phase 07.
+**Phase 06 status:** `[~]` PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) remains open. Final review corrections now reconcile OpenAPI, integrate the coach/owner workspace with real APIs, and add tenant/multi-role negatives. Local backend 72 tests and frontend 59 tests/lint/type/build pass; final clean-checkout and new-head Actions are pending. Phase 06 is not merged or complete; do not start Phase 07.
 
 ---
 

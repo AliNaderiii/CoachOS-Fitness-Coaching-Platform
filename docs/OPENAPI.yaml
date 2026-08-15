@@ -2,9 +2,9 @@ openapi: 3.1.0
 info:
   title: CoachOS API
   description: |
-    Provisional OpenAPI 3.1 specification for CoachOS B2B2C fitness coaching platform — P0 MVP (Correction Phase 03 review).
-    Covers authentication, organizations, memberships, invitations, exercise catalog, moderation, programs, templates, assignments, athlete Today view, workout sessions, set logs, feedback flags, progress metrics/photos, messages, notifications, audit events, privacy export/deletion.
-    This file is a specification artifact only — not implemented in Phase 03. Requires implementation review in Phase 04. Remains provisional until Phase 04 validation.
+    OpenAPI 3.1 contract for CoachOS B2B2C fitness coaching platform.
+    Operations marked `x-implementation-status: implemented-phase-06` are reconciled to the current Phase 06 Django/DRF routes and serializers. Other historical P0 paths remain provisional future contracts and MUST NOT be interpreted as implemented merely because they appear in this document.
+    In particular, athlete Today, workout execution, set logging, feedback/pain/fatigue, durable offline behavior, messaging, nutrition, billing, marketplace, AI, and wearables are not implemented by Phase 06. Phase 07+ paths are retained only as planned contracts pending their separately authorized phases.
 
     **Authentication Transport Consistency — Corrected (ADR-032):**
     - **Recommended MVP Strategy:** HttpOnly/Secure/SameSite cookie sessions (Django sessionid):
@@ -29,12 +29,12 @@ info:
 
     **OpenAPI Validity:** YAML parses successfully, OpenAPI 3.1, all local $ref resolve, security schemes consistent with corrected auth strategy, error responses RFC7807-compatible with message_key, P0 endpoint groups align with API_CONTRACT, PRD story IDs, authorization rules, no future payment/AI/wearable as P0.
 
-  version: 1.0.1-provisional-corrected
+  version: 1.0.2-phase06
   contact:
     name: CoachOS Platform Team
     url: https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
   license:
-    name: MIT (Review Pending Founder Decision — ADR-012)
+    name: Proprietary / All Rights Reserved (ADR-012)
 
 servers:
   - url: https://api.coachos.example.com/api/v1
@@ -229,6 +229,12 @@ paths:
       description: Invalidates all active sessions after success, token single-use enforcement 400 on reuse.
       operationId: resetPasswordConfirm
       security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
       x-audit-event: auth.password_reset_completed
       requestBody:
         content:
@@ -521,112 +527,159 @@ paths:
   /exercises:
     get:
       tags: [Exercise Catalog]
-      summary: Search & filter exercises with Persian character-variant folding
-      description: Supports query `q` with Perso-Arabic script keyboard-variant normalization for Persian search, filtering by muscle, movement pattern, equipment, locale fa-IR/en-US. Returns canonical global + org-private.
+      summary: Search and filter the visible exercise catalog
+      description: Returns published canonical exercises plus published private exercises belonging to the requested active organization. Persian query and stored names/aliases use keyboard-variant normalization.
       operationId: listExercises
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Any active organization member
+      x-object-permission: Active membership in org_id; canonical organization-null plus only that organization's private exercises
       parameters:
+        - $ref: '#/components/parameters/OrgIdQuery'
         - name: q
           in: query
-          description: Search string supports Persian Unicode variant folding
-          schema:
-            type: string
+          schema: { type: string }
+          description: Name or alias query; Persian keyboard variants are normalized server-side.
         - name: muscle
           in: query
-          schema:
-            type: string
+          schema: { type: string }
         - name: movement_pattern
           in: query
           schema:
-            type: string
-            enum: [squat, hinge, horizontal_push, horizontal_pull, vertical_push, vertical_pull, lunge, carry, isolation, cardio, other]
+            $ref: '#/components/schemas/MovementPattern'
         - name: equipment
           in: query
+          schema: { type: string }
+        - name: difficulty
+          in: query
           schema:
-            type: string
+            $ref: '#/components/schemas/ExerciseDifficulty'
         - name: locale
           in: query
-          description: Active translation filter fa-IR/en-US only
           schema:
-            type: string
-            enum: [fa-IR, en-US]
-      x-required-role: Authenticated user in org
-      x-object-permission: org_id filter (canonical NULL + org private) + assignment not required for global catalog
-      x-localization: Notes fa-IR/en-US bilingual names, Accept-Language header optional
+            $ref: '#/components/schemas/SupportedLocale'
       responses:
         '200':
-          description: Results sorted by normalized relevance
+          description: Visible published exercises, capped at 100
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExerciseListResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
     post:
       tags: [Exercise Catalog]
-      summary: Create private custom exercise with media rights metadata
-      description: Owner/Coach org-private only. Media upload separate but rights metadata required.
+      summary: Create an organization-private exercise
+      description: Requires an active owner or coach membership. The org_id is validated server-side. Attached media requires complete commercial-use rights metadata and private storage keys. Django cookie-session CSRF validation applies.
       operationId: createPrivateExercise
-      x-required-role: Owner or Coach in org
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active owner or coach in org_id
       x-audit-event: exercise.created_private
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateExerciseRequest'
+            examples:
+              privateExercise:
+                value:
+                  org_id: 01912345-1234-7123-8123-123456789abc
+                  movement_pattern: horizontal_push
+                  difficulty: intermediate
+                  primary_muscles: [chest]
+                  secondary_muscles: [triceps]
+                  equipment_required: [dumbbell]
+                  translations:
+                    - locale: fa-IR
+                      name: پرس سینه دمبل
+                      instructions: وزنه را با کنترل حرکت دهید.
+                      coaching_cues: [کنترل حرکت]
+                      common_mistakes: [قوس بیش از حد]
+                    - locale: en-US
+                      name: Dumbbell Chest Press
+                      instructions: Move the weight with control.
+                      coaching_cues: [Stay controlled]
+                      common_mistakes: [Excessive arch]
+                  aliases:
+                    - locale: fa-IR
+                      alias: پرس سينه
+                  media_assets:
+                    - media_type: video_mp4
+                      storage_key: org/01912345/exercises/demo.mp4
+                      duration_seconds: 30
+                      bytes_size: 1024
+                      checksum_sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+                      rights:
+                        license_type: coach_upload
+                        source_url: https://example.com/provenance/demo
+                        creator_attribution: Example Coach
+                        permitted_commercial_use: true
       responses:
         '201':
-          description: Created
+          description: Private published exercise created; storage keys are never returned
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExerciseResponse'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 
   /exercises/{exercise_id}:
     get:
       tags: [Exercise Catalog]
-      summary: Exercise detail + demo media (signed URLs)
+      summary: Get a visible published exercise
+      operationId: getExercise
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Any active organization member
+      x-object-permission: Canonical exercise or private exercise owned by org_id
       parameters:
-        - name: exercise_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      x-required-role: Authenticated org member (canonical global + org private)
-      x-object-permission: Org scope for private custom
+        - $ref: '#/components/parameters/ExerciseId'
+        - $ref: '#/components/parameters/OrgIdQuery'
       responses:
         '200':
-          description: Detail
+          description: Exercise detail and rights metadata; no raw storage URL/key
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExerciseResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /admin/exercises/moderation:
     get:
       tags: [Exercise Moderation]
-      summary: List pending exercise submissions (platform admin only, MFA)
-      x-required-role: Platform Admin MFA
-      x-audit-event: admin.moderation_queue_viewed (optional)
+      summary: List pending exercise submissions
+      operationId: listExerciseModerationQueue
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active platform administrator
       responses:
         '200':
-          description: Queue
+          description: Pending exercise queue, capped at 100
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModerationQueueResponse'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        '403': { $ref: '#/components/responses/Forbidden' }
     post:
       tags: [Exercise Moderation]
-      summary: Moderate (approve/reject) exercise
-      x-required-role: Platform Admin MFA
-      x-audit-event: exercise.published / exercise.rejected
+      summary: Approve or reject a pending exercise
+      description: Approval requires both supported translations, at least one media asset, commercial-use permission, and platform-admin review metadata. Cookie-session CSRF validation applies.
+      operationId: moderateExercise
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active platform administrator
+      x-audit-event: exercise.published or exercise.rejected
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -637,164 +690,213 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  message_key:
-                    type: string
+                $ref: '#/components/schemas/ModerationDecisionResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
 
   /programs:
     get:
       tags: [Programs]
-      summary: List org programs & templates
+      summary: List organization programs and templates
+      operationId: listPrograms
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active owner or coach
       parameters:
-        - $ref: '#/components/parameters/OrgId'
+        - $ref: '#/components/parameters/OrgIdQuery'
         - name: is_template
           in: query
-          schema:
-            type: boolean
-      x-required-role: Owner, Coach in org
+          schema: { type: boolean }
       responses:
         '200':
-          description: Programs
+          description: Non-archived program summaries, capped at 100
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProgramListResponse'
+        '403': { $ref: '#/components/responses/Forbidden' }
     post:
       tags: [Programs]
-      summary: Create master program (hierarchical)
-      description: Creates Program + phases/weeks/days/workouts/items/prescriptions atomic.
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
-      x-required-role: Owner, Coach
+      summary: Atomically create a hierarchical program
+      description: Creates phases, weeks, days, workouts, items, and set prescriptions. Every exercise must be canonical or private to org_id. Cookie-session CSRF validation applies.
+      operationId: createProgram
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active owner or coach in org_id
       x-audit-event: program.created
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateProgramRequest'
       responses:
         '201':
-          description: Program created
+          description: Program hierarchy created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProgramResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 
   /programs/{program_id}:
     get:
       tags: [Programs]
-      summary: Get program detail (builder)
+      summary: Get an organization program hierarchy
+      operationId: getProgram
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active owner or coach in the program organization
       parameters:
-        - name: program_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      x-required-role: Owner, Coach in org (program org scope)
+        - $ref: '#/components/parameters/ProgramId'
       responses:
         '200':
-          description: Program detail with hierarchy
+          description: Ordered program hierarchy
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProgramResponse'
+        '404': { $ref: '#/components/responses/NotFound' }
     patch:
       tags: [Programs]
-      summary: Update program
+      summary: Update program metadata or replace its hierarchy
+      description: A successful update increments version. Supplying phases atomically replaces the hierarchy. Cookie-session CSRF validation applies.
+      operationId: updateProgram
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active owner or coach in the program organization
       x-audit-event: program.updated
       parameters:
-        - name: program_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/ProgramId'
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateProgramRequest'
       responses:
         '200':
-          description: Updated
+          description: Updated program hierarchy
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProgramResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /programs/{program_id}/clone:
     post:
       tags: [Templates]
-      summary: Clone program as independent copy (template)
-      description: Template clone does NOT mutate master.
-      parameters:
-        - name: program_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      summary: Deep-clone a program as an independent copy
+      operationId: cloneProgram
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active owner or coach in the program organization
       x-audit-event: template.cloned
+      parameters:
+        - $ref: '#/components/parameters/ProgramId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloneProgramRequest'
       responses:
         '201':
-          description: Clone created
+          description: Independent clone created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProgramResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
-  /program-assignments:
+  /coach-athlete-assignments:
     post:
       tags: [Assignments]
-      summary: Assign program to athlete with immutable snapshot
-      description: Verifies CoachAthleteAssignment, creates snapshot JSONB immutable, schedules workouts, notifies athlete.
-      operationId: assignProgram
-      x-required-role: Owner any org athlete, Coach assigned athletes only
-      x-audit-event: program.assigned
-      x-idempotency: Optional Idempotency-Key header recommended
+      summary: Create or reactivate a coach-athlete authorization relationship
+      description: Owner-only tenant operation. Both users must have active coach/athlete memberships in org_id. This relation authorizes program assignment only; it does not create workout execution records. Cookie-session CSRF validation applies.
+      operationId: createCoachAthleteAssignment
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active organization owner
+      x-audit-event: coach_athlete.assigned
       requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCoachAthleteAssignmentRequest'
+      responses:
+        '201':
+          description: Relationship created or reactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoachAthleteAssignmentResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /program-assignments:
+    get:
+      tags: [Assignments]
+      summary: List visible immutable program assignments
+      operationId: listProgramAssignments
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Owner, linked coach, or athlete self
+      x-object-permission: Owner sees tenant assignments; coach sees linked athletes only; athlete sees self only
+      parameters:
+        - $ref: '#/components/parameters/OrgIdQuery'
+        - name: athlete_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Visible assignments, capped at 100
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentListResponse'
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Assignments]
+      summary: Assign a program with an immutable point-in-time snapshot
+      description: Owner may assign any active tenant athlete; coach requires an active coach-athlete relationship. Creates no Phase 07 workout session, notification, or execution record. Cookie-session CSRF validation applies.
+      operationId: createProgramAssignment
+      security:
+        - cookieAuth: []
+      x-implementation-status: implemented-phase-06
+      x-required-role: Active owner or linked coach
+      x-audit-event: program.assigned
+      requestBody:
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateAssignmentRequest'
       responses:
         '201':
-          description: Assignment + snapshot created
+          description: Assignment and immutable snapshot created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignmentResponse'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-    get:
-      tags: [Assignments]
-      summary: List assignments (filter athlete)
-      parameters:
-        - name: org_id
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: athlete_id
-          in: query
-          schema:
-            type: string
-            format: uuid
-      x-required-role: Owner, Coach (assigned athletes only), Athlete self
-      responses:
-        '200':
-          description: Assignments
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AssignmentListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 
   /athlete/today:
+    x-implementation-status: planned-phase-07
     get:
       tags: [Athlete Today]
       summary: Athlete Today's Workout dashboard
@@ -811,6 +913,7 @@ paths:
                 $ref: '#/components/schemas/TodayResponse'
 
   /workout-sessions:
+    x-implementation-status: planned-phase-07
     post:
       tags: [Workout Sessions]
       summary: Start workout session (scheduled → in_progress)
@@ -831,6 +934,7 @@ paths:
                 $ref: '#/components/schemas/WorkoutSessionResponse'
 
   /workout-sessions/{session_id}:
+    x-implementation-status: planned-phase-07
     get:
       tags: [Workout Sessions]
       summary: Get workout session detail
@@ -878,6 +982,7 @@ paths:
                 $ref: '#/components/schemas/WorkoutSessionResponse'
 
   /workout-sessions/{session_id}/set-logs:
+    x-implementation-status: planned-phase-07
     post:
       tags: [Set Logs]
       summary: Log set actuals (load, reps, RPE)
@@ -905,6 +1010,7 @@ paths:
                 $ref: '#/components/schemas/SetLogResponse'
 
   /workout-sessions/{session_id}/substitutions:
+    x-implementation-status: planned-phase-07
     post:
       tags: [Workout Sessions]
       summary: Substitute exercise with mandatory reason
@@ -930,6 +1036,7 @@ paths:
                 $ref: '#/components/schemas/SubstitutionResponse'
 
   /workout-sessions/{session_id}/feedback-flags:
+    x-implementation-status: planned-phase-07
     post:
       tags: [Feedback Flags]
       summary: Report pain/fatigue flag — subjective athlete feedback not clinical diagnosis
@@ -957,6 +1064,7 @@ paths:
                 $ref: '#/components/schemas/FeedbackFlagResponse'
 
   /athletes/{athlete_id}/progress/photos:
+    x-implementation-status: planned-phase-07
     get:
       tags: [Progress]
       summary: List progress photos with signed URLs (consent-gated)
@@ -1018,6 +1126,7 @@ paths:
                 $ref: '#/components/schemas/ProgressPhotoResponse'
 
   /athletes/{athlete_id}/body-metrics:
+    x-implementation-status: planned-phase-07
     get:
       tags: [Progress]
       summary: List body metrics (weight etc) — consent-gated in P0
@@ -1061,6 +1170,7 @@ paths:
                 $ref: '#/components/schemas/BodyMetricResponse'
 
   /consents:
+    x-implementation-status: planned-future-phase
     get:
       tags: [Consent]
       summary: List consents for athlete
@@ -1124,6 +1234,7 @@ paths:
           description: Revoked immediate effect invalidating signed URLs
 
   /messages/threads:
+    x-implementation-status: planned-phase-08
     get:
       tags: [Messages]
       summary: List message threads for current user (participant only)
@@ -1157,6 +1268,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
 
   /messages/threads/{thread_id}/messages:
+    x-implementation-status: planned-phase-08
     get:
       tags: [Messages]
       summary: List messages in thread (participant only + assignment check)
@@ -1179,6 +1291,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
 
   /notifications:
+    x-implementation-status: planned-phase-08
     get:
       tags: [Notifications]
       summary: List in-app notifications for current user
@@ -1192,6 +1305,7 @@ paths:
                 $ref: '#/components/schemas/NotificationListResponse'
 
   /notifications/preferences:
+    x-implementation-status: planned-phase-08
     get:
       tags: [Notifications]
       summary: Get notification preferences
@@ -1220,6 +1334,7 @@ paths:
                 $ref: '#/components/schemas/NotificationPreferenceResponse'
 
   /organizations/{org_id}/audit-logs:
+    x-implementation-status: planned-future-api
     get:
       tags: [Audit Events]
       summary: List audit events — owner own org only, admin global
@@ -1238,6 +1353,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
 
   /admin/audit-logs:
+    x-implementation-status: planned-future-api
     get:
       tags: [Audit Events]
       summary: Global audit trail — Platform Admin MFA only
@@ -1251,6 +1367,7 @@ paths:
                 $ref: '#/components/schemas/AuditListResponse'
 
   /privacy/export-request:
+    x-implementation-status: planned-future-api
     post:
       tags: [Privacy]
       summary: Request machine-readable data export (GDPR Art.20 adjacent)
@@ -1268,6 +1385,7 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
 
   /privacy/forget-me:
+    x-implementation-status: planned-future-api
     post:
       tags: [Privacy]
       summary: Request account erasure / right-to-erasure (GDPR Art.17 adjacent)
@@ -1293,6 +1411,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
   /media/{asset_id}/signed-url:
+    x-implementation-status: planned-future-api
     get:
       tags: [Media]
       summary: Generate signed URL for exercise demo media (private bucket)
@@ -1354,7 +1473,29 @@ components:
       schema:
         type: string
         format: uuid
-      description: Organization tenant ID — must match active org derived from server context, else 404/403
+      description: Organization tenant ID in organization-scoped path routes.
+    OrgIdQuery:
+      name: org_id
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Tenant context candidate; authorization always requires an active server-side membership and never trusts this value alone.
+    ExerciseId:
+      name: exercise_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProgramId:
+      name: program_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
 
   responses:
     BadRequest:
@@ -1364,7 +1505,7 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorEnvelope'
     Unauthorized:
-      description: Missing/invalid auth — 401 + save form state to session storage redirect /login
+      description: Missing or invalid authentication — RFC 7807 response
       content:
         application/json:
           schema:
@@ -1397,7 +1538,7 @@ components:
   schemas:
     ErrorEnvelope:
       type: object
-      required: [type, title, status, detail, instance]
+      required: [type, title, status, detail, instance, message_key, correlation_id]
       properties:
         type:
           type: string
@@ -1421,11 +1562,14 @@ components:
           type: string
           description: Localized message key extension for frontend i18n
           example: errors.authz.unassigned_athlete
+        correlation_id:
+          type: string
+          description: Request correlation identifier; may be '-' when unavailable.
+          example: 01912345-1234-7123-8123-123456789abc
         field_errors:
           type: object
-          additionalProperties:
-            type: string
-          description: Field-level validation errors
+          additionalProperties: true
+          description: DRF field-level validation details; values may be arrays or nested objects.
 
     RegisterRequest:
       type: object
@@ -1742,222 +1886,418 @@ components:
           items:
             $ref: '#/components/schemas/MembershipResponse'
 
+    SupportedLocale:
+      type: string
+      enum: [fa-IR, en-US]
+
+    MovementPattern:
+      type: string
+      enum: [squat, hinge, horizontal_push, horizontal_pull, vertical_push, vertical_pull, lunge, carry, isolation, cardio, other]
+
+    ExerciseDifficulty:
+      type: string
+      enum: [beginner, intermediate, advanced]
+
+    ExerciseTranslation:
+      type: object
+      required: [id, locale, name, instructions, coaching_cues, common_mistakes]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        locale: { $ref: '#/components/schemas/SupportedLocale' }
+        name: { type: string, maxLength: 200 }
+        instructions: { type: string }
+        coaching_cues:
+          type: array
+          items: { type: string }
+        common_mistakes:
+          type: array
+          items: { type: string }
+        safety_notes:
+          type: [string, 'null']
+
+    ExerciseAlias:
+      type: object
+      required: [locale, alias]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        locale: { $ref: '#/components/schemas/SupportedLocale' }
+        alias: { type: string, maxLength: 200 }
+
+    MediaRights:
+      type: object
+      required: [license_type, creator_attribution, permitted_commercial_use]
+      properties:
+        license_type:
+          type: string
+          enum: [original_production, licensed_cc_by, commercial_license, coach_upload]
+        source_url:
+          type: [string, 'null']
+          format: uri
+          description: Required for every non-original_production license.
+        creator_attribution: { type: string, maxLength: 255 }
+        permitted_commercial_use: { type: boolean }
+        reviewed_by_user_id:
+          type: [string, 'null']
+          format: uuid
+          readOnly: true
+        reviewed_at:
+          type: [string, 'null']
+          format: date-time
+          readOnly: true
+
+    MediaAssetInput:
+      type: object
+      required: [media_type, storage_key, bytes_size, checksum_sha256, rights]
+      properties:
+        media_type:
+          type: string
+          enum: [video_mp4, image_webp, animation_gif]
+        storage_key:
+          type: string
+          maxLength: 500
+          writeOnly: true
+          description: Relative private object key; URLs, absolute paths, and traversal segments are rejected.
+        thumbnail_storage_key:
+          type: [string, 'null']
+          maxLength: 500
+          writeOnly: true
+        duration_seconds: { type: [integer, 'null'], minimum: 0 }
+        bytes_size: { type: integer, minimum: 0 }
+        checksum_sha256:
+          type: string
+          pattern: '^[0-9a-fA-F]{64}$'
+        rights: { $ref: '#/components/schemas/MediaRights' }
+
+    MediaAssetResponse:
+      type: object
+      required: [id, media_type, bytes_size, checksum_sha256, rights]
+      description: Private storage keys and raw storage URLs are intentionally absent.
+      properties:
+        id: { type: string, format: uuid }
+        media_type:
+          type: string
+          enum: [video_mp4, image_webp, animation_gif]
+        duration_seconds: { type: [integer, 'null'], minimum: 0 }
+        bytes_size: { type: integer, minimum: 0 }
+        checksum_sha256:
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+        rights: { $ref: '#/components/schemas/MediaRights' }
+
     ExerciseResponse:
       type: object
+      required: [id, organization_id, movement_pattern, difficulty, primary_muscles, secondary_muscles, equipment_required, status, translations, aliases, media_assets, created_at, updated_at]
       properties:
-        id:
-          type: string
-          format: uuid
+        id: { type: string, format: uuid }
         organization_id:
-          type: string
+          type: [string, 'null']
           format: uuid
-          nullable: true
-        movement_pattern:
-          type: string
-        difficulty:
-          type: string
+          description: Null for canonical exercises; tenant UUID for private exercises.
+        movement_pattern: { $ref: '#/components/schemas/MovementPattern' }
+        difficulty: { $ref: '#/components/schemas/ExerciseDifficulty' }
         primary_muscles:
           type: array
-          items:
-            type: string
+          items: { type: string }
+        secondary_muscles:
+          type: array
+          items: { type: string }
+        equipment_required:
+          type: array
+          items: { type: string }
+        status:
+          type: string
+          enum: [draft, pending_review, published, archived, rejected]
         translations:
           type: array
-          items:
-            type: object
-            properties:
-              locale:
-                type: string
-              name:
-                type: string
-              instructions:
-                type: string
-        media:
+          items: { $ref: '#/components/schemas/ExerciseTranslation' }
+        aliases:
           type: array
-          items:
-            type: object
-            properties:
-              asset_id:
-                type: string
-                format: uuid
-              media_type:
-                type: string
-              signed_url:
-                type: string
-                format: uri
-                description: Presigned URL TTL ≤15min (provisional for detail)
-              thumbnail_url:
-                type: string
-                format: uri
+          items: { $ref: '#/components/schemas/ExerciseAlias' }
+        media_assets:
+          type: array
+          items: { $ref: '#/components/schemas/MediaAssetResponse' }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     ExerciseListResponse:
       type: object
+      required: [exercises, count]
       properties:
-        results:
+        exercises:
           type: array
-          items:
-            $ref: '#/components/schemas/ExerciseResponse'
-        total:
-          type: integer
+          maxItems: 100
+          items: { $ref: '#/components/schemas/ExerciseResponse' }
+        count: { type: integer, minimum: 0, maximum: 100 }
 
     CreateExerciseRequest:
       type: object
-      required: [movement_pattern, difficulty, translations, rights]
+      required: [org_id, movement_pattern, difficulty, primary_muscles, translations]
       properties:
-        movement_pattern:
-          type: string
-        difficulty:
-          type: string
+        org_id: { type: string, format: uuid }
+        movement_pattern: { $ref: '#/components/schemas/MovementPattern' }
+        difficulty: { $ref: '#/components/schemas/ExerciseDifficulty' }
         primary_muscles:
           type: array
-          items:
-            type: string
+          items: { type: string }
+        secondary_muscles:
+          type: array
+          items: { type: string }
+          default: []
+        equipment_required:
+          type: array
+          items: { type: string }
+          default: []
         translations:
           type: array
-          items:
-            type: object
-            required: [locale, name]
-            properties:
-              locale:
-                type: string
-                enum: [fa-IR, en-US]
-              name:
-                type: string
-              instructions:
-                type: string
-        rights:
-          type: object
-          properties:
-            license_type:
-              type: string
-              enum: [original_production, licensed_cc_by, commercial_license, coach_upload]
-            creator_attribution:
-              type: string
+          minItems: 2
+          maxItems: 2
+          description: Exactly one fa-IR and one en-US translation.
+          items: { $ref: '#/components/schemas/ExerciseTranslation' }
+        aliases:
+          type: array
+          items: { $ref: '#/components/schemas/ExerciseAlias' }
+        media_assets:
+          type: array
+          items: { $ref: '#/components/schemas/MediaAssetInput' }
 
     ModerationQueueResponse:
       type: object
+      required: [exercises]
       properties:
-        pending:
+        exercises:
           type: array
-          items:
-            $ref: '#/components/schemas/ExerciseResponse'
+          maxItems: 100
+          items: { $ref: '#/components/schemas/ExerciseResponse' }
 
     ModerationDecisionRequest:
       type: object
       required: [exercise_id, decision]
       properties:
-        exercise_id:
-          type: string
-          format: uuid
-        decision:
-          type: string
-          enum: [approve, reject]
-        reason:
-          type: string
+        exercise_id: { type: string, format: uuid }
+        decision: { type: string, enum: [approve, reject] }
+
+    ModerationDecisionResponse:
+      type: object
+      required: [status, message_key]
+      properties:
+        status: { type: string, enum: [published, rejected] }
+        message_key: { type: string, enum: [exercise.published, exercise.rejected] }
+
+    SetPrescription:
+      type: object
+      required: [set_index, target_reps]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        set_index: { type: integer, minimum: 1 }
+        target_reps: { type: string, maxLength: 50, example: 8-10 }
+        target_load: { type: [string, 'null'], maxLength: 50, example: 80 kg }
+        target_rpe:
+          oneOf:
+            - { type: number, minimum: 1, maximum: 10 }
+            - { type: string, pattern: '^([1-9](\.[0-9])?|10(\.0)?)$' }
+        target_rir: { type: [integer, 'null'], minimum: 0, maximum: 10 }
+        tempo: { type: [string, 'null'], pattern: '^[0-9Xx]-[0-9Xx]-[0-9Xx]-[0-9Xx]$', example: 3-1-1-0 }
+
+    WorkoutItem:
+      type: object
+      required: [exercise_id, sequence_order, prescriptions]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        exercise_id: { type: string, format: uuid }
+        sequence_order: { type: integer, minimum: 1 }
+        group_key: { type: [string, 'null'], pattern: '^[A-Z][0-9]{0,2}$', example: A1 }
+        segment: { type: string, enum: [warmup, main, cooldown], default: main }
+        rest_seconds_between_sets: { type: integer, minimum: 0, default: 90 }
+        coach_notes: { type: [string, 'null'] }
+        prescriptions:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/SetPrescription' }
+
+    Workout:
+      type: object
+      required: [title, sequence_order, items]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        title: { type: string, maxLength: 150 }
+        estimated_minutes: { type: [integer, 'null'], minimum: 0 }
+        sequence_order: { type: integer, minimum: 1, default: 1 }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/WorkoutItem' }
+
+    ProgramDay:
+      type: object
+      required: [day_number, title, workouts]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        day_number: { type: integer, minimum: 1, maximum: 7 }
+        title: { type: string, maxLength: 150 }
+        workouts:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/Workout' }
+
+    ProgramWeek:
+      type: object
+      required: [week_number, days]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        week_number: { type: integer, minimum: 1 }
+        focus_note: { type: [string, 'null'] }
+        days:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ProgramDay' }
+
+    ProgramPhase:
+      type: object
+      required: [name, sequence_order, duration_weeks, weeks]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        name: { type: string, maxLength: 150 }
+        sequence_order: { type: integer, minimum: 1 }
+        duration_weeks: { type: integer, minimum: 1, default: 4 }
+        weeks:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ProgramWeek' }
 
     ProgramResponse:
       type: object
+      required: [id, organization_id, created_by_user_id, title, target_goal, is_template, is_archived, version, phases, created_at, updated_at]
       properties:
-        id:
-          type: string
-          format: uuid
-        organization_id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        description:
-          type: string
-          nullable: true
-        target_goal:
-          type: string
-        is_template:
-          type: boolean
+        id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        created_by_user_id: { type: string, format: uuid }
+        title: { type: string, maxLength: 200 }
+        description: { type: [string, 'null'] }
+        target_goal: { type: string, enum: [hypertrophy, strength, fat_loss, endurance, general_fitness] }
+        is_template: { type: boolean }
+        is_archived: { type: boolean }
+        version: { type: integer, minimum: 1 }
         phases:
           type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                format: uuid
-              name:
-                type: string
-              sequence_order:
-                type: integer
-              weeks:
-                type: array
-                items:
-                  type: object
+          minItems: 1
+          items: { $ref: '#/components/schemas/ProgramPhase' }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ProgramSummary:
+      type: object
+      required: [id, title, target_goal, is_template, version, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: [string, 'null'] }
+        target_goal: { type: string, enum: [hypertrophy, strength, fat_loss, endurance, general_fitness] }
+        is_template: { type: boolean }
+        version: { type: integer, minimum: 1 }
+        updated_at: { type: string, format: date-time }
 
     ProgramListResponse:
       type: object
+      required: [programs, count]
       properties:
         programs:
           type: array
-          items:
-            $ref: '#/components/schemas/ProgramResponse'
+          maxItems: 100
+          items: { $ref: '#/components/schemas/ProgramSummary' }
+        count: { type: integer, minimum: 0, maximum: 100 }
 
     CreateProgramRequest:
       type: object
-      required: [title]
+      required: [org_id, title, target_goal, phases]
       properties:
-        title:
-          type: string
-        description:
-          type: string
-        target_goal:
-          type: string
-        is_template:
-          type: boolean
+        org_id: { type: string, format: uuid }
+        title: { type: string, maxLength: 200 }
+        description: { type: [string, 'null'] }
+        target_goal: { type: string, enum: [hypertrophy, strength, fat_loss, endurance, general_fitness] }
+        is_template: { type: boolean, default: false }
+        is_archived: { type: boolean, default: false }
         phases:
           type: array
-          items:
-            type: object
+          minItems: 1
+          items: { $ref: '#/components/schemas/ProgramPhase' }
 
     UpdateProgramRequest:
       type: object
+      minProperties: 1
       properties:
-        title:
-          type: string
-        description:
-          type: string
+        title: { type: string, maxLength: 200 }
+        description: { type: [string, 'null'] }
+        target_goal: { type: string, enum: [hypertrophy, strength, fat_loss, endurance, general_fitness] }
+        is_template: { type: boolean }
+        is_archived: { type: boolean }
+        phases:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ProgramPhase' }
+
+    CloneProgramRequest:
+      type: object
+      properties:
+        title: { type: string, maxLength: 200 }
+        is_template: { type: boolean, default: false }
+
+    CreateCoachAthleteAssignmentRequest:
+      type: object
+      required: [org_id, coach_user_id, athlete_user_id]
+      properties:
+        org_id: { type: string, format: uuid }
+        coach_user_id: { type: string, format: uuid }
+        athlete_user_id: { type: string, format: uuid }
+
+    CoachAthleteAssignmentResponse:
+      type: object
+      required: [id, organization_id, coach_user_id, athlete_user_id, is_active]
+      properties:
+        id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        coach_user_id: { type: string, format: uuid }
+        athlete_user_id: { type: string, format: uuid }
+        is_active: { type: boolean }
 
     CreateAssignmentRequest:
       type: object
-      required: [source_program_id, athlete_user_id, start_date, organization_id]
+      required: [org_id, source_program_id, athlete_user_id, start_date]
       properties:
-        source_program_id:
-          type: string
-          format: uuid
-        athlete_user_id:
-          type: string
-          format: uuid
-        organization_id:
-          type: string
-          format: uuid
-        start_date:
-          type: string
-          format: date
+        org_id: { type: string, format: uuid }
+        source_program_id: { type: string, format: uuid }
+        athlete_user_id: { type: string, format: uuid }
+        start_date: { type: string, format: date }
+        end_date: { type: [string, 'null'], format: date }
 
     AssignmentResponse:
       type: object
+      required: [id, organization_id, athlete_user_id, assigned_by_user_id, source_program_id, source_program_version, start_date, status, snapshot_payload, created_at]
       properties:
-        assignment_id:
-          type: string
-          format: uuid
-        snapshot:
+        id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        athlete_user_id: { type: string, format: uuid }
+        assigned_by_user_id: { type: string, format: uuid }
+        source_program_id: { type: string, format: uuid }
+        source_program_version: { type: integer, minimum: 1 }
+        start_date: { type: string, format: date }
+        end_date: { type: [string, 'null'], format: date }
+        status: { type: string, enum: [active, completed, archived] }
+        snapshot_payload:
           type: object
-          description: Immutable snapshot JSONB
-        scheduled_sessions_count:
-          type: integer
+          description: Server-generated immutable snapshot with schema_version, source IDs/version, and complete ordered program hierarchy.
+          additionalProperties: true
+        created_at: { type: string, format: date-time }
 
     AssignmentListResponse:
       type: object
+      required: [assignments, count]
       properties:
         assignments:
           type: array
-          items:
-            $ref: '#/components/schemas/AssignmentResponse'
+          maxItems: 100
+          items: { $ref: '#/components/schemas/AssignmentResponse' }
+        count: { type: integer, minimum: 0, maximum: 100 }
+
 
     TodayResponse:
       type: object

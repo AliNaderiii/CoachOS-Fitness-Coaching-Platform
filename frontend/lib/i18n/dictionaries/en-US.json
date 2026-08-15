@@ -101,6 +101,19 @@
     "reps": "Reps",
     "tempo": "Tempo",
     "rpe": "Target RPE",
-    "preview": "Prescription preview"
+    "preview": "Prescription preview",
+    "loading_context": "Loading organization context…",
+    "no_organization": "No active organization is available for this account.",
+    "unauthorized": "You are not authorized to use this coach or owner workspace.",
+    "context_error": "Organization context could not be loaded.",
+    "retry": "Try again",
+    "active_organization": "Active organization",
+    "loading_catalog": "Loading exercise catalog…",
+    "empty_catalog": "No exercises match these filters.",
+    "catalog_error": "Exercise catalog could not be loaded.",
+    "saving": "Saving…",
+    "save_error": "Program could not be saved. Review the fields and try again.",
+    "program_title": "Program title",
+    "select_exercise": "Select an exercise from the catalog."
   }
 }
