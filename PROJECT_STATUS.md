@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-14 (UTC)
 **Current phase:** Phase 06 — **PR #15 review correction in progress; not merged or complete**
-**Next step:** Commit the baseline-preserving correction, run isolated validation and corrected-head GitHub Actions, then leave PR #15 open for founder review. Do not merge or start Phase 07.
+**Next step:** Push the baseline-preserving correction and verify corrected-head GitHub Actions, then leave PR #15 open for founder review. Isolated corrected validation passes. Do not merge or start Phase 07.
 **Working branch:** `arena/019fffa4-coachos-fitness-coaching-platf` (Arena session branch)
 **Base commit (main):** `86503b3930192dd46de7ce500384c246d236fcd4` (PR #14 merge; verified current `origin/main` at recovery)
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
@@ -12,7 +12,7 @@
 
 ## 1. One-Line Status
 
-**PR #15 remains an unmerged Phase 06 candidate under blocking review correction.** The exercise/program domain and coach/owner UI remain in scope, but the original head included an unapproved major frontend toolchain migration. The correction restores the Phase 05 baseline exactly (Next.js 14.2.35, existing package lock, `.eslintrc.json`, `next lint`, TypeScript/Vitest/Vite/jsdom versions, generated types, and route typing), removes the flat ESLint config/rule overrides, and adapts Phase 06 source to that baseline. Local baseline frontend validation passes 56 tests plus lint/type/build. Corrected clean-checkout and remote Actions evidence are pending; prior green runs are not accepted as corrected-head evidence. No Arabic or Phase 07+ code is added. Do not merge and do not start Phase 07.
+**PR #15 remains an unmerged Phase 06 candidate under blocking review correction.** The exercise/program domain and coach/owner UI remain in scope, but the original head included an unapproved major frontend toolchain migration. The correction restores the Phase 05 baseline exactly (Next.js 14.2.35, existing package lock, `.eslintrc.json`, `next lint`, TypeScript/Vitest/Vite/jsdom versions, generated types, and route typing), removes the flat ESLint config/rule overrides, and adapts Phase 06 source to that baseline. Local baseline frontend validation passes 56 tests plus lint/type/build. Corrected isolated-checkout evidence passes; remote Actions evidence is pending; prior green runs are not accepted as corrected-head evidence. No Arabic or Phase 07+ code is added. Do not merge and do not start Phase 07.
 
 ---
 

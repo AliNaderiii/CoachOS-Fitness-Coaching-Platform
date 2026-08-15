@@ -4,10 +4,10 @@
 **Base SHA:** `86503b3930192dd46de7ce500384c246d236fcd4`
 **Branch:** `arena/019fffa4-coachos-fitness-coaching-platf`
 **Original reviewed head:** `368fe57e2a6901c41a3aa24044770c4891a050e8`
-**Corrected head:** pending correction commit
+**Corrected implementation SHA:** `f962478ee8a91f13fa65828cbf5b7519fbf955e3`
 **Pull request:** [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) — open, mergeable, targeting `main`
 
-**Status:** Review correction in progress. The unapproved frontend toolchain migration has been removed locally; corrected clean-checkout and remote-check evidence are pending. PR #15 remains open and Phase 06 is **not merged and not declared complete**.
+**Status:** The unapproved frontend toolchain migration is removed and corrected isolated-checkout validation passes. Corrected-head remote checks are pending. PR #15 remains open and Phase 06 is **not merged and not declared complete**.
 
 ## 1. Safe recovery evidence
 
@@ -33,8 +33,8 @@ No interrupted Phase 06 diff, report, Stage 0 plan, app, migration, test, or Sta
 | 5 — templates/version/snapshot | Pass | Deep clone independence, edit version increment, ordered server snapshot, model-level snapshot payload immutability test. |
 | 6 — API/authz/tenancy | Pass | Active owner/coach controls, athlete/suspended denial, canonical+current tenant visibility, cross-tenant 404/403, owner/linked-coach assignment policy, bounded-query tests. |
 | 7 — frontend | Pass | Coach/owner responsive dual-pane workspace, bilingual catalog filtering, normalized Persian search, prescription controls, keyboard reorder alternatives, dictionaries/tests; clean `npm ci`, lint, type-check, 56 tests, build. |
-| 8 — adversarial review | Revalidation pending | Original domain negative tests passed. Security/localization/accessibility checks will be rerun on the baseline-preserving corrected head; no dependency-audit remediation is claimed in Phase 06. |
-| 9 — docs/clean validation/PR/checks | Revalidation pending | Prior checks validated the now-rejected toolchain migration and are not completion evidence. Corrected-head clean-checkout and Actions results must replace them. |
+| 8 — adversarial review | Pass under corrected baseline | Domain negative tests, repository scanner, localization tests, baseline lint, and accessibility-target tests pass. No dependency-audit remediation is claimed in Phase 06. |
+| 9 — docs/clean validation/PR/checks | Remote checks pending | Fresh isolated clone of corrected implementation SHA `f962478e…` passed all required commands with a clean status. Corrected-head Actions remain pending. |
 
 ## 3. Delivered behavior
 
@@ -122,7 +122,7 @@ npm run build       -> Next.js 14.2.35; 18 static pages generated
 
 ### Isolated clean-checkout validation
 
-Pending corrected commit. The earlier isolated validation used the rejected Next.js 16/ESLint 9 toolchain and is retained only as historical evidence, not as acceptance evidence for this correction.
+A fresh clone of corrected implementation SHA `f962478ee8a91f13fa65828cbf5b7519fbf955e3` was created at `/tmp/coachos-pr15-corrected-validation` without copied dependency directories. A new Python virtual environment and baseline `npm ci` install were used. Backend Ruff/format/check/migration drift/69 tests, frontend baseline `next lint`/type-check/Vitest 1.6.0 56 tests/Next.js 14.2.35 build, and repository compliance all passed. Final clone status was clean. The earlier Next.js 16 validation is superseded and not acceptance evidence.
 
 ## 7. Stage 8 adversarial review
 

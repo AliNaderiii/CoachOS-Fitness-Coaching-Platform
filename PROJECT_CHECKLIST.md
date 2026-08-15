@@ -145,7 +145,7 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Coach tests exist
 - [x] Phase 06 report prepared on the Phase 06 branch
 
-**Phase 06 status:** `[~]` PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) is open under blocking review correction. The unapproved frontend toolchain migration is removed locally and the Phase 05 baseline lint/toolchain is restored without disabled rules. Corrected isolated validation and remote checks are pending. Phase 06 is not merged or complete; do not start Phase 07.
+**Phase 06 status:** `[~]` PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) is open under blocking review correction. The unapproved frontend toolchain migration is removed locally and the Phase 05 baseline lint/toolchain is restored without disabled rules. Corrected isolated validation passes; corrected-head remote checks are pending. Phase 06 is not merged or complete; do not start Phase 07.
 
 ---
 
