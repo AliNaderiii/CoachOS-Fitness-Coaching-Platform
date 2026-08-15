@@ -1,10 +1,10 @@
 # Project Status — CoachOS
 
-**Last updated:** 2026-08-14 (UTC)
-**Current phase:** Phase 06 — **PR #15 final review corrections validated; open and unmerged**
-**Next step:** Founder review of PR #15. Final isolated validation and corrected-head Actions pass. Do not merge automatically or start Phase 07. Do not merge or start Phase 07.
-**Working branch:** `arena/019fffa4-coachos-fitness-coaching-platf` (Arena session branch)
-**Base commit (main):** `86503b3930192dd46de7ce500384c246d236fcd4` (PR #14 merge; verified current `origin/main` at recovery)
+**Last updated:** 2026-08-15 (UTC)
+**Current phase:** Phase 06 — **merged and complete for its documented scope**
+**Next step:** Phase 07 is the next product phase, but it is not started and requires explicit founder authorization in a new dedicated branch.
+**Working branch:** `arena/01a005b4-coachos-fitness-coaching-platf` (environment-imposed Arena session branch; docs-only status synchronization)
+**Base commit (main):** `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` (PR #15 merge commit; verified current remote `main`)
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
 **License:** Proprietary / All Rights Reserved (ADR-012 — Copyright (c) 2026 CoachOS Technologies / Ali Naderi)
 
@@ -12,11 +12,27 @@
 
 ## 1. One-Line Status
 
-**PR #15 remains an unmerged Phase 06 candidate under final review correction.** OpenAPI 3.1 now matches the implemented exercise/moderation/program/clone/coach-athlete/program-assignment routes and serializers; 191 local refs resolve and Phase 07+ paths are explicitly planned. The coach/owner workspace no longer uses a hardcoded catalog or local-only save: it resolves real cookie-session organization context, calls catalog filters and createProgram, and exposes loading/empty/error/unauthorized/retry/save states. Backend review added cross-tenant and multi-role protections; 72 backend and 59 frontend tests pass locally under the unchanged Phase 05 toolchain. Fresh final checkout and runs `31880019393`, `31880019224`, and `31880015763` pass. No Arabic or Phase 07+ implementation was added. Do not merge or start Phase 07.
+**Phase 06 — Exercise Library and Training Programs is merged and complete for its documented scope.** PR [#13](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/13) and docs-only status PR [#14](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/14) are merged; Phase 06 PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) merged into `main` at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` on 2026-08-15T13:47:52Z. Phase 07 is next, but remains unstarted and requires explicit founder authorization.
 
 ---
 
-## 2. Phase 04 Implementation Summary
+## 2. Phase 06 Completion Evidence
+
+| Evidence | Verified result |
+|---|---|
+| **Merge chain** | PR #13 merged at `d7f72b3fcfd6667df524af5adf71328c5de6edba`; PR #14 merged at `86503b3930192dd46de7ce500384c246d236fcd4`; PR #15 merged at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` |
+| **OpenAPI** | OpenAPI 3.1 contract reconciled to 13 implemented Phase 06 operations; specification validated and all 191 local references resolved; Phase 07+ paths remain marked planned |
+| **Backend** | 72 tests passed, including Phase 06 tenant, media-rights, assignment-snapshot, cross-tenant, and effective multi-role authorization coverage |
+| **Frontend** | 59 tests plus lint, type-check, and production build passed under the unchanged Phase 05 frontend toolchain |
+| **Final candidate validation** | Clean-checkout validation and PR/push Actions runs `31880019393`, `31880019224`, and `31880015763` succeeded |
+| **Post-merge CI on `main`** | **CoachOS CI Quality Gates** run [`31888177718`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31888177718) succeeded (backend, frontend, and security/language jobs); **Security & Vulnerability Scan** run [`31888175915`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31888175915) succeeded (secret/pattern scan). Both are completed push runs on merge SHA `9e09c4785283ffd688e355cb9c1cf7af39c83d3c`. |
+| **Scope boundary** | No Arabic resources and no Phase 07+ implementation were added |
+
+Deferred items remain deferred: formal accessibility certification; device-matrix validation; penetration testing; production media storage, upload, signing, and transcoding; production `pg_trgm` load tuning; broader coach-athlete assignment lifecycle/UI; and every Phase 07+ domain.
+
+---
+
+## 3. Phase 04 Implementation Summary
 
 | Area | Implemented Artifacts | Verification / Tests |
 |---|---|---|
@@ -38,7 +54,7 @@
 
 ---
 
-## 3. Active Non-Negotiable Constraints
+## 4. Active Non-Negotiable Constraints
 
 1. **Languages:** Persian (`fa-IR`, RTL) and English (`en-US`, LTR) **only**.
 2. **Arabic is strictly out of scope:** No Arabic locale files, translations, UI text, or requirements.
@@ -52,7 +68,7 @@
 
 ---
 
-## 4. Risks, Blockers & Open Items
+## 5. Risks, Blockers & Open Items
 
 | ID | Item | Severity | Status & Action |
 |---|---|---|---|
@@ -61,16 +77,17 @@
 | **TODO-CSP-001** | CSP Strict Nonce Migration | Low | Next.js development uses `'unsafe-inline'`; production eliminates `unsafe-eval`; migration to per-request cryptographic nonce planned before production pilot. |
 | **LEGAL** | Privacy Compliance (GDPR & Iran Data Residency) | High | Formal pre-DPIA documented; jurisdiction-specific legal review required before handling real production health telemetry. |
 | **P04-REMEDIATION** | Missing original `frontend/lib/` source | Low | **Closed — merged:** PR #8 (`dd7dea56945d96a6a2d595afb5154b6828c4e3b6`, 2026-08-11) merged the specification-based reimplementation; PR #9 (`0eae53b89343ec0a4eb1200086b769011012c406`, 2026-08-12) merged docs synchronization. All nine `frontend/lib/` files verified tracked on remote `main`. Provenance/correction record: `docs/reports/POST-MERGE-PHASE-04-FRONTEND-REIMPLEMENTATION-REPORT.md`. |
-| **CI-ACTIVATION** | GitHub Actions activation | — | **Closed — PR #10 merged:** PR #10 (`chore/activate-github-actions-manual`) merged into `main` at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z). `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` verified present on remote `main` (`git ls-tree origin/main`); GitHub Actions workflows are active; post-merge runs succeeded; no deployment job or real secret exists. Actions remain active and passing on `main` through the PR #13 merge commit (`d7f72b3f...`). |
-| **P05-DEFERRED** | Phase 05 deferred scope | Low | **Open — deferred by decision:** Phase 05 merged complete for its documented scope via PR #13 (`d7f72b3fcfd6667df524af5adf71328c5de6edba`). Deferred items remain deferred pending later authorized phases: frontend onboarding UI, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification. Phase 06 adds only the minimal tenant-scoped `CoachAthleteAssignment` relation required to authorize program assignment; broader lifecycle/UI remains deferred. |
+| **CI-ACTIVATION** | GitHub Actions activation | — | **Closed — PR #10 merged:** PR #10 (`chore/activate-github-actions-manual`) merged into `main` at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z). `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` are present on remote `main`; GitHub Actions remain active and passing through the PR #15 merge commit (`9e09c478...`), with post-merge runs `31888177718` and `31888175915` successful; no deployment job or real secret exists. |
+| **P05-DEFERRED** | Phase 05 deferred scope | Low | **Open — deferred by decision:** Phase 05 merged complete for its documented scope via PR #13 (`d7f72b3fcfd6667df524af5adf71328c5de6edba`). Deferred items remain deferred pending later authorized phases: frontend onboarding UI, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification. Phase 06 supplied only the minimal tenant-scoped `CoachAthleteAssignment` relation required to authorize program assignment; broader lifecycle/UI remains deferred. |
+| **P06-DEFERRED** | Phase 06 deferred scope | Low | **Open — deferred by decision:** Formal accessibility certification, device-matrix validation, penetration testing, production media storage/upload/signing/transcoding, production `pg_trgm` load tuning, broader assignment lifecycle/UI, and all Phase 07+ domains remain deferred. None is implied complete by the Phase 06 merge. |
 
 ---
 
-## 5. Next Step
+## 6. Next Step
 
-Phase 05 is merged and complete; Phase 06 PR #15 is open under blocking baseline-preservation correction:
+Phase 06 is merged and complete for its documented scope:
 
-1. PR #13 (Phase 05 — Identity, Tenancy, and Roles) is **merged** into `main` at `d7f72b3fcfd6667df524af5adf71328c5de6edba` (2026-08-14T08:40:58Z).
-2. All four post-merge GitHub Actions checks on the merge commit are **successful**: Backend Lint, Type & Tests (Django/DRF); Frontend Lint, Type & Tests (Next.js/PWA); Security Scan & Language Compliance; Secret & Pattern Scanning (runs `31784911766` and `31784911764`, both `success`). GitHub Actions remain active and passing on `main`.
-3. Phase 05 is complete for its documented scope. Deferred Phase 05 items remain deferred: frontend onboarding UI, `CoachAthleteAssignment`, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification.
-4. The original PR #15 checks are superseded. Corrected isolated validation and Actions runs `31879015578`, `31879015703`, and `31879013603` pass under the unchanged Phase 05 frontend baseline. Leave the PR open for founder review. Do not start Phase 07.
+1. PR #13 (Phase 05) and PR #14 (post-Phase-05 status synchronization) are merged.
+2. PR #15 (Phase 06) is **merged** into `main` at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` (2026-08-15T13:47:52Z).
+3. Post-merge GitHub Actions on that exact SHA are **successful**: CoachOS CI Quality Gates run `31888177718` and Security & Vulnerability Scan run `31888175915`.
+4. Phase 07 is the next product phase, but it is `[ ]` not started. It may begin only after explicit founder authorization and must use a new dedicated branch; this status-synchronization task does not authorize or start it.

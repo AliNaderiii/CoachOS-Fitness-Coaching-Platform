@@ -5,9 +5,17 @@ All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 This project will follow [Semantic Versioning](https://semver.org/) once the first versioned release is cut.
 
-## [Unreleased] — Phase 06 Exercise Library and Training Programs (Candidate; unmerged)
+## [Unreleased]
 
-### Added — Phase 06 candidate
+### Changed — Post-Merge Phase 06 Status Synchronization (docs-only, no code/test/dependency/workflow changes)
+
+- Recorded that PR [#13](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/13) and docs-only PR [#14](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/14) are merged, and that Phase 06 PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) merged into `main` at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` on 2026-08-15T13:47:52Z.
+- Marked Phase 06 — Exercise Library and Training Programs merged and complete for its documented scope. Recorded final validation evidence: OpenAPI 3.1 with all 191 local references resolved, 72 backend tests, 59 frontend tests plus lint/type-check/production build, and successful clean-checkout/candidate Actions evidence.
+- Recorded successful post-merge GitHub Actions on the PR #15 merge SHA: **CoachOS CI Quality Gates** run [`31888177718`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31888177718) and **Security & Vulnerability Scan** run [`31888175915`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31888175915), both completed with conclusion `success` on `9e09c4785283ffd688e355cb9c1cf7af39c83d3c`.
+- Kept formal accessibility certification, device-matrix validation, penetration testing, production media storage/upload/signing/transcoding, production `pg_trgm` load tuning, broader assignment lifecycle/UI, and all Phase 07+ domains deferred.
+- Recorded Phase 07 as the next product phase while keeping it not started and gated on explicit founder authorization in a new dedicated branch.
+
+### Added — Phase 06 Exercise Library and Training Programs
 
 - Added bilingual canonical/organization-private exercise definitions, translations, aliases, Persian keyboard-variant-normalized search, catalog filters, media metadata, mandatory rights provenance, and platform-admin moderation API.
 - Added organization-scoped hierarchical programs and set prescriptions, atomic nested persistence, version increments, deep template clone, minimal coach-athlete assignment authorization, and immutable point-in-time assignment snapshots.
@@ -18,8 +26,8 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 - **Final review correction:** reconciled `docs/OPENAPI.yaml` to 13 implemented Phase 06 operations with current cookie-session/CSRF, tenant, media-rights, hierarchy, and snapshot schemas; OpenAPI 3.1 validates and 191 local refs resolve. Phase 07+ paths are explicitly marked planned.
 - Replaced the three-item hardcoded frontend catalog/local-only save with actual session organization loading, `listExercises`, and `createProgram`; added loading, empty, error, unauthorized, retry, save-success, and save-failure tests.
 - Hardened program-assignment effective multi-role handling and added cross-tenant private exercise/detail/org_id and owner-role precedence tests. Fresh isolated validation passes: backend 72, frontend 59/build, OpenAPI 3.1 with 191 refs, compliance, and clean status. Final Actions runs `31880019393`, `31880019224`, and `31880015763` pass.
-- Published PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) targeting `main`; pull-request runs `31790374656` and `31790374657` and push run `31790363694` succeeded on published head `a2d8b0a4…`. The PR remains open for founder review.
-- Phase 06 remains unmerged and is not declared complete. No Arabic localization or Phase 07+ code was added; do not start Phase 07.
+- Published PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) targeting `main`; pull-request runs `31790374656` and `31790374657` and push run `31790363694` succeeded on published head `a2d8b0a4…`. After final review corrections, PR #15 subsequently merged at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c`; see the post-merge status entry above.
+- Phase 06 is merged and complete for its documented scope. No Arabic localization or Phase 07+ code was added; Phase 07 remains not started pending explicit founder authorization.
 
 ### Changed — Post-Merge Phase 05 Status Synchronization (docs-only, no code/test/dependency/workflow changes)
 
