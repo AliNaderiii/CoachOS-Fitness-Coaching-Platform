@@ -384,6 +384,31 @@ To be applied in a **separate docs-only synchronization PR after** the implement
 
 **Status: all 19 Definition-of-Done items evidenced.**
 
+### PR and CI evidence
+
+| Item | Value |
+|---|---|
+| **Pull request** | [#19 — feat(phase-08): communication and notifications (candidate — do not merge)](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/19) |
+| **Base → head** | `main` ← `arena/01a00a2a-coachos-fitness-coaching-platf` |
+| **Head commit SHA** | `6ba656e057e3e7006d0b071d4b8c83e36f65de65` |
+| **Baseline SHA** | `f7ccaf457cbd2e67de2708d5367f6c1386a3edce` |
+| **State** | **Open — awaiting founder review. Not merged.** |
+
+PR check runs (all **pass**):
+
+| Check | Result | URL |
+|---|---|---|
+| Backend Lint, Type & Tests (Django/DRF) | pass (36s) | [job 95157315780](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31944055381/job/95157315780) |
+| Frontend Lint, Type & Tests (Next.js/PWA) | pass (1m6s) | [job 95157315757](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31944055381/job/95157315757) |
+| Security Scan & Language Compliance | pass (6s) | [job 95157315821](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31944055381/job/95157315821) |
+| Secret & Pattern Scanning | pass (5s) | [job 95157315582](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31944055382/job/95157315582) |
+
+### Founder decisions requested
+
+1. **Ratify AMD-08-01** — owners have no read path into private coach–athlete message content. This narrows the previously documented OpenAPI contract. If lawful-access is required later it should be a separate, dual-control, explicitly gated feature.
+2. **Confirm the deferral list in §7** — particularly dispatcher scheduling, production email/Web Push providers, and retention purge jobs.
+3. **Note the Gate 0 path finding (P08-GATE0-01)** — `THREAT_MODEL.md` and `SECURITY_CONTROL_MATRIX.md` live under `docs/` rather than `docs/architecture/`; recommend normalizing in a separate docs-only PR after the 08–12 wave.
+
 ### Stop condition
 
 Per the prompt, work stops here. The PR is **open for founder review and must not be merged automatically**. Phases 09–12 have not been started in this branch.
