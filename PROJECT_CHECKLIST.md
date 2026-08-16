@@ -10,7 +10,7 @@
 | `[!]` | Blocked |
 | `[-]` | Deferred by decision |
 
-**Last updated:** 2026-08-15 (UTC)
+**Last updated:** 2026-08-16 (UTC)
 
 Evidence links point to repository paths, commits, or GitHub artifacts. Update after every meaningful task and at phase end.
 
@@ -151,7 +151,7 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] Post-merge CI on PR #15 merge SHA passed — evidence: CoachOS CI Quality Gates run [`31888177718`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31888177718) `success`; Security & Vulnerability Scan run [`31888175915`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31888175915) `success`; both completed on `9e09c4785283ffd688e355cb9c1cf7af39c83d3c`
 - [-] Deferred beyond documented Phase 06 scope: formal accessibility certification; device-matrix validation; penetration testing; production media storage/upload/signing/transcoding; production `pg_trgm` load tuning; broader assignment lifecycle/UI; and all Phase 07+ domains
 
-**Phase 06 status:** `[x]` **Merged & Complete for documented scope** — PR #15 merged into `main` at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c`; OpenAPI, backend, frontend, clean-checkout, and post-merge CI evidence is recorded above. Deferred items remain deferred. Phase 07 is next but is not started and requires explicit founder authorization.
+**Phase 06 status:** `[x]` **Merged & Complete for documented scope** — PR #15 merged into `main` at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c`; OpenAPI, backend, frontend, clean-checkout, and post-merge CI evidence is recorded above. Deferred items remain deferred. Phase 07 was subsequently authorized, delivered, and merged via PR #17.
 
 ---
 
@@ -217,9 +217,11 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 - [x] OpenAPI 3.1 updated to match implemented Phase 07 routes + validated
 - [x] Full backend/frontend/security/governance clean-checkout validation
 - [x] `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`, report updated
-- [x] Phase 07 PR opened targeting `main` (not merged automatically)
+- [x] Phase 07 PR/implementation merged — evidence: PR [#17](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/17) (`feat(phase-07): athlete app and progress logging`) merged into `main` at `0949abeead5ba74a3deb0d2439a464ab6bbd99dd` on 2026-08-16T09:57:48Z; PR #15 and docs-only PR #16 were already merged at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` and `95c2a3c0b2f9556a4a0251fae8bad2139c5b61c1`
+- [x] Post-merge CI on PR #17 merge SHA passed — evidence: CoachOS CI Quality Gates run [`31940418392`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31940418392) `success` (backend, frontend, and security/language jobs); Security & Vulnerability Scan run [`31940418535`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31940418535) `success` (secret/pattern scan); both completed on `0949abeead5ba74a3deb0d2439a464ab6bbd99dd`
+- [-] Deferred beyond documented Phase 07 scope: durable offline sync and conflict resolution (Phase 12), messaging/notifications (Phase 08), nutrition (Phase 09), billing/payments (Phase 10), AI (Phase 11), wearables, native apps, marketplace, production media storage/signing/transcoding, formal accessibility certification, device-matrix validation, and penetration testing
 
-**Phase 07 status:** `[x]` Implementation complete for documented scope (all stage gates 0–7 passed) — PR opened targeting `main` for founder review; not merged automatically; Phase 08+ not started.
+**Phase 07 status:** `[x]` **Merged & Complete for documented scope** — PR #17 merged into `main` at `0949abeead5ba74a3deb0d2439a464ab6bbd99dd` on 2026-08-16T09:57:48Z; post-merge CoachOS CI Quality Gates run `31940418392` and Security & Vulnerability Scan run `31940418535` succeeded on the merge SHA; all Stage 0–7 gates passed. Deferred items remain deferred. Phase 08 is next but is not started and requires explicit founder authorization.
 
 ---
 

@@ -7,6 +7,14 @@ This project will follow [Semantic Versioning](https://semver.org/) once the fir
 
 ## [Unreleased]
 
+### Changed — Post-Merge Phase 07 Status Synchronization (docs-only, no code/test/dependency/workflow changes)
+
+- Recorded that PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) and docs-only PR [#16](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/16) are merged, and that Phase 07 PR [#17](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/17) (`feat(phase-07): athlete app and progress logging`) merged into `main` at `0949abeead5ba74a3deb0d2439a464ab6bbd99dd` on 2026-08-16T09:57:48Z.
+- Marked Phase 07 — Athlete App and Progress Logging **merged and complete for its documented scope**, replacing stale pre-merge wording (Phase 07 in progress; PR #17 open / staged for founder review; next step to complete Phase 07 and open a PR).
+- Recorded successful post-merge GitHub Actions on the PR #17 merge SHA: **CoachOS CI Quality Gates** run [`31940418392`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31940418392) and **Security & Vulnerability Scan** run [`31940418535`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31940418535), both completed with conclusion `success` on `0949abeead5ba74a3deb0d2439a464ab6bbd99dd`.
+- Kept deferred items deferred: durable offline sync and conflict resolution (Phase 12), messaging/notifications (Phase 08), nutrition (Phase 09), billing/payments (Phase 10), AI (Phase 11), wearables, native apps, marketplace, production media storage/signing/transcoding, formal accessibility certification, device-matrix validation, and penetration testing.
+- Recorded Phase 08 as the next product phase; it has **not started** and requires explicit founder authorization in a new dedicated branch. No Phase 08 code, workflow files, application source, tests, or dependencies were modified; historical records below are unchanged.
+
 ### Added — Phase 07 Athlete App and Progress Logging
 
 - Added the athlete execution domain (`apps.execution`) with `WorkoutSession`, `SetLog`, `Substitution`, `FeedbackFlag`, `BodyMetric`, `ProgressPhoto`, and `ConsentRecord` models plus migration `0001_initial.py` and audit action migration `0003_alter_auditevent_action.py`. Session status lifecycle, mandatory skip/substitute reason, set-index uniqueness/idempotency, load/reps/RPE/fatigue bounds, ownership, and tenant constraints enforced at the model and API layers.
