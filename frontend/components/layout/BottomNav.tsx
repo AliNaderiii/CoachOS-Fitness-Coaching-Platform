@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, Dumbbell, Flame, MessageSquare, User } from "lucide-react";
+import { Calendar, Dumbbell, Flame, MessageSquare, TrendingUp, User } from "lucide-react";
 import { useTranslation } from "./DirectionProvider";
 
 export const BottomNav: React.FC = () => {
@@ -15,6 +15,11 @@ export const BottomNav: React.FC = () => {
       label: t("nav.today"),
       href: `/${locale}/athlete/today`,
       icon: Flame,
+    },
+    {
+      label: t("nav.progress"),
+      href: `/${locale}/athlete/progress`,
+      icon: TrendingUp,
     },
     {
       label: t("nav.calendar"),

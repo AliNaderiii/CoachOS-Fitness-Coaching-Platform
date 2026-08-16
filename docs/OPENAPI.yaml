@@ -3,8 +3,8 @@ info:
   title: CoachOS API
   description: |
     OpenAPI 3.1 contract for CoachOS B2B2C fitness coaching platform.
-    Operations marked `x-implementation-status: implemented-phase-06` are reconciled to the current Phase 06 Django/DRF routes and serializers. Other historical P0 paths remain provisional future contracts and MUST NOT be interpreted as implemented merely because they appear in this document.
-    In particular, athlete Today, workout execution, set logging, feedback/pain/fatigue, durable offline behavior, messaging, nutrition, billing, marketplace, AI, and wearables are not implemented by Phase 06. Phase 07+ paths are retained only as planned contracts pending their separately authorized phases.
+    Operations marked `x-implementation-status: implemented-phase-06` are reconciled to the current Phase 06 Django/DRF routes and serializers. Operations marked `x-implementation-status: implemented-phase-07` are reconciled to the current Phase 07 athlete execution and progress routes and serializers. Other historical P0 paths remain provisional future contracts and MUST NOT be interpreted as implemented merely because they appear in this document.
+    Phase 07 implements the athlete Today dashboard, workout session lifecycle, set actual logging, exercise substitution, subjective feedback/pain/fatigue flags, progress body metrics, consent-gated progress photos, and privacy consent records. Phase 07 does NOT implement durable offline sync (Phase 12), messaging/notifications (Phase 08), nutrition (Phase 09), billing/payments (Phase 10), AI (Phase 11), wearables, native apps, marketplace, or production media storage — those remain planned or deferred.
 
     **Authentication Transport Consistency — Corrected (ADR-032):**
     - **Recommended MVP Strategy:** HttpOnly/Secure/SameSite cookie sessions (Django sessionid):
@@ -896,7 +896,7 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
 
   /athlete/today:
-    x-implementation-status: planned-phase-07
+    x-implementation-status: implemented-phase-07
     get:
       tags: [Athlete Today]
       summary: Athlete Today's Workout dashboard
@@ -913,7 +913,7 @@ paths:
                 $ref: '#/components/schemas/TodayResponse'
 
   /workout-sessions:
-    x-implementation-status: planned-phase-07
+    x-implementation-status: implemented-phase-07
     post:
       tags: [Workout Sessions]
       summary: Start workout session (scheduled → in_progress)
@@ -934,7 +934,7 @@ paths:
                 $ref: '#/components/schemas/WorkoutSessionResponse'
 
   /workout-sessions/{session_id}:
-    x-implementation-status: planned-phase-07
+    x-implementation-status: implemented-phase-07
     get:
       tags: [Workout Sessions]
       summary: Get workout session detail
@@ -982,7 +982,7 @@ paths:
                 $ref: '#/components/schemas/WorkoutSessionResponse'
 
   /workout-sessions/{session_id}/set-logs:
-    x-implementation-status: planned-phase-07
+    x-implementation-status: implemented-phase-07
     post:
       tags: [Set Logs]
       summary: Log set actuals (load, reps, RPE)
@@ -1010,7 +1010,7 @@ paths:
                 $ref: '#/components/schemas/SetLogResponse'
 
   /workout-sessions/{session_id}/substitutions:
-    x-implementation-status: planned-phase-07
+    x-implementation-status: implemented-phase-07
     post:
       tags: [Workout Sessions]
       summary: Substitute exercise with mandatory reason
@@ -1036,7 +1036,7 @@ paths:
                 $ref: '#/components/schemas/SubstitutionResponse'
 
   /workout-sessions/{session_id}/feedback-flags:
-    x-implementation-status: planned-phase-07
+    x-implementation-status: implemented-phase-07
     post:
       tags: [Feedback Flags]
       summary: Report pain/fatigue flag — subjective athlete feedback not clinical diagnosis
@@ -1064,7 +1064,7 @@ paths:
                 $ref: '#/components/schemas/FeedbackFlagResponse'
 
   /athletes/{athlete_id}/progress/photos:
-    x-implementation-status: planned-phase-07
+    x-implementation-status: implemented-phase-07
     get:
       tags: [Progress]
       summary: List progress photos with signed URLs (consent-gated)
@@ -1126,7 +1126,7 @@ paths:
                 $ref: '#/components/schemas/ProgressPhotoResponse'
 
   /athletes/{athlete_id}/body-metrics:
-    x-implementation-status: planned-phase-07
+    x-implementation-status: implemented-phase-07
     get:
       tags: [Progress]
       summary: List body metrics (weight etc) — consent-gated in P0
@@ -1170,7 +1170,7 @@ paths:
                 $ref: '#/components/schemas/BodyMetricResponse'
 
   /consents:
-    x-implementation-status: planned-future-phase
+    x-implementation-status: implemented-phase-07
     get:
       tags: [Consent]
       summary: List consents for athlete
@@ -2359,6 +2359,48 @@ components:
           type: string
           format: date-time
           nullable: true
+        session_rpe:
+          type: integer
+          minimum: 1
+          maximum: 10
+          nullable: true
+        fatigue_score:
+          type: integer
+          minimum: 1
+          maximum: 5
+          nullable: true
+        athlete_notes:
+          type: string
+          nullable: true
+        skip_or_modify_reason:
+          type: string
+          nullable: true
+        organization_id:
+          type: string
+          format: uuid
+        workouts:
+          type: array
+          description: Workouts scheduled for the session's date derived from the authorized assignment snapshot
+          items:
+            type: object
+            properties:
+              workout_id:
+                type: string
+              title:
+                type: string
+              estimated_minutes:
+                type: integer
+              sequence_order:
+                type: integer
+              items:
+                type: array
+                items:
+                  type: object
+        set_logs:
+          type: array
+          description: Set actuals logged for this session
+          items:
+            type: object
 
     CompleteSessionRequest:
       type: object
