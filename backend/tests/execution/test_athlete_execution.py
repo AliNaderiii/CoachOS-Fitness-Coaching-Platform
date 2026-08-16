@@ -1069,15 +1069,12 @@ def test_suspended_coach_denied_on_assigned_data(prepped):
 
 @pytest.mark.django_db
 def test_cross_org_assignment_does_not_authorize(prepped):
-    org = prepped["org"]
-    owner = prepped["owner"]
     coach = prepped["coach"]
-    athlete = prepped["athlete"]
     # create second org + assignment for same users (cross-tenant)
     org2, owner2, coach2, athlete2, _ = make_world("org2")
     ex2 = make_exercise(org2, owner2)
     link_coach(org2, coach2, athlete2)
-    assignment2 = make_assignment(org2, athlete2, ex2.id)
+    make_assignment(org2, athlete2, ex2.id)
     # coach from org1 should NOT be authorized on org2 assignment
     client = prepped["api_client"]
     client.force_authenticate(coach)
@@ -1090,7 +1087,6 @@ def test_cross_org_assignment_does_not_authorize(prepped):
 
 @pytest.mark.django_db
 def test_multi_org_user_cannot_use_arbitrary_first_org(prepped):
-    org = prepped["org"]
     athlete = prepped["athlete"]
     # athlete belongs to a second org (simulating multi-org user)
     org2 = Organization.objects.create(name="Second Org", slug="org2b", owner_user=prepped["owner"])
