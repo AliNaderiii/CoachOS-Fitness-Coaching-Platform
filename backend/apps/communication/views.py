@@ -18,7 +18,7 @@ import datetime
 import logging
 
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
@@ -161,6 +161,16 @@ def _user_organizations(user):
     ).distinct()
 
 
+def _serialize_counterpart(participant):
+    return {
+        "user_id": participant.user_id,
+        # Display name only — never the counterpart's email address.
+        "display_name": participant.user.display_name or "",
+        "role": participant.role_at_join,
+        "is_active": participant.left_at is None and participant.user.is_active,
+    }
+
+
 def _counterpart_payload(conversation, user_id):
     participant = (
         ConversationParticipant.objects.filter(conversation=conversation)
@@ -170,13 +180,52 @@ def _counterpart_payload(conversation, user_id):
     )
     if participant is None:
         return None
-    return {
-        "user_id": participant.user_id,
-        # Display name only — never the counterpart's email address.
-        "display_name": participant.user.display_name or "",
-        "role": participant.role_at_join,
-        "is_active": participant.left_at is None and participant.user.is_active,
-    }
+    return _serialize_counterpart(participant)
+
+
+def _counterparts_for(conversation_ids, user_id):
+    """Batch counterpart lookup for a page of conversations (avoids an N+1)."""
+    rows = (
+        ConversationParticipant.objects.filter(conversation_id__in=conversation_ids)
+        .exclude(user_id=user_id)
+        .select_related("user")
+    )
+    payloads = {}
+    for row in rows:
+        payloads.setdefault(row.conversation_id, _serialize_counterpart(row))
+    return payloads
+
+
+def _unread_counts_for(page, participants_by_conversation):
+    """
+    Batch unread counts for a page of conversations.
+
+    One grouped query replaces a per-row COUNT. Each conversation's window is
+    bounded by that participant's joined_at / last_read_at, and the result is
+    capped at UNREAD_COUNT_CAP.
+    """
+    if not page:
+        return {}
+
+    window = Q(pk__in=[])
+    for conversation in page:
+        participant = participants_by_conversation.get(conversation.id)
+        if participant is None:
+            continue
+        clause = (
+            Q(conversation_id=conversation.id)
+            & Q(created_at__gte=participant.joined_at)
+            & ~Q(sender_user_id=participant.user_id)
+        )
+        if participant.last_read_at is not None:
+            clause &= Q(created_at__gt=participant.last_read_at)
+        window |= clause
+
+    counts = dict.fromkeys((c.id for c in page), 0)
+    grouped = Message.objects.filter(window).values("conversation_id").annotate(total=Count("id"))
+    for row in grouped:
+        counts[row["conversation_id"]] = min(row["total"], UNREAD_COUNT_CAP)
+    return counts
 
 
 def _unread_count(conversation, participant):
@@ -232,12 +281,8 @@ class ConversationListCreateView(APIView):
             row.conversation_id: row
             for row in participant_rows.filter(conversation_id__in=[c.id for c in page])
         }
-        counterparts = {c.id: _counterpart_payload(c, user.id) for c in page}
-        unread = {
-            c.id: _unread_count(c, participants_by_conversation[c.id])
-            for c in page
-            if c.id in participants_by_conversation
-        }
+        counterparts = _counterparts_for([c.id for c in page], user.id)
+        unread = _unread_counts_for(page, participants_by_conversation)
 
         serializer = ConversationSerializer(
             page,

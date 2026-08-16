@@ -1233,105 +1233,335 @@ paths:
         '204':
           description: Revoked immediate effect invalidating signed URLs
 
-  /messages/threads:
-    x-implementation-status: planned-phase-08
+  /conversations:
+    x-implementation-status: implemented-phase-08
     get:
       tags: [Messages]
-      summary: List message threads for current user (participant only)
+      summary: List conversations for the current user (active participants only)
+      description: |
+        Returns only conversations in which the caller is an ACTIVE participant and
+        holds an active membership in the conversation's organization. Ordered by
+        `last_message_at` descending with an opaque keyset cursor. Page size is
+        bounded (max 50). `unread_count` is capped at 99.
       x-required-role: Authenticated — participant scoped
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string, maxLength: 200 }
       responses:
         '200':
-          description: Threads
+          description: Conversations
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ThreadListResponse'
+                $ref: '#/components/schemas/ConversationListResponse'
     post:
       tags: [Messages]
-      summary: Create thread or send first message (1:1 contextual)
-      description: Requires CoachAthleteAssignment active for coach-athlete threads, else 403. Owner escalation audited if accessing private threads.
-      x-audit-event: message.sent
-      x-data-sensitivity: Tier2+ confidential, support DENIED
+      summary: Open (or resolve) a direct conversation with an authorized counterpart
+      description: |
+        Requires an active CoachAthleteAssignment between the caller and the
+        counterpart in a shared organization. Idempotent: an existing thread for the
+        same (organization, participant pair, context) is returned with 200 instead
+        of creating a duplicate. Support and unassigned users are denied. Cookie
+        session CSRF validation applies.
+      x-audit-event: conversation.created
+      x-data-sensitivity: Tier2 confidential; support DENIED; owner non-participant DENIED
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateMessageRequest'
+              $ref: '#/components/schemas/CreateConversationRequest'
       responses:
         '201':
-          description: Message sent + notification dispatched
+          description: Conversation created
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponse'
+              schema: { $ref: '#/components/schemas/ConversationResponse' }
+        '200':
+          description: Existing conversation returned (idempotent)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConversationResponse' }
         '403':
           $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
 
-  /messages/threads/{thread_id}/messages:
-    x-implementation-status: planned-phase-08
+  /conversations/{conversation_id}:
+    x-implementation-status: implemented-phase-08
     get:
       tags: [Messages]
-      summary: List messages in thread (participant only + assignment check)
+      summary: Get conversation detail (active participant only)
+      description: |
+        Non-participants receive 404 regardless of tenant, so a caller cannot
+        distinguish "exists but not yours" from "does not exist".
       parameters:
-        - name: thread_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      x-required-role: Participant only + Owner escalation audited
+        - $ref: '#/components/parameters/ConversationId'
+      responses:
+        '200':
+          description: Conversation detail including can_send and read state
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConversationDetailResponse' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /conversations/{conversation_id}/messages:
+    x-implementation-status: implemented-phase-08
+    get:
+      tags: [Messages]
+      summary: List message history (participant only, bounded by join time)
+      description: |
+        Newest-first keyset pagination via the opaque `before` cursor. History is
+        bounded by the caller's `joined_at`, so joining a conversation never grants
+        retroactive access to earlier private content.
+      parameters:
+        - $ref: '#/components/parameters/ConversationId'
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 50, default: 30 }
+        - name: before
+          in: query
+          required: false
+          schema: { type: string, maxLength: 200 }
       responses:
         '200':
           description: Messages
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/MessageListResponse'
+              schema: { $ref: '#/components/schemas/MessageListResponse' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Messages]
+      summary: Send a text message
+      description: |
+        Body is Unicode-normalized, stripped of control characters, and bounded to
+        2000 characters after normalization. Supplying `client_message_id` makes the
+        send idempotent: a replay returns the original message with 200. A durable
+        outbox event is written in the same transaction as the message.
+      x-audit-event: message.sent
+      x-data-sensitivity: Tier3 personal content — body never logged, audited, or placed in events
+      parameters:
+        - $ref: '#/components/parameters/ConversationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateMessageRequest' }
+      responses:
+        '201':
+          description: Message created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '200':
+          description: Idempotent replay — original message returned
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '403':
           $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conversation is archived (read-only)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+        '422':
+          description: Validation failed (body_empty | body_too_long)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /conversations/{conversation_id}/read:
+    x-implementation-status: implemented-phase-08
+    post:
+      tags: [Messages]
+      summary: Move the caller's read cursor forward
+      description: |
+        Read state is a monotonic per-participant cursor. The cursor never moves
+        backwards and is clamped to the current server time. Source-domain records
+        (messages) are never mutated.
+      x-audit-event: conversation.read
+      parameters:
+        - $ref: '#/components/parameters/ConversationId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                read_at: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Updated read state
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReadReceiptResponse' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /conversations/{conversation_id}/mute:
+    x-implementation-status: implemented-phase-08
+    post:
+      tags: [Messages]
+      summary: Mute or unmute notifications for one conversation
+      description: Muting suppresses messaging notifications only; safety alerts are unaffected.
+      parameters:
+        - $ref: '#/components/parameters/ConversationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [is_muted]
+              properties:
+                is_muted: { type: boolean }
+      responses:
+        '200':
+          description: Mute state updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation_id: { type: string, format: uuid }
+                  is_muted: { type: boolean }
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /notifications:
-    x-implementation-status: planned-phase-08
+    x-implementation-status: implemented-phase-08
     get:
       tags: [Notifications]
-      summary: List in-app notifications for current user
+      summary: List durable in-app notifications for the current user
+      description: |
+        Self-scoped. Notifications carry i18n keys and metadata only — never message
+        bodies. Delivery is pull-based: Phase 08 implements no WebSocket, SSE, or
+        Web Push, so clients refresh to see new notifications.
       x-required-role: Self only
+      parameters:
+        - name: unread
+          in: query
+          required: false
+          schema: { type: string, enum: ['true'] }
+        - name: category
+          in: query
+          required: false
+          schema: { type: string, enum: [messaging, training, safety, account] }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string, maxLength: 200 }
       responses:
         '200':
           description: Notifications
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/NotificationListResponse'
+              schema: { $ref: '#/components/schemas/NotificationListResponse' }
 
-  /notifications/preferences:
-    x-implementation-status: planned-phase-08
+  /notifications/{notification_id}/read:
+    x-implementation-status: implemented-phase-08
+    post:
+      tags: [Notifications]
+      summary: Mark one notification read
+      description: |
+        Self-scoped and idempotent. Another user's notification id returns 404 rather
+        than 403 so the endpoint cannot be used as an enumeration oracle. Marking a
+        notification read never mutates the source-domain record it refers to.
+      parameters:
+        - name: notification_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Notification
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationResponse' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /notifications/read-all:
+    x-implementation-status: implemented-phase-08
+    post:
+      tags: [Notifications]
+      summary: Mark all of the caller's unread notifications read
+      x-audit-event: notification.read_all
+      responses:
+        '200':
+          description: Count updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated: { type: integer }
+                  read_at: { type: string, format: date-time }
+
+  /notification-preferences:
+    x-implementation-status: implemented-phase-08
     get:
       tags: [Notifications]
-      summary: Get notification preferences
+      summary: Get the caller's notification preference matrix
+      description: |
+        Returns every (event_type, channel) pair with its effective state and whether
+        it is locked. `channels_available` reports honestly that email and Web Push
+        have no provider configured in Phase 08.
       x-required-role: Self
       responses:
         '200':
           description: Preferences
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/NotificationPreferenceResponse'
+              schema: { $ref: '#/components/schemas/NotificationPreferenceResponse' }
     patch:
       tags: [Notifications]
-      summary: Update notification preferences — critical assignment alerts cannot be disabled
+      summary: Update preferences and quiet hours
+      description: |
+        Partial update. Safety-category in-app notifications cannot be disabled and a
+        suppression attempt returns 422 with
+        `errors.notifications.category_not_suppressible`. Quiet hours defer email and
+        Web Push only; in-app notifications are never delayed.
+      x-audit-event: notification.preferences_updated
       requestBody:
+        required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateNotificationPreferenceRequest'
+            schema: { $ref: '#/components/schemas/UpdateNotificationPreferenceRequest' }
       responses:
         '200':
           description: Updated
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/NotificationPreferenceResponse'
+              schema: { $ref: '#/components/schemas/NotificationPreferenceResponse' }
+        '422':
+          description: Non-suppressible category
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
 
   /organizations/{org_id}/audit-logs:
     x-implementation-status: planned-future-api
@@ -1482,6 +1712,14 @@ components:
         type: string
         format: uuid
       description: Tenant context candidate; authorization always requires an active server-side membership and never trusts this value alone.
+    ConversationId:
+      name: conversation_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Conversation ID. Non-participants receive 404 regardless of tenant.
     ExerciseId:
       name: exercise_id
       in: path
@@ -2615,134 +2853,219 @@ components:
         is_granted:
           type: boolean
 
-    ThreadListResponse:
+    CounterpartView:
       type: object
+      description: The other participant. Display name only — email is never exposed.
       properties:
-        threads:
-          type: array
-          items:
-            type: object
-            properties:
-              thread_id:
-                type: string
-                format: uuid
-              participants:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-              last_message_at:
-                type: string
-                format: date-time
+        user_id: { type: string, format: uuid }
+        display_name: { type: string, maxLength: 150 }
+        role: { type: string, enum: [coach, athlete, owner] }
+        is_active: { type: boolean }
 
-    CreateMessageRequest:
+    ConversationResponse:
       type: object
-      required: [recipient_user_id, content]
       properties:
-        thread_id:
+        id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        kind: { type: string, enum: [direct] }
+        context_type: { type: string, enum: [none, workout_session] }
+        context_id: { type: string, format: uuid, nullable: true }
+        last_message_at: { type: string, format: date-time, nullable: true }
+        last_message_preview:
           type: string
-          format: uuid
-          description: Optional — create new if not provided
-        recipient_user_id:
+          maxLength: 140
+          description: Bounded preview of the latest message, returned only to authorized participants.
+        is_archived: { type: boolean }
+        created_at: { type: string, format: date-time }
+        counterpart:
+          oneOf:
+            - $ref: '#/components/schemas/CounterpartView'
+            - type: 'null'
+        unread_count:
+          type: integer
+          minimum: 0
+          maximum: 99
+          description: Capped at 99 to avoid unbounded counting and exact-volume signalling.
+
+    ConversationDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ConversationResponse'
+        - type: object
+          properties:
+            can_send:
+              type: boolean
+              description: False when the coach-athlete assignment was revoked, the counterpart is inactive, or the thread is archived.
+            send_block_key:
+              type: string
+              description: Localizable reason key when can_send is false.
+            last_read_at: { type: string, format: date-time, nullable: true }
+            is_muted: { type: boolean }
+
+    ConversationListResponse:
+      type: object
+      properties:
+        conversations:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/ConversationResponse'
+        next_cursor: { type: string, nullable: true }
+
+    CreateConversationRequest:
+      type: object
+      required: [counterpart_user_id]
+      properties:
+        counterpart_user_id: { type: string, format: uuid }
+        context_type:
           type: string
-          format: uuid
-        content:
-          type: string
-        workout_session_id:
+          enum: [none, workout_session]
+          default: none
+        context_id:
           type: string
           format: uuid
           nullable: true
-        organization_id:
+          description: Required when context_type is workout_session; validated to the same organization.
+
+    CreateMessageRequest:
+      type: object
+      required: [body]
+      properties:
+        body:
           type: string
-          format: uuid
+          minLength: 1
+          maxLength: 2000
+          description: Plain text. Normalized (NFC), control characters stripped, length validated after normalization. Never rendered as HTML.
+          example: Great depth on set three — keep the chest tall next time.
+        client_message_id:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: Client-supplied idempotency key. Replaying the same value returns the original message with 200.
+          example: 019a0b7c-4d21-7000-8000-2b91f0c7a410
 
     MessageResponse:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-        thread_id:
-          type: string
-          format: uuid
-        sender_user_id:
-          type: string
-          format: uuid
-        recipient_user_id:
-          type: string
-          format: uuid
-        content:
-          type: string
-        workout_session_id:
-          type: string
-          format: uuid
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
+        id: { type: string, format: uuid }
+        conversation_id: { type: string, format: uuid }
+        sender_user_id: { type: string, format: uuid }
+        body: { type: string, maxLength: 2000 }
+        created_at: { type: string, format: date-time }
 
     MessageListResponse:
       type: object
       properties:
         messages:
           type: array
+          maxItems: 50
           items:
             $ref: '#/components/schemas/MessageResponse'
+        next_cursor: { type: string, nullable: true }
+        has_more: { type: boolean }
+
+    ReadReceiptResponse:
+      type: object
+      properties:
+        conversation_id: { type: string, format: uuid }
+        last_read_at: { type: string, format: date-time }
+        unread_count: { type: integer, minimum: 0, maximum: 99 }
 
     NotificationResponse:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-        user_id:
-          type: string
-          format: uuid
+        id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid, nullable: true }
         event_type:
           type: string
+          enum: [message.sent, workout.completed, feedback_flag.created]
+        category:
+          type: string
+          enum: [messaging, training, safety, account]
+        title_key:
+          type: string
+          description: i18n key resolved client-side; the server never returns locale-rendered copy.
+        body_key: { type: string }
         payload:
           type: object
-        read_at:
-          type: string
-          format: date-time
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
+          description: |
+            Metadata only — identifiers, actor display name, and a deep-link route.
+            Never message bodies, email addresses, tokens, or provider references.
+          example:
+            conversation_id: 019a0b7c-4d21-7000-8000-2b91f0c7a410
+            actor_display_name: Coach Reza
+            route: /messages/019a0b7c-4d21-7000-8000-2b91f0c7a410
+        read_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
 
     NotificationListResponse:
       type: object
       properties:
         notifications:
           type: array
+          maxItems: 50
           items:
             $ref: '#/components/schemas/NotificationResponse'
+        unread_count: { type: integer, minimum: 0, maximum: 99 }
+        next_cursor: { type: string, nullable: true }
+
+    NotificationPreferenceRow:
+      type: object
+      properties:
+        event_type: { type: string }
+        category: { type: string, enum: [messaging, training, safety, account] }
+        channel: { type: string, enum: [in_app, email, web_push] }
+        is_enabled: { type: boolean }
+        is_locked:
+          type: boolean
+          description: True for safety-category in-app notifications, which cannot be disabled.
 
     NotificationPreferenceResponse:
       type: object
       properties:
-        user_id:
-          type: string
-          format: uuid
         preferences:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationPreferenceRow'
+        quiet_hours_enabled: { type: boolean }
+        quiet_hours_start: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+        quiet_hours_end: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+        web_push_permission_state:
+          type: string
+          enum: [unknown, granted, denied]
+        timezone:
+          type: string
+          description: IANA timezone from the user profile; quiet hours are evaluated in it.
+        channels_available:
           type: object
+          description: |
+            Honest capability report. Phase 08 ships no email or Web Push provider,
+            so both are false and their adapters are deterministic local fakes.
           properties:
-            program_assigned:
-              type: boolean
-            workout_completed:
-              type: boolean
-            pain_flag_raised:
-              type: boolean
-            message_received:
-              type: boolean
-            marketing:
-              type: boolean
+            in_app: { type: boolean }
+            email: { type: boolean }
+            web_push: { type: boolean }
 
     UpdateNotificationPreferenceRequest:
       type: object
       properties:
         preferences:
-          type: object
+          type: array
+          maxItems: 32
+          items:
+            type: object
+            required: [event_type, channel, is_enabled]
+            properties:
+              event_type:
+                type: string
+                enum: [message.sent, workout.completed, feedback_flag.created]
+              channel: { type: string, enum: [in_app, email, web_push] }
+              is_enabled: { type: boolean }
+        quiet_hours_enabled: { type: boolean }
+        quiet_hours_start: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+        quiet_hours_end: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+        web_push_permission_state:
+          type: string
+          enum: [unknown, granted, denied]
 
     AuditResponse:
       type: object

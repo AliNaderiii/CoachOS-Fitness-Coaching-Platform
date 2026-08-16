@@ -57,9 +57,9 @@ def seed_inbox(world, conversations=20, messages_each=20, prefix="seed"):
 
 def test_inbox_query_count_is_bounded_and_independent_of_page_size(client, world):
     """
-    The inbox performs a bounded number of queries per page. It grows with page
-    size only through the per-row counterpart/unread lookups, which are capped
-    by the page-size bound (max 50), never by total inbox size.
+    The inbox issues a CONSTANT number of queries: counterparts and unread
+    counts are batched, so the count varies with neither page size nor total
+    inbox size. This guards the N+1 regression fixed during Stage 5 review.
     """
     seed_inbox(world, conversations=20, messages_each=20)
     login(client, world.coach)
@@ -75,9 +75,14 @@ def test_inbox_query_count_is_bounded_and_independent_of_page_size(client, world
         response = client.get("/api/v1/conversations?limit=5")
         assert len(response.json()["conversations"]) == 5
 
-    # Doubling the total inbox size must not change the query count for a page.
+    with CaptureQueriesContext(connection) as large_page:
+        response = client.get("/api/v1/conversations?limit=50")
+        assert len(response.json()["conversations"]) == 40
+
+    # Neither a larger dataset nor a larger page may change the query count.
     assert len(after_growth) == len(small)
-    assert len(small) <= 25
+    assert len(large_page) == len(small)
+    assert len(small) <= 10
 
 
 def test_message_history_uses_a_constant_number_of_queries(client, world):
