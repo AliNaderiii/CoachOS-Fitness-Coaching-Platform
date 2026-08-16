@@ -380,8 +380,16 @@ security approval. Those approvals remain explicit PR/deployment gates.
 
 ## 11. PR and approval evidence
 
-**Candidate commit:** pending  
-**Implementation PR:** pending  
-**CI checks:** pending after push  
-**Merge status:** must remain unmerged pending founder/product-financial, security, backend/data, frontend
-UX/i18n/a11y and QA approval.
+**Candidate implementation commit:** `2b2d47d5d72c563128ce84ab26fa416c5f3c3ac7`
+
+**Implementation PR:** [#20 — Phase 10: organization billing and coach monetization foundation](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/20) targeting `main` from the Arena-fixed branch
+
+**CI on the candidate implementation commit:** all reported checks passed:
+
+- [Backend Lint, Type & Tests (Django/DRF)](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31944431499/job/95158199240) — pass, 31 s;
+- [Frontend Lint, Type & Tests (Next.js/PWA)](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31944431499/job/95158199287) — pass, 54 s;
+- [Security Scan & Language Compliance](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31944431499/job/95158199333) — pass, 7 s;
+- [Secret & Pattern Scanning](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31944431890/job/95158200040) — pass, 5 s.
+
+**Merge status:** PR is open, non-draft and intentionally unmerged. Founder/product-financial, security,
+backend/data, frontend UX/i18n/a11y and QA approval remain required.
