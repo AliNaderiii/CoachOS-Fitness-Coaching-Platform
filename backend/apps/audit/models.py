@@ -49,6 +49,12 @@ class AuditEvent(models.Model):
         ("metric.viewed", "metric.viewed"),
         ("consent.granted", "consent.granted"),
         ("consent.revoked", "consent.revoked"),
+        # Phase 08 Communication and Notifications
+        ("conversation.created", "conversation.created"),
+        ("message.sent", "message.sent"),
+        ("conversation.read", "conversation.read"),
+        ("notification.preferences_updated", "notification.preferences_updated"),
+        ("notification.read_all", "notification.read_all"),
     ]
 
     id = models.CharField(primary_key=True, max_length=36, default=generate_uuid7, editable=False)

@@ -32,3 +32,7 @@ SESSION_COOKIE_SECURE = False
 # Enable test seam to capture raw reset tokens so actual forgot-password path is exercised
 # (raw token never appears in prod responses/logs/audit)
 TEST_CAPTURE_RESET_TOKENS = True
+
+# Phase 08: enable the deterministic local fake providers for tests only.
+# No real credentials exist anywhere in the repository.
+COMMUNICATION_FAKE_PROVIDERS_ENABLED = True

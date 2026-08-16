@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     "apps.programs.apps.ProgramsConfig",
     # Phase 07 Athlete Execution and Progress
     "apps.execution.apps.ExecutionConfig",
+    # Phase 08 Communication and Notifications
+    "apps.communication.apps.CommunicationConfig",
 ]
 
 MIDDLEWARE = [
@@ -250,6 +252,14 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+# --- Phase 08 Communication and Notifications ----------------------------- #
+# CoachOS ships NO real email or Web Push provider in Phase 08. The local fake
+# adapters are enabled only when this flag is explicitly true (test/dev), and
+# production settings must never enable them without a real, reviewed provider.
+COMMUNICATION_FAKE_PROVIDERS_ENABLED = os.environ.get(
+    "COMMUNICATION_FAKE_PROVIDERS_ENABLED", "False"
+).lower() in ("true", "1", "yes")
 
 # Version and Metadata
 APP_VERSION = "0.4.0"
