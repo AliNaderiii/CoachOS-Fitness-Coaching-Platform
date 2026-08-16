@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     "apps.programs.apps.ProgramsConfig",
     # Phase 07 Athlete Execution and Progress
     "apps.execution.apps.ExecutionConfig",
+    # Phase 10 Organization Billing and Coach Monetization
+    "apps.billing.apps.BillingConfig",
 ]
 
 MIDDLEWARE = [
@@ -251,6 +253,26 @@ LOGGING = {
     },
 }
 
+# Phase 10 billing provider boundary. The fake adapter is deterministic and
+# network-free. Non-debug environments fail closed unless explicitly configured.
+BILLING_DEFAULT_PROVIDER = os.environ.get("BILLING_DEFAULT_PROVIDER", "fake" if DEBUG else "")
+BILLING_ALLOW_FAKE_PROVIDER = DEBUG
+BILLING_FAKE_WEBHOOK_SECRET = os.environ.get(
+    "BILLING_FAKE_WEBHOOK_SECRET", "local-fake-webhook-secret-not-for-production" if DEBUG else ""
+)
+BILLING_WEBHOOK_TOLERANCE_SECONDS = int(os.environ.get("BILLING_WEBHOOK_TOLERANCE_SECONDS", "300"))
+BILLING_FRONTEND_BASE_URL = os.environ.get(
+    "BILLING_FRONTEND_BASE_URL", "http://localhost:3000" if DEBUG else ""
+)
+BILLING_HOSTED_URL_ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        "BILLING_HOSTED_URL_ALLOWED_HOSTS",
+        "payments.test.coachos.invalid,invoices.test.coachos.invalid" if DEBUG else "",
+    ).split(",")
+    if host.strip()
+]
+
 # Version and Metadata
-APP_VERSION = "0.4.0"
+APP_VERSION = "0.10.0"
 APP_NAME = "CoachOS"

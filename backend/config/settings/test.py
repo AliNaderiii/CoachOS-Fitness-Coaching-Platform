@@ -32,3 +32,14 @@ SESSION_COOKIE_SECURE = False
 # Enable test seam to capture raw reset tokens so actual forgot-password path is exercised
 # (raw token never appears in prod responses/logs/audit)
 TEST_CAPTURE_RESET_TOKENS = True
+
+# Deterministic, network-free Phase 10 billing test provider.
+BILLING_DEFAULT_PROVIDER = "fake"
+BILLING_ALLOW_FAKE_PROVIDER = True
+BILLING_FAKE_WEBHOOK_SECRET = "phase10-test-webhook-secret"
+BILLING_FRONTEND_BASE_URL = "https://app.test.coachos.invalid"
+BILLING_HOSTED_URL_ALLOWED_HOSTS = [
+    "payments.test.coachos.invalid",
+    "invoices.test.coachos.invalid",
+]
+BILLING_WEBHOOK_TOLERANCE_SECONDS = 300

@@ -3,8 +3,8 @@ info:
   title: CoachOS API
   description: |
     OpenAPI 3.1 contract for CoachOS B2B2C fitness coaching platform.
-    Operations marked `x-implementation-status: implemented-phase-06` are reconciled to the current Phase 06 Django/DRF routes and serializers. Operations marked `x-implementation-status: implemented-phase-07` are reconciled to the current Phase 07 athlete execution and progress routes and serializers. Other historical P0 paths remain provisional future contracts and MUST NOT be interpreted as implemented merely because they appear in this document.
-    Phase 07 implements the athlete Today dashboard, workout session lifecycle, set actual logging, exercise substitution, subjective feedback/pain/fatigue flags, progress body metrics, consent-gated progress photos, and privacy consent records. Phase 07 does NOT implement durable offline sync (Phase 12), messaging/notifications (Phase 08), nutrition (Phase 09), billing/payments (Phase 10), AI (Phase 11), wearables, native apps, marketplace, or production media storage — those remain planned or deferred.
+    Operations marked `x-implementation-status: implemented-phase-06`, `implemented-phase-07`, or `implemented-phase-10` are reconciled to the corresponding Django/DRF routes and serializers. Other historical paths remain provisional future contracts and MUST NOT be interpreted as implemented merely because they appear in this document.
+    Phase 10 implements organization-level provider-neutral billing metadata, deterministic fake-provider hosted sessions, verified/idempotent webhook ingestion, server-side entitlements, bounded invoice summaries, billing-admin delegation, and reconciliation visibility. Athletes remain free/included. Phase 10 does NOT implement live charges, raw payment data collection, athlete billing, marketplace/payouts, tax/accounting certification, messaging/notifications (Phase 08), nutrition (Phase 09), AI (Phase 11), or durable offline sync (Phase 12).
 
     **Authentication Transport Consistency — Corrected (ADR-032):**
     - **Recommended MVP Strategy:** HttpOnly/Secure/SameSite cookie sessions (Django sessionid):
@@ -24,12 +24,12 @@ info:
     **CSP Correction:**
     - Production preferred nonce/hash-based script-src (script-src 'self' 'nonce-{random}' 'strict-dynamic' https:), no unsafe-inline as accepted production control. Temporary unsafe-inline exception during Phase04 if framework requires, marked temporary with risk and hardening task TODO-CSP-001, not finalized before validation.
 
-    Languages: Persian fa-IR RTL + English en-US LTR only. Arabic out of scope. No payment/AI/wearable endpoints as P0 implemented.
+    Languages: Persian fa-IR RTL + English en-US LTR only. Arabic is out of scope. Phase 10 billing endpoints are organization-only; AI and wearable endpoints remain unimplemented.
     Error model: RFC7807 compatible + message_key extension for localized frontend messages.
 
-    **OpenAPI Validity:** YAML parses successfully, OpenAPI 3.1, all local $ref resolve, security schemes consistent with corrected auth strategy, error responses RFC7807-compatible with message_key, P0 endpoint groups align with API_CONTRACT, PRD story IDs, authorization rules, no future payment/AI/wearable as P0.
+    **OpenAPI Validity:** YAML parses successfully, OpenAPI 3.1, all local $ref resolve, security schemes align with the cookie-auth strategy, and Phase 10 billing routes remain organization-scoped with a signed public webhook exception.
 
-  version: 1.0.2-phase06
+  version: 1.10.0-phase10
   contact:
     name: CoachOS Platform Team
     url: https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
@@ -1441,6 +1441,227 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+
+  /billing/plans:
+    get:
+      tags: [Billing]
+      summary: List approved organization billing plans and prices
+      operationId: listBillingPlans
+      x-implementation-status: implemented-phase-10
+      x-required-role: Active owner, coach, or delegated billing admin; athlete-only denied
+      x-data-sensitivity: Tier 7 catalog metadata
+      responses:
+        '200':
+          description: Active approved catalog; contains no provider secret or raw payment data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingPlanListResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /billing/organizations/{org_id}/workspace:
+    get:
+      tags: [Billing]
+      summary: Get organization billing workspace from last verified provider state
+      operationId: getBillingWorkspace
+      x-implementation-status: implemented-phase-10
+      x-required-role: Active owner or delegated billing admin in this organization
+      x-data-sensitivity: Tier 7 financial metadata
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      responses:
+        '200':
+          description: Bounded billing, entitlement, usage, invoice, and reconciliation summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingWorkspaceResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /billing/organizations/{org_id}/checkout-sessions:
+    post:
+      tags: [Billing]
+      summary: Create a provider-hosted checkout session server-side
+      operationId: createBillingCheckoutSession
+      x-implementation-status: implemented-phase-10
+      x-required-role: Active owner or delegated billing admin
+      x-rate-limit: 6/min per actor and organization
+      description: Browser amount, customer, provider status, entitlement, and return URL are never accepted. A returned redirect does not grant access.
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - $ref: '#/components/parameters/BillingIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillingCheckoutRequest'
+      responses:
+        '201':
+          description: Allowlisted provider-hosted session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HostedBillingSession'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /billing/organizations/{org_id}/portal-sessions:
+    post:
+      tags: [Billing]
+      summary: Create a provider-hosted customer portal session server-side
+      operationId: createBillingPortalSession
+      x-implementation-status: implemented-phase-10
+      x-required-role: Active owner or delegated billing admin
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - $ref: '#/components/parameters/BillingIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [locale]
+              additionalProperties: false
+              properties:
+                locale: { type: string, enum: [fa-IR, en-US] }
+      responses:
+        '201':
+          description: Allowlisted provider-hosted portal session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HostedBillingSession'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /billing/organizations/{org_id}/admins:
+    get:
+      tags: [Billing]
+      summary: List active delegated billing administrators
+      operationId: listBillingAdmins
+      x-implementation-status: implemented-phase-10
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      responses:
+        '200':
+          description: Delegated active billing administrators
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingAdminListResponse'
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Billing]
+      summary: Delegate organization billing administration
+      operationId: createBillingAdmin
+      x-implementation-status: implemented-phase-10
+      x-required-role: Active organization owner only
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              additionalProperties: false
+              properties:
+                user_id: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Delegation created or safely reactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingAdmin'
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /billing/organizations/{org_id}/admins/{assignment_id}:
+    delete:
+      tags: [Billing]
+      summary: Revoke delegated billing administration
+      operationId: deleteBillingAdmin
+      x-implementation-status: implemented-phase-10
+      x-required-role: Active organization owner only
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - name: assignment_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Delegation revoked }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /billing/organizations/{org_id}/reconcile:
+    post:
+      tags: [Billing]
+      summary: Request provider subscription reconciliation
+      operationId: reconcileBillingSubscription
+      x-implementation-status: implemented-phase-10
+      x-required-role: Active owner or delegated billing admin
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      responses:
+        '200':
+          description: Retrieved provider state was validated and applied or safely ignored as stale
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingMessageResponse'
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /billing/webhooks/{provider}:
+    post:
+      tags: [Billing]
+      summary: Receive a signed raw-body provider webhook
+      operationId: ingestBillingWebhook
+      security: []
+      x-implementation-status: implemented-phase-10
+      x-security-controls: Raw body HMAC and timestamp verification; provider-scoped unique event identity; transactional processing; no raw payload persistence
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema: { type: string, enum: [fake] }
+        - name: X-Billing-Signature
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Provider envelope verified and normalized by the selected adapter; raw body is not persisted.
+      responses:
+        '200':
+          description: Processed, ignored, or idempotent duplicate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingWebhookAcknowledgement'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1482,6 +1703,16 @@ components:
         type: string
         format: uuid
       description: Tenant context candidate; authorization always requires an active server-side membership and never trusts this value alone.
+    BillingIdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+        pattern: '^[!-~]+$'
+      description: Stable key for one user intent; reuse with another payload returns 409.
     ExerciseId:
       name: exercise_id
       in: path
@@ -1498,6 +1729,12 @@ components:
         format: uuid
 
   responses:
+    ServiceUnavailable:
+      description: Provider or billing synchronization boundary unavailable; verified access state is unchanged
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
     BadRequest:
       description: Validation failure
       content:
@@ -2803,3 +3040,172 @@ components:
         status:
           type: string
           enum: [pending, processing, completed, failed]
+    BillingCheckoutRequest:
+      type: object
+      additionalProperties: false
+      required: [price_id, locale]
+      properties:
+        price_id: { type: string, format: uuid }
+        locale: { type: string, enum: [fa-IR, en-US] }
+
+    HostedBillingSession:
+      type: object
+      required: [session_id, url, status, message_key]
+      properties:
+        session_id: { type: string }
+        url: { type: string, format: uri, pattern: '^https://' }
+        status: { type: string, const: created }
+        message_key: { type: string }
+
+    BillingPlanListResponse:
+      type: object
+      required: [plans]
+      properties:
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillingPlan'
+
+    BillingPlan:
+      type: object
+      required: [id, code, name_en, name_fa, included_athletes, entitlements, prices]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name_en: { type: string }
+        name_fa: { type: string }
+        description_en: { type: string }
+        description_fa: { type: string }
+        included_athletes: { type: boolean, const: true }
+        entitlements:
+          type: array
+          items:
+            type: object
+            required: [key, kind, enabled, integer_limit, label_en, label_fa]
+            properties:
+              key: { type: string }
+              kind: { type: string, enum: [boolean, integer] }
+              enabled: { type: boolean }
+              integer_limit: { type: [integer, 'null'], minimum: 0 }
+              label_en: { type: string }
+              label_fa: { type: string }
+        prices:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillingPrice'
+
+    BillingPrice:
+      type: object
+      required: [id, code, currency, currency_exponent, unit_amount_minor, interval, trial_days, grace_period_days]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        currency_exponent: { type: integer, minimum: 0, maximum: 4 }
+        unit_amount_minor: { type: integer, minimum: 0 }
+        interval: { type: string, enum: [month, year] }
+        trial_days: { type: integer, minimum: 0 }
+        grace_period_days: { type: integer, minimum: 0 }
+
+    BillingWorkspaceResponse:
+      type: object
+      required: [organization_id, billing_account, subscription, entitlement, invoices, reconciliation_issues]
+      properties:
+        organization_id: { type: string, format: uuid }
+        billing_account: { type: [object, 'null'] }
+        subscription:
+          type: [object, 'null']
+          properties:
+            id: { type: string, format: uuid }
+            plan_code: { type: string }
+            price_id: { type: string, format: uuid }
+            status: { type: string, enum: [trialing, active, past_due, incomplete, unpaid, canceled] }
+            quantity: { type: integer, minimum: 1 }
+            current_period_end: { type: [string, 'null'], format: date-time }
+            trial_end: { type: [string, 'null'], format: date-time }
+            grace_period_ends_at: { type: [string, 'null'], format: date-time }
+            cancel_at_period_end: { type: boolean }
+            canceled_at: { type: [string, 'null'], format: date-time }
+        entitlement:
+          $ref: '#/components/schemas/BillingEntitlement'
+        invoices:
+          type: array
+          maxItems: 20
+          items: { $ref: '#/components/schemas/BillingInvoiceSummary' }
+        reconciliation_issues:
+          type: array
+          maxItems: 10
+          items:
+            type: object
+            properties:
+              id: { type: string, format: uuid }
+              issue_code: { type: string }
+              message_key: { type: string }
+              first_seen_at: { type: string, format: date-time }
+              last_seen_at: { type: string, format: date-time }
+
+    BillingEntitlement:
+      type: object
+      required: [access_state, athlete_access_included, features, limits, usage, reason]
+      properties:
+        access_state: { type: string, enum: [active, trial, grace, restricted, none] }
+        athlete_access_included: { type: boolean, const: true }
+        features: { type: object, additionalProperties: { type: boolean } }
+        limits:
+          type: object
+          properties:
+            staff_seats: { type: [integer, 'null'], minimum: 0 }
+            active_clients: { type: [integer, 'null'], minimum: 0 }
+        usage:
+          type: object
+          properties:
+            staff_seats: { type: integer, minimum: 0 }
+            active_clients: { type: integer, minimum: 0 }
+        effective_until: { type: [string, 'null'], format: date-time }
+        reason: { type: string }
+
+    BillingInvoiceSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        number: { type: string }
+        status: { type: string, enum: [draft, open, paid, uncollectible, void] }
+        currency: { type: string, pattern: '^[A-Z]{3}$' }
+        currency_exponent: { type: integer, minimum: 0, maximum: 4 }
+        amount_due_minor: { type: integer, minimum: 0 }
+        amount_paid_minor: { type: integer, minimum: 0 }
+        hosted_invoice_url: { type: [string, 'null'], format: uri }
+        receipt_url: { type: [string, 'null'], format: uri }
+        issued_at: { type: [string, 'null'], format: date-time }
+        due_at: { type: [string, 'null'], format: date-time }
+        paid_at: { type: [string, 'null'], format: date-time }
+
+    BillingAdmin:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        display_name: { type: string }
+        role: { type: string, const: billing_admin }
+        granted_at: { type: string, format: date-time }
+
+    BillingAdminListResponse:
+      type: object
+      properties:
+        billing_admins:
+          type: array
+          items: { $ref: '#/components/schemas/BillingAdmin' }
+
+    BillingMessageResponse:
+      type: object
+      properties:
+        status: { type: string }
+        message_key: { type: string }
+
+    BillingWebhookAcknowledgement:
+      type: object
+      required: [received, duplicate, event_status]
+      properties:
+        received: { type: boolean, const: true }
+        duplicate: { type: boolean }
+        event_status: { type: string, enum: [processed, ignored] }
