@@ -12,4 +12,6 @@ urlpatterns = [
     # Phase 06 Exercise Library & Training Programs
     path("", include("apps.exercises.urls")),
     path("", include("apps.programs.urls")),
+    # Phase 07 Athlete Execution and Progress
+    path("", include("apps.execution.urls")),
 ]

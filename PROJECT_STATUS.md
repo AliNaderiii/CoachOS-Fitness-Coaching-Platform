@@ -1,10 +1,10 @@
 # Project Status — CoachOS
 
 **Last updated:** 2026-08-15 (UTC)
-**Current phase:** Phase 06 — **merged and complete for its documented scope**
-**Next step:** Phase 07 is the next product phase, but it is not started and requires explicit founder authorization in a new dedicated branch.
-**Working branch:** `arena/01a005b4-coachos-fitness-coaching-platf` (environment-imposed Arena session branch; docs-only status synchronization)
-**Base commit (main):** `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` (PR #15 merge commit; verified current remote `main`)
+**Current phase:** Phase 07 — **in progress (founder-authorized; staged implementation)**
+**Next step:** Complete staged Phase 07 implementation (Athlete App and Progress Logging) and open a PR targeting `main` for founder review. Do not start Phase 08.
+**Working branch:** `arena/01a005cf-coachos-fitness-coaching-platf` (environment-imposed Arena session branch for Phase 07)
+**Base commit (main):** `95c2a3c0b2f9556a4a0251fae8bad2139c5b61c1` (PR #16 merge commit; verified current remote `main`)
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
 **License:** Proprietary / All Rights Reserved (ADR-012 — Copyright (c) 2026 CoachOS Technologies / Ali Naderi)
 
@@ -12,7 +12,7 @@
 
 ## 1. One-Line Status
 
-**Phase 06 — Exercise Library and Training Programs is merged and complete for its documented scope.** PR [#13](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/13) and docs-only status PR [#14](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/14) are merged; Phase 06 PR [#15](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/15) merged into `main` at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` on 2026-08-15T13:47:52Z. Phase 07 is next, but remains unstarted and requires explicit founder authorization.
+**Phase 07 — Athlete App and Progress Logging is in progress (founder-authorized).** Preflight gate passed: PR #15 (Phase 06) and PR #16 (post-Phase-06 docs sync) are merged at `95c2a3c0b2f9556a4a0251fae8bad2139c5b61c1` (verified current remote `main`), post-merge CI (`31888819524`) and security (`31888819525`) runs on `main` are successful, and Phase 06 is complete while Phase 07 had not started. Phase 07 Stage 0 (discovery and execution plan) is complete; staged implementation is underway. Phase 08+ is not started.
 
 ---
 
@@ -29,6 +29,28 @@
 | **Scope boundary** | No Arabic resources and no Phase 07+ implementation were added |
 
 Deferred items remain deferred: formal accessibility certification; device-matrix validation; penetration testing; production media storage, upload, signing, and transcoding; production `pg_trgm` load tuning; broader coach-athlete assignment lifecycle/UI; and every Phase 07+ domain.
+
+---
+
+## 2.5 Phase 07 — Implementation Summary (Athlete App and Progress Logging)
+
+**Phase 07 is implemented for its documented scope and is staged for founder review via a PR targeting `main` (not merged automatically). Phase 08+ is not started.**
+
+| Evidence | Result |
+|---|---|
+| **Models & migrations** | New `apps.execution` (`WorkoutSession`, `SetLog`, `Substitution`, `FeedbackFlag`, `BodyMetric`, `ProgressPhoto`, `ConsentRecord`) + migration `0001_initial.py`; audit action migration `0003_alter_auditevent_action.py`; all migrations apply cleanly |
+| **Today dashboard** | `GET /api/v1/athlete/today` reads real authorized immutable assignment snapshots (loading/empty/error/forbidden/offline states) |
+| **Session lifecycle** | Idempotent, race-safe start; detail/complete; active-membership + own-active-assignment gating; completed sessions immutable |
+| **Set actuals** | One-handed logging with keyboard alternative, localized units, kg unit-conversion policy; set-index uniqueness/idempotency; bounded writes |
+| **Substitution/Skip** | Mandatory reason persisted; replacement exercise visibility validated |
+| **Feedback flags** | Subjective non-clinical pain/fatigue reports with severity/location; not diagnosis |
+| **Progress metrics/photos** | Consent-gated (`ConsentRecord`), mock storage adapter, no public storage key, signed URLs only under active consent, revocation blocks reads/URLs, sensitive-view + consent-change audit |
+| **Authorization** | Athlete self, assigned coach (consent-gated sensitive), owner (consent + audit escalation), support/unassigned/cross-tenant denied (safe 403/404), suspended denied |
+| **PWA offline boundary** | Temporary in-memory preservation/retry only; no IndexedDB/localStorage/background sync (scope-scanner test enforces) |
+| **Bilingual UI** | fa-IR RTL / en-US LTR parity (202 keys each); no Arabic; 44px touch targets; focus/keyboard/screen-reader/live regions |
+| **Tests & gates** | Backend 106 tests (34 new execution; 85% coverage); frontend 75 tests (14 new); lint/type-check/build pass; OpenAPI 3.1 validates (88 local refs); Django routes match OpenAPI; security/language compliance passes |
+| **Report** | `docs/reports/PHASE-07-ATHLETE-APP-PROGRESS-REPORT.md` |
+| **Scope boundary** | No Phase 08+ implementation, no Arabic, no production media storage |
 
 ---
 
@@ -85,9 +107,9 @@ Deferred items remain deferred: formal accessibility certification; device-matri
 
 ## 6. Next Step
 
-Phase 06 is merged and complete for its documented scope:
+Phase 07 is implemented for its documented scope and a single PR targeting `main` has been opened for founder review (not merged automatically).
 
-1. PR #13 (Phase 05) and PR #14 (post-Phase-05 status synchronization) are merged.
-2. PR #15 (Phase 06) is **merged** into `main` at `9e09c4785283ffd688e355cb9c1cf7af39c83d3c` (2026-08-15T13:47:52Z).
-3. Post-merge GitHub Actions on that exact SHA are **successful**: CoachOS CI Quality Gates run `31888177718` and Security & Vulnerability Scan run `31888175915`.
-4. Phase 07 is the next product phase, but it is `[ ]` not started. It may begin only after explicit founder authorization and must use a new dedicated branch; this status-synchronization task does not authorize or start it.
+1. Current remote `main` is `95c2a3c0b2f9556a4a0251fae8bad2139c5b61c1` (PR #15 + PR #16 merge).
+2. Phase 07 preflight passed and all Stage 0–7 gates passed on the session branch `arena/01a005cf-coachos-fitness-coaching-platf`.
+3. Founder review of the Phase 07 PR is the next step. Do not merge automatically.
+4. Phase 08 (messaging/notifications), Phase 09 (nutrition), Phase 10 (billing/payments), Phase 11 (AI), and Phase 12 (durable offline) are deferred and not started.

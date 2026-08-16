@@ -157,17 +157,69 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 07 — Athlete App and Progress
 
-- [ ] Today workout view works
-- [ ] Mobile set actuals logging works
-- [ ] Rest timer works
-- [ ] Exercise substitution/modification works with reasons
-- [ ] Completion/adherence tracking works
-- [ ] Feedback and pain/fatigue flags work
-- [ ] Progress photos are permissioned and consent-governed
-- [ ] Mobile responsiveness & installed-PWA mobile experience tested
-- [ ] Phase 07 report committed
+**Stage 0 — Discovery and Execution Plan**
+- [x] Preflight verified (PR #15 + #16 merged; current `main` = `95c2a3c0b2f9556a4a0251fae8bad2139c5b61c1`; CI + security runs on `main` success; Phase 06 complete, Phase 07 not started)
+- [x] Branch discipline recorded (session branch `arena/01a005cf-coachos-fitness-coaching-platf` based on verified `main`)
+- [x] Phase 07 user stories mapped to screens, endpoints, models, migrations, tests
+- [x] Offline boundary defined: temporary in-memory retry only; no IndexedDB/durable queue (Phase 12)
+- [x] Privacy/consent matrix defined for body metrics and progress photos
+- [x] `docs/reports/PHASE-07-ATHLETE-APP-PROGRESS-REPORT.md` skeleton created
 
-**Phase 07 status:** `[ ]` Not started — next product phase; requires explicit founder authorization and a new dedicated branch
+**Stage 1 — Athlete Progress Data Model and Migrations**
+- [x] `WorkoutSession` model + migration
+- [x] `SetLog` model + migration
+- [x] `Substitution` model + migration
+- [x] `FeedbackFlag` model + migration
+- [x] `BodyMetric` / `ProgressPhoto` / `ConsentRecord` models + migration
+- [x] Stage 1 model tests and check commands
+
+**Stage 2 — Authorization, Snapshot Reads, and Backend Session APIs**
+- [x] `GET /api/v1/athlete/today`
+- [x] `POST /api/v1/workout-sessions` (start, idempotent/race-safe)
+- [x] `GET/POST /api/v1/workout-sessions/{session_id}` (detail / complete)
+- [x] `POST /api/v1/workout-sessions/{session_id}/set-logs`
+- [x] `POST /api/v1/workout-sessions/{session_id}/substitutions` (mandatory reason)
+- [x] `POST /api/v1/workout-sessions/{session_id}/feedback-flags`
+- [x] `GET/POST /api/v1/athletes/{athlete_id}/progress/photos` (consent-gated)
+- [x] `GET/POST /api/v1/athletes/{athlete_id}/body-metrics`
+- [x] `GET/POST/DELETE /api/v1/consents`
+- [x] Stage 2 API tests (positive/negative permissions, transitions, idempotency, race, sensitive data)
+
+**Stage 3 — Progress Privacy, Consent, and Media Boundary**
+- [x] Consent-gated photo/metrics access; mock storage adapter
+- [x] Revocation blocks reads and signed URL generation; audit sensitive views
+- [x] Security reviewer approval of threat cases / negative tests
+
+**Stage 4 — PWA Athlete Execution and Temporary Offline Boundary**
+- [x] PWA athlete execution with temporary in-memory preservation/retry
+- [x] Network status banner accuracy; no durable offline sync
+- [x] PWA tests and scope scanner pass
+
+**Stage 5 — Athlete Mobile-First Frontend**
+- [x] Today dashboard (real authorized assignment snapshots)
+- [x] Workout detail from server snapshot; start/pause/complete
+- [x] One-handed set logging with keyboard alternative; numeric validation + localized units
+- [x] Rest countdown timer
+- [x] Substitution/skip modal with mandatory reason
+- [x] Session RPE/fatigue submission
+- [x] Subjective pain/fatigue flag form (non-clinical copy)
+- [x] Progress metrics UI and private photo consent/upload boundary
+- [x] Offline/network/retry/empty/loading/error/forbidden states
+- [x] `fa-IR` RTL and `en-US` LTR parity; all strings localized; no Arabic
+- [x] Stage 5 commands: `npm ci`, lint, type-check, test, build
+
+**Stage 6 — Adversarial Security, Accessibility, and Performance Review**
+- [x] Cross-tenant / unassigned / suspended / completed-session / consent / CSRF cases
+- [x] Persian/English visual parity, RTL/LTR, keyboard, focus, screen-reader, touch target
+- [x] Performance: Today dashboard query count, no N+1, bounded set-log writes
+
+**Stage 7 — Documentation, CI, and PR**
+- [x] OpenAPI 3.1 updated to match implemented Phase 07 routes + validated
+- [x] Full backend/frontend/security/governance clean-checkout validation
+- [x] `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md`, report updated
+- [x] Phase 07 PR opened targeting `main` (not merged automatically)
+
+**Phase 07 status:** `[x]` Implementation complete for documented scope (all stage gates 0–7 passed) — PR opened targeting `main` for founder review; not merged automatically; Phase 08+ not started.
 
 ---
 

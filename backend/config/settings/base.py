@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     # Phase 06 Exercise Library & Training Programs
     "apps.exercises.apps.ExercisesConfig",
     "apps.programs.apps.ProgramsConfig",
+    # Phase 07 Athlete Execution and Progress
+    "apps.execution.apps.ExecutionConfig",
 ]
 
 MIDDLEWARE = [

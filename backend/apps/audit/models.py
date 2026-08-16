@@ -37,6 +37,18 @@ class AuditEvent(models.Model):
         ("invitation.sent", "invitation.sent"),
         ("invitation.accepted", "invitation.accepted"),
         ("invitation.revoked", "invitation.revoked"),
+        # Phase 07 Athlete Execution & Progress
+        ("session.started", "session.started"),
+        ("session.completed", "session.completed"),
+        ("session.skipped", "session.skipped"),
+        ("exercise.substituted", "exercise.substituted"),
+        ("pain.flagged", "pain.flagged"),
+        ("photo.uploaded", "photo.uploaded"),
+        ("photo.viewed", "photo.viewed"),
+        ("metric.recorded", "metric.recorded"),
+        ("metric.viewed", "metric.viewed"),
+        ("consent.granted", "consent.granted"),
+        ("consent.revoked", "consent.revoked"),
     ]
 
     id = models.CharField(primary_key=True, max_length=36, default=generate_uuid7, editable=False)
