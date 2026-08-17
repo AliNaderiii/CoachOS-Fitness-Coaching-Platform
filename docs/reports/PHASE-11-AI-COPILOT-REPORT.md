@@ -22,7 +22,7 @@
 | Baseline gate runs (this checkout) | Backend: ruff clean, **114 passed, 84% coverage**; Frontend: lint/type-check clean, **75 tests passed** |
 | Sibling-phase capabilities (08 messaging, 09 nutrition, 10 billing, 12 offline) | **Absent from baseline** — Phase 11 consumes none of them; typed adapter/domain seams only, no hidden duplicates |
 
-**Branch note (environment-imposed deviation, disclosed):** the mandate asks for branch `phase/11-ai-copilot`. This execution environment fixes the working branch to `arena/01a00a2c-coachos-fitness-coaching-platf`, which was created directly from the verified baseline SHA above, and CI triggers on `arena/**` identically to `phase/**`. All work, the single PR targeting `main`, and the merge-stop rule are honored on that branch. Working tree isolation holds (single-checkout session; no parallel agent writes here).
+**Branch note (environment-imposed deviation, disclosed):** the mandate asks for branch `phase/11-ai-copilot`. This execution environment fixes the working branch to `arena/01a00a2c-coachos-fitness-coaching-platf`, which was created directly from the verified baseline SHA above, and CI triggers on `arena/**` identically to `phase/**`. All work, the single PR targeting `main`, and the merge-stop rule are honored on that branch. Working tree isolation held during implementation; on 2026-08-17 the parallel Phase 12 session was discovered to share this fixed branch — integrated per §11.
 
 **Tracker discipline:** `PROJECT_STATUS.md`, `PROJECT_CHECKLIST.md`, `CHANGELOG.md`, `docs/PROMPT_LOG.md` are **untouched** in this PR (parallel-wave rule). Proposed post-merge entries are in §11.
 
@@ -178,7 +178,7 @@ No Phase 08 messaging, no Phase 09 nutrition, no Phase 10 billing, no Phase 12 o
 
 ## 10. Proposed post-merge tracker entries (apply in the docs-only sync PR after merge)
 
-- `PROJECT_STATUS.md`: set current phase to "Phase 11 merged (PR #TBD @ SHA TBD)"; add Phase 11 evidence table mirroring previous phases; keep next-step guard (Phase 08 needs explicit authorization).
+- `PROJECT_STATUS.md`: set current phase to "Phase 11 merged (PR #21 @ merge SHA TBD)"; add Phase 11 evidence table mirroring previous phases; keep next-step guard (Phase 08 needs explicit authorization).
 - `PROJECT_CHECKLIST.md`: check Phase 11 P0 items landed here; leave deferred items open (live provider, async queue, erasure hook, admin audit UI).
 - `CHANGELOG.md`: entry "Phase 11 — Governed AI Copilot (draft-only, human-approved, provider-neutral)" with the files/features summary above.
 - `docs/PROMPT_LOG.md`: append the Phase 11 prompt + completion note with PR link.
@@ -186,8 +186,12 @@ No Phase 08 messaging, no Phase 09 nutrition, no Phase 10 billing, no Phase 12 o
 ## 11. PR evidence
 
 - Branch: `arena/01a00a2c-coachos-fitness-coaching-platf` (from verified baseline `f7ccaf457cbd2e67de2708d5367f6c1386a3edce`)
-- Implementation commits: `007dbf6` (feature) + docs evidence follow-up; both contain only Phase 11 files listed in §8
-- PR: **opened, not merged** — see below for the exact URL once the GitHub connection allowed the push; CI triggers on `arena/**` push + PR open
-- Post-merge synchronization PR for tracker files: planned (§10), separate docs-only branch
-
-**Push status disclosure (2026-08-16):** at commit time the sandbox GitHub credential expired (`gh` 401 Bad credentials; it had succeeded minutes earlier when verifying PRs #17/#18). Local branch holds the complete implementation; push + PR creation execute immediately upon credential refresh, with check-run URLs appended here in a docs commit. No force-push, no main writes at any point.
+- **PR: [#21](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/21) → `main`, OPEN, not merged.**
+- **Shared-branch disclosure (2026-08-17):** the parallel Phase 12 session pushed commit `9cabe63` and opened PR #21 from this same fixed session branch before this session's push landed. GitHub permits only one open PR per head→base pair, so Phase 11 was integrated onto the existing branch via merge commit `e26f4b5` (pure union; the only overlapping files — `config/settings/base.py`, `apps/core/urls.py`, both i18n dictionaries — were resolved keeping both phases' registrations/keys; fa/en key parity re-verified). PR #21 therefore now carries both Phase 11 and Phase 12; a PR comment records which commits belong to Phase 11. PR title remains owned by the Phase 12 session.
+- Implementation commits (Phase 11 scope exactly as §8): `db72196` (49 files, +8,197/−7); integration merge `e26f4b5`; CI-unblock `17ddf0a` (repairs to Phase 12 files to keep the shared PR's gates green — ruff compliance, `status` view rename (F811 shadowed DRF module), model default `uuid.uuid4`, regenerated migration, and reconstruction of Phase 12's `offlineQueueSchema` module verbatim from its own published contract — the file had been silently swallowed by the Python-heritage `lib/` gitignore rule, now un-ignored for `frontend/src/lib/**`).
+- **CI check runs at head `17ddf0a` (2026-08-17, all PASS):**
+  - Backend Lint, Type & Tests — [run 32024045050 / job 95369545077](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/32024045050/job/95369545077) (ruff clean; 167 passed incl. 53 copilot tests — 34 API + 9 security + 16-case eval gate; coverage 86%)
+  - Frontend Lint, Type & Tests — [run 32024045050 / job 95369545022](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/32024045050/job/95369545022) (ESLint clean; tsc strict clean; 84 Vitest passed; `next build` success)
+  - Security Scan & Language Compliance — [run 32024045050 / job 95369544984](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/32024045050/job/95369544984) (`check-secrets.sh` PASS)
+  - Secret & Pattern Scanning — [run 32024045115 / job 95369544754](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/32024045115/job/95369544754) (PASS)
+- Post-merge synchronization PR for tracker files: planned (§10), separate docs-only branch. **Stop rule honored: no merge performed by this session.**
