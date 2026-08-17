@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     "apps.execution.apps.ExecutionConfig",
     # Phase 11 Governed AI Copilot
     "apps.copilot.apps.CopilotConfig",
+    # Phase 12 Durable Offline and Integrations
+    "apps.integrations.apps.IntegrationsConfig",
 ]
 
 MIDDLEWARE = [
