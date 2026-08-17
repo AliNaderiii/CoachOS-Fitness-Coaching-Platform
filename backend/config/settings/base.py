@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     "apps.programs.apps.ProgramsConfig",
     # Phase 07 Athlete Execution and Progress
     "apps.execution.apps.ExecutionConfig",
+    # Phase 12 Durable Offline and Integrations
+    "apps.integrations.apps.IntegrationsConfig",
 ]
 
 MIDDLEWARE = [

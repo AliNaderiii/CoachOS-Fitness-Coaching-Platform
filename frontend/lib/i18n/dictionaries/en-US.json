@@ -52,10 +52,33 @@
     "offline_notice": "Offline — unsaved input is retained temporarily in memory; reconnect before saving."
   },
   "offline": {
-    "title": "You are offline",
-    "description": "CoachOS cannot reach the network. Reconnect to continue with online features.",
-    "cached_content_notice": "Previously cached foundation pages may remain available. No durable offline data queue is enabled.",
-    "retry_button": "Retry connection"
+    "status": {
+      "offline": "Offline — Changes saved temporarily",
+      "online": "Online",
+      "syncing": "Syncing…",
+      "pending": "Pending",
+      "conflict": "Conflict",
+      "failed": "Failed",
+      "synced": "Synced",
+      "dead_letter": "Dead letter",
+      "discarded": "Discarded"
+    },
+    "conflict": {
+      "keep_online": "Keep online version",
+      "keep_queued": "Keep queued version",
+      "edit_manually": "Edit manually"
+    },
+    "error": {
+      "network_timeout": "Network timeout — will retry.",
+      "authz_denied": "Access denied — reconnect required.",
+      "schema_mismatch": "Schema mismatch — manual retry required.",
+      "age_limit": "Operation too old — please retry or discard.",
+      "integrity_check_failed": "Data integrity check failed — please discard."
+    },
+    "purge": {
+      "sign_out": "Signing out — clearing queued operations…",
+      "account_switch": "Switching account — clearing previous organization operations…"
+    }
   },
   "errors": {
     "not_found_title": "Page not found",
@@ -222,5 +245,26 @@
     "pending_count": "{count} unsaved item(s) pending",
     "pending_retry": "Retry pending items",
     "unit_conversion": "Load is recorded in kg on the server."
+  },
+  "integration": {
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "reauthorizing": "Reauthorizing",
+      "limited_permission": "Limited Permission",
+      "expired": "Expired"
+    },
+    "provenance": {
+      "source": "Source",
+      "imported_at": "Imported",
+      "event_id": "Event",
+      "provider_timestamp": "Provider Timestamp"
+    },
+    "error": {
+      "authentication_failed": "Authentication failed — reconnect required.",
+      "rate_limited": "Rate limit reached — retry after 60 seconds.",
+      "provider_outage": "Provider temporarily unavailable — sync will resume automatically.",
+      "scope_denied": "Required permission denied — reconnect with updated scopes."
+    }
   }
 }
