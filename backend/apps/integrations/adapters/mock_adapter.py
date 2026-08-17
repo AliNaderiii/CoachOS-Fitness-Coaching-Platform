@@ -3,8 +3,7 @@ Mock fitness provider adapter for Phase 12 deterministic vertical slice.
 No real provider credentials; uses deterministic mock events and fake vault references.
 """
 
-import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 
 class MockFitnessProviderAdapter:
@@ -24,7 +23,7 @@ class MockFitnessProviderAdapter:
 
     def generate_events(self, count=3):
         events = []
-        base_time = datetime.now(timezone.utc) - timedelta(days=7)
+        base_time = datetime.now(UTC) - timedelta(days=7)
         for i in range(count):
             event = dict(self.EVENT_TEMPLATE)
             event["provider_event_id"] = f"mock_event_{self.event_sequence:03d}"
@@ -39,7 +38,7 @@ class MockFitnessProviderAdapter:
     def simulate_rate_limit(self, trigger_count):
         if trigger_count >= 5:
             self.rate_limit_remaining = 0
-            self.rate_limit_reset = (datetime.now(timezone.utc) + timedelta(seconds=60)).isoformat()
+            self.rate_limit_reset = (datetime.now(UTC) + timedelta(seconds=60)).isoformat()
         return self.rate_limit_remaining > 0
 
     def simulate_outage(self, enabled=False):

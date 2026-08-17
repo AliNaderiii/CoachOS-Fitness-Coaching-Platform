@@ -1,4 +1,3 @@
-import pytest
 from apps.integrations.adapters.mock_adapter import MockFitnessProviderAdapter
 
 
