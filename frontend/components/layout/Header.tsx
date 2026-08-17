@@ -49,6 +49,12 @@ export const Header: React.FC = () => {
             {t("nav.coach_view")}
           </Link>
           <Link
+            href={`/${locale}/coach/copilot`}
+            className="text-brand-text-muted hover:text-brand-text transition-colors"
+          >
+            {t("nav.copilot")}
+          </Link>
+          <Link
             href={`/${locale}/org/settings`}
             className="text-brand-text-muted hover:text-brand-text transition-colors"
           >

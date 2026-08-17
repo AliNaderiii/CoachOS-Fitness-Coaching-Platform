@@ -14,4 +14,6 @@ urlpatterns = [
     path("", include("apps.programs.urls")),
     # Phase 07 Athlete Execution and Progress
     path("", include("apps.execution.urls")),
+    # Phase 11 Governed AI Copilot
+    path("", include("apps.copilot.urls")),
 ]
