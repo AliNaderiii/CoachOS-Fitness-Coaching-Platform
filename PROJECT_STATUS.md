@@ -1,10 +1,10 @@
 # Project Status — CoachOS
 
-**Last updated:** 2026-08-16 (UTC)
-**Current phase:** Phase 07 — **merged and complete for its documented scope** (PR #17)
-**Next step:** Phase 08 (messaging/notifications) is the next product phase but is **not started** and requires explicit founder authorization in a new dedicated branch. Do not start Phase 08 automatically.
-**Working branch:** `arena/01a005cf-coachos-fitness-coaching-platf` (environment-imposed Arena session branch for Phase 07, merged via PR #17)
-**Base commit (main):** `0949abeead5ba74a3deb0d2439a464ab6bbd99dd` (PR #17 merge commit; verified current remote `main`)
+**Last updated:** 2026-08-18 (UTC)
+**Current phase:** Phase 11 (Governed AI Copilot) — **merged and complete for its documented scope** (PR #21). The parallel 08–12 wave has otherwise merged: Phase 12 rode the same PR #21, Phase 10 via PR #20, and Phase 08 via PR #19; per-phase tracking syncs for Phases 08/10/12 are owned by their own sessions and may still be pending.
+**Next step:** Phase 09 (nutrition and multi-professional collaboration) is the only remaining unstarted wave phase; it is **not started** and requires explicit founder authorization in a new dedicated branch. Do not start Phase 09 automatically.
+**Working branch:** `arena/01a00a2c-coachos-fitness-coaching-platf` (environment-imposed Arena session branch for Phase 11, merged via PR #21; shared with the Phase 12 session in this wave)
+**Base commit (main):** `326babce7bcfaae9e1c7d5f04e7d059e2e00af93` (PR #19 merge commit; verified current remote `main` at the time of this sync)
 **Repository:** https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
 **License:** Proprietary / All Rights Reserved (ADR-012 — Copyright (c) 2026 CoachOS Technologies / Ali Naderi)
 
@@ -12,7 +12,7 @@
 
 ## 1. One-Line Status
 
-**Phase 07 — Athlete App and Progress Logging is merged and complete for its documented scope.** PR #17 merged into `main` at `0949abeead5ba74a3deb0d2439a464ab6bbd99dd` (verified current remote `main`); post-merge CoachOS CI Quality Gates run `31940418392` and Security & Vulnerability Scan run `31940418535` on the merge SHA are successful; PR #15 (Phase 06) and PR #16 (post-Phase-06 docs sync) remain merged. All Phase 07 Stage 0–7 gates passed and the Phase 07 implementation is on `main`. Phase 08+ is not started.
+**Phase 11 — Governed AI Copilot is merged and complete for its documented scope.** PR #21 merged into `main` at `6005936ab573df65a68de9b6266e9321506c7432` on 2026-08-18T16:22:09Z; post-merge CoachOS CI Quality Gates run `32159920173` and Security & Vulnerability Scan run `32159920192` on the merge SHA are successful. PR #21 came from the shared environment-imposed session branch and also carried Phase 12 — Durable Offline and Integrations (its own tracking sync is owned by the Phase 12 session). Sibling wave sessions merged Phase 10 via PR #20 (`8c1106a`) and Phase 08 via PR #19 (`326babce7bcfaae9e1c7d5f04e7d059e2e00af93`, verified current remote `main` at time of this sync). All Phase 11 stage gates passed (backend 167 tests / 86% coverage, frontend 84 tests, eval harness 16/16). Phase 09 is not started and is the only remaining unstarted wave phase.
 
 ---
 
@@ -52,6 +52,27 @@ Deferred items remain deferred: formal accessibility certification; device-matri
 | **Post-merge CI on `main`** | **CoachOS CI Quality Gates** run [`31940418392`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31940418392) succeeded (backend, frontend, and security/language jobs); **Security & Vulnerability Scan** run [`31940418535`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/31940418535) succeeded (secret/pattern scan). Both are completed push runs on merge SHA `0949abeead5ba74a3deb0d2439a464ab6bbd99dd` (PR #17 merge commit). |
 | **Report** | `docs/reports/PHASE-07-ATHLETE-APP-PROGRESS-REPORT.md` |
 | **Scope boundary** | No Phase 08+ implementation, no Arabic, no production media storage |
+
+---
+
+## 2.6 Phase 11 — Implementation Summary (Governed AI Copilot)
+
+**Phase 11 is merged and complete for its documented scope via PR #21 at `6005936ab573df65a68de9b6266e9321506c7432` (2026-08-18T16:22:09Z); post-merge CI and security runs on the merge SHA succeeded.** PR #21 is shared with Phase 12 — Durable Offline and Integrations (merged in the same wave from the same environment-imposed session branch); the Phase 12 evidence table is owned by the Phase 12 session's own sync. Phase 09 remains not started.
+
+| Evidence | Result |
+|---|---|
+| **Merge chain** | Phases 11+12 via PR #21 at `6005936ab573df65a68de9b6266e9321506c7432`; Phase 10 via PR #20 at `8c1106a`; Phase 08 via PR #19 at `326babce7bcfaae9e1c7d5f04e7d059e2e00af93` (verified current `main` at time of this sync) |
+| **Copilot domain** | New `apps.copilot`: `AIProviderAdapterConfig` (config only, no secrets), `PromptTemplateVersion` (seeded per capability, fa-IR + en-US), `AIRun`, `AIOutput` (draft/edited/approved/rejected/quarantined/expired states), `AISourceReference`, `AIFeedback`, `AIPolicyDecision`, immutable `AIAuditEvent`, `AIUsageMeter`; migration `0001_initial.py` + seed migration `0002_seed_defaults.py`; `makemigrations --check` reports no changes |
+| **API (10 operations)** | `/api/v1/copilot/...` — run request (idempotent), run detail, context inspection, regenerate, edit, approve, reject, report-as-unsafe, feedback, and usage summary; professional roles (owner/coach) only; coach scope = own runs, owner scope = org runs; RFC 7807 + `message_key` error envelope |
+| **Governance controls** | Draft-only output (nothing auto-applied or auto-sent); prohibited-topic blocking (medical diagnosis/treatment, injury, medication, supplement, eating-disorder, emergency); redaction before provider call; per-actor rate limit; org+actor daily run quotas; daily micro-USD budget cap; context retention window with `purge_copilot_runs` management command; org kill switch (`settings.copilot_disabled`); capability kill switch (`COPILOT_DISABLED_CAPABILITIES`); `COPILOT_ENABLED` env gate default **off** outside tests |
+| **Provider seam** | Provider-neutral adapter Protocol with fail-closed registry; fake-deterministic provider as default/test double; **no live provider credentials, no outbound provider calls, no training on CoachOS data** |
+| **Frontend console** | Coach Copilot console: capability run request, context inspection, draft result cards with source references, regenerate/edit/reject/report/approve actions; nav entries; fa-IR + en-US dictionary parity (+150 keys each); generation language explicit — never Arabic |
+| **Evaluation harness** | `apps/copilot/eval`: 16 labeled synthetic cases on fabricated `*.synthetic.test` fixtures — **16/16 PASS**; proves control wiring, not model accuracy (stated explicitly in the report) |
+| **Tests & gates** | Backend 167 tests (53 new copilot tests: 34 API + 9 security + eval harness gate; 86% coverage) and frontend 84 tests (9 new) passing; ruff lint/format, ESLint, `tsc` strict, and `next build` pass; OpenAPI bumped to v1.1.0-phase11 (10 `/copilot/*` operations, 98/98 local `$refs` resolve, Django routes reconciled 10/10); `infra/scripts/check-secrets.sh` ALL PASS |
+| **Post-merge CI on `main`** | **CoachOS CI Quality Gates** run [`32159920173`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/32159920173) succeeded; **Security & Vulnerability Scan** run [`32159920192`](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/actions/runs/32159920192) succeeded; pages deployment succeeded — all on PR #21 merge SHA `6005936ab573df65a68de9b6266e9321506c7432` |
+| **Reports** | `docs/reports/PHASE-11-AI-COPILOT-REPORT.md`, `docs/reports/PHASE-11-AI-COPILOT-CONTRACTS.md`, `docs/architecture/AI_GOVERNANCE.md` |
+| **Deferred (by decision)** | Live provider integration, async AI processing queue, athlete-erasure disassociation of AI records, admin audit UI, and any escalation beyond draft-only autonomy |
+| **Scope boundary** | No Phase 08/09/10/12 functionality added by Phase 11; no message sending; no autonomous program/billing/consent mutation; no athlete-facing chatbot; no medical advice; no accuracy, provider zero-retention, HIPAA, GDPR, or certification claims |
 
 ---
 
@@ -103,15 +124,16 @@ Deferred items remain deferred: formal accessibility certification; device-matri
 | **CI-ACTIVATION** | GitHub Actions activation | — | **Closed — PR #10 merged:** PR #10 (`chore/activate-github-actions-manual`) merged into `main` at `0855867cc85f56bb4b77c5f708db8e122ded6b81` (2026-08-14T06:36:42Z). `.github/workflows/ci.yml` and `.github/workflows/security-scan.yml` are present on remote `main`; GitHub Actions remain active and passing through the PR #17 merge commit (`0949abee...`), with post-merge runs `31940418392` and `31940418535` successful; no deployment job or real secret exists. |
 | **P05-DEFERRED** | Phase 05 deferred scope | Low | **Open — deferred by decision:** Phase 05 merged complete for its documented scope via PR #13 (`d7f72b3fcfd6667df524af5adf71328c5de6edba`). Deferred items remain deferred pending later authorized phases: frontend onboarding UI, ownership transfer, full effective-permissions/active-org context, production email delivery, MFA, and compliance certification. Phase 06 supplied only the minimal tenant-scoped `CoachAthleteAssignment` relation required to authorize program assignment; broader lifecycle/UI remains deferred. |
 | **P06-DEFERRED** | Phase 06 deferred scope | Low | **Open — deferred by decision:** Formal accessibility certification, device-matrix validation, penetration testing, production media storage/upload/signing/transcoding, production `pg_trgm` load tuning, broader assignment lifecycle/UI, and all Phase 07+ domains (at the time of the Phase 06 merge) remain deferred. None is implied complete by the Phase 06 merge; Phase 07 was subsequently authorized and merged for its documented scope via PR #17 — see P07-DEFERRED. |
-| **P07-DEFERRED** | Phase 07 deferred scope | Low | **Open — deferred by decision:** Durable offline sync and conflict resolution (Phase 12), messaging/notifications (Phase 08), nutrition (Phase 09), billing/payments (Phase 10), AI (Phase 11), wearables, native apps, marketplace, production media storage/signing/transcoding, formal accessibility certification, device-matrix validation, and penetration testing remain deferred. None is implied complete by the Phase 07 merge. |
+| **P07-DEFERRED** | Phase 07 deferred scope | Low | **Open — deferred by decision:** Durable offline sync and conflict resolution (Phase 12), messaging/notifications (Phase 08), nutrition (Phase 09), billing/payments (Phase 10), AI (Phase 11), wearables, native apps, marketplace, production media storage/signing/transcoding, formal accessibility certification, device-matrix validation, and penetration testing remain deferred. None is implied complete by the Phase 07 merge. Since then, Phase 08 (PR #19), Phase 10 (PR #20), and Phases 11+12 (PR #21) were authorized and merged by their dedicated wave sessions; nutrition (Phase 09), wearables, native apps, marketplace, production media storage/signing/transcoding, formal accessibility certification, device-matrix validation, and penetration testing remain deferred — see P11-DEFERRED for Phase 11 residual deferrals. |
+| **P11-DEFERRED** | Phase 11 deferred scope | Low | **Open — deferred by decision:** Phase 11 merged complete for its documented scope via PR #21 (`6005936ab573df65a68de9b6266e9321506c7432`). Deferred items remain deferred pending explicit authorization: live AI provider integration (requires provider agreement and fresh security/privacy review), async AI processing queue, athlete-erasure disassociation hook for AI-run records, admin audit UI for copilot runs, and any escalation beyond draft-only autonomy. No accuracy, medical-safety, provider zero-retention, HIPAA, or GDPR claims are made — see `docs/reports/PHASE-11-AI-COPILOT-REPORT.md` residual risks. |
 
 ---
 
 ## 6. Next Step
 
-Phase 07 is merged and complete for its documented scope.
+Phase 11 is merged and complete for its documented scope (PR #21); the parallel 08–12 wave has otherwise merged (Phase 12 via the same PR #21, Phase 10 via PR #20, Phase 08 via PR #19).
 
-1. Current remote `main` is `0949abeead5ba74a3deb0d2439a464ab6bbd99dd` (PR #17 merge commit).
-2. Post-merge GitHub Actions on the merge SHA succeeded: **CoachOS CI Quality Gates** run `31940418392` and **Security & Vulnerability Scan** run `31940418535` (both `success`).
-3. Phase 08 (messaging/notifications) is the next product phase but is **not started** and requires explicit founder authorization in a new dedicated branch. Do not begin Phase 08 automatically.
-4. Phase 09 (nutrition), Phase 10 (billing/payments), Phase 11 (AI), and Phase 12 (durable offline) are deferred and not started.
+1. Current remote `main` is `326babce7bcfaae9e1c7d5f04e7d059e2e00af93` (PR #19 merge commit), verified at the time of this docs-only Phase 11 synchronization.
+2. Post-merge GitHub Actions on the PR #21 merge SHA `6005936ab573df65a68de9b6266e9321506c7432` succeeded: **CoachOS CI Quality Gates** run `32159920173` and **Security & Vulnerability Scan** run `32159920192` (both `success`); pages deployment succeeded.
+3. Phase 09 (nutrition and multi-professional collaboration) is the only remaining unstarted wave phase; it is **not started** and requires explicit founder authorization in a new dedicated branch. Do not begin Phase 09 automatically.
+4. Phase 13 (QA, security, performance, release) and Phase 14 (pilot) remain pending; production deployment stays gated until Phase 13 founder approval. Per-phase tracking syncs for Phases 08, 10, and 12 are owned by their respective sessions.
