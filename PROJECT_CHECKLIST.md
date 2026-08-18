@@ -270,16 +270,18 @@ Evidence links point to repository paths, commits, or GitHub artifacts. Update a
 
 ## Phase 11 — AI Copilot
 
-- [ ] AI use cases prioritized
-- [ ] Safety boundaries & human-in-the-loop review workflow documented
-- [ ] Approved retrieval data sources defined
-- [ ] Prompt/version logging exists
-- [ ] Cost/rate limits exist
-- [ ] Evaluation cases exist
-- [ ] Fallback behavior exists
-- [ ] Phase 11 report committed
+- [x] AI use cases prioritized — P0 capabilities scoped per PRD P2-AI-01: progress summarization with source references, check-in draft (no auto-send), published-exercise-constrained suggestions, context inspection, regenerate/edit/reject/report/approve
+- [x] Safety boundaries & human-in-the-loop review workflow documented — `docs/architecture/AI_GOVERNANCE.md`; prohibited topics blocked; draft-only output; human approval required for any consequential use
+- [x] Approved retrieval data sources defined — context builder assembles strictly authorized org/assignment-scoped data only; auditable run records (`AIRun`, `AISourceReference`)
+- [x] Prompt/version logging exists — `PromptTemplateVersion` (seeded per capability, fa-IR + en-US) + immutable `AIRun`/`AIAuditEvent`/`AIFeedback` records
+- [x] Cost/rate limits exist — per-actor rate limit, org+actor daily run quotas, daily micro-USD budget cap, `AIUsageMeter` (unique org+actor+date)
+- [x] Evaluation cases exist — `apps/copilot/eval` harness with 16 labeled synthetic cases (`*.synthetic.test` fixtures), 16/16 PASS; control wiring only, no accuracy claim
+- [x] Fallback behavior exists — fail-closed provider registry, safe fallback on provider/quota/policy failure, invalid output quarantined (never shown raw)
+- [x] Phase 11 report committed — `docs/reports/PHASE-11-AI-COPILOT-REPORT.md` (+ contracts doc)
+- [x] Phase 11 implementation PR merged — PR [#21](https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform/pull/21) merged into `main` at `6005936ab573df65a68de9b6266e9321506c7432` (2026-08-18T16:22:09Z); post-merge CI `32159920173` and security scan `32159920192` successful; PR was shared with Phase 12 from the environment-imposed session branch
+- [-] Deferred Phase 11 items (by decision, pending explicit authorization): live provider integration, async AI processing queue, athlete-erasure disassociation hook, admin audit UI, autonomy escalation beyond draft-only
 
-**Phase 11 status:** `[ ]` Not started — **P2, deferred until activated**
+**Phase 11 status:** `[x]` **Merged & Complete for its documented scope** — merged via PR #21 at `6005936ab573df65a68de9b6266e9321506c7432` (2026-08-18T16:22:09Z) with all post-merge GitHub Actions checks passing; Phase 09 remains the only unstarted wave phase
 
 ---
 
