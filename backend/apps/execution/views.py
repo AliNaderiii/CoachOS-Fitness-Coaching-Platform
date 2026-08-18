@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.models import AuditEvent
+from apps.communication import hooks as communication_hooks
 from apps.exercises.models import Exercise
 from apps.identity.models import User
 from apps.identity.permissions import IsAuthenticatedAndActive
@@ -376,6 +377,10 @@ class WorkoutSessionDetailView(APIView):
         )
         session.save()
         _audit(request, org, "session.completed", "WorkoutSession", session.id)
+        # Phase 08 additive hook: durable outbox event inside this transaction.
+        communication_hooks.on_workout_completed(
+            session, correlation_id=getattr(request, "correlation_id", "")
+        )
         return Response(WorkoutSessionSerializer(session).data)
 
 
@@ -522,6 +527,10 @@ class FeedbackFlagView(APIView):
         serializer.is_valid(raise_exception=True)
         flag = serializer.save(session=session, athlete_user=request.user)
         _audit(request, session.organization, "pain.flagged", "FeedbackFlag", flag.id)
+        # Phase 08 additive hook: safety-category notification event.
+        communication_hooks.on_feedback_flag_created(
+            flag, session, correlation_id=getattr(request, "correlation_id", "")
+        )
         return Response(FeedbackFlagSerializer(flag).data, status=status.HTTP_201_CREATED)
 
 

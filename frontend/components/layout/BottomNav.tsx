@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, Dumbbell, Flame, MessageSquare, Sparkles, TrendingUp, User } from "lucide-react";
+import { Bell, Dumbbell, Flame, MessageSquare, Sparkles, TrendingUp, User } from "lucide-react";
 import { useTranslation } from "./DirectionProvider";
 
 export const BottomNav: React.FC = () => {
@@ -22,9 +22,9 @@ export const BottomNav: React.FC = () => {
       icon: TrendingUp,
     },
     {
-      label: t("nav.calendar"),
-      href: `/${locale}/calendar`,
-      icon: Calendar,
+      label: t("nav.notifications"),
+      href: `/${locale}/notifications`,
+      icon: Bell,
     },
     {
       label: t("nav.programs"),
