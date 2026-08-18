@@ -32,3 +32,7 @@ SESSION_COOKIE_SECURE = False
 # Enable test seam to capture raw reset tokens so actual forgot-password path is exercised
 # (raw token never appears in prod responses/logs/audit)
 TEST_CAPTURE_RESET_TOKENS = True
+
+# Phase 11: enable the Copilot in the test environment (production default is OFF).
+# Tests override these values per-case to exercise kill-switch and budget paths.
+COPILOT_ENABLED = True

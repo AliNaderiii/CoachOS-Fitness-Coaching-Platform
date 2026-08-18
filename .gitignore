@@ -20,6 +20,9 @@ lib/
 # Phase 04 frontend TypeScript source (not a Python environment artifact)
 !/frontend/lib/
 !/frontend/lib/**
+# Phase 12 frontend TypeScript source under src/ (not a Python environment artifact)
+!/frontend/src/lib/
+!/frontend/src/lib/**
 lib64/
 parts/
 sdist/

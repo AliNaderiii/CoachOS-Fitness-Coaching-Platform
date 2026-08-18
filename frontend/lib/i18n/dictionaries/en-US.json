@@ -14,7 +14,8 @@
     "programs": "Programs",
     "messages": "Messages",
     "profile": "Profile",
-    "progress": "Progress"
+    "progress": "Progress",
+    "copilot": "Copilot"
   },
   "footer": {
     "rights": "All rights reserved.",
@@ -55,7 +56,34 @@
     "title": "You are offline",
     "description": "CoachOS cannot reach the network. Reconnect to continue with online features.",
     "cached_content_notice": "Previously cached foundation pages may remain available. No durable offline data queue is enabled.",
-    "retry_button": "Retry connection"
+    "retry_button": "Retry connection",
+    "status": {
+      "offline": "Offline — Changes saved temporarily",
+      "online": "Online",
+      "syncing": "Syncing…",
+      "pending": "Pending",
+      "conflict": "Conflict",
+      "failed": "Failed",
+      "synced": "Synced",
+      "dead_letter": "Dead letter",
+      "discarded": "Discarded"
+    },
+    "conflict": {
+      "keep_online": "Keep online version",
+      "keep_queued": "Keep queued version",
+      "edit_manually": "Edit manually"
+    },
+    "error": {
+      "network_timeout": "Network timeout — will retry.",
+      "authz_denied": "Access denied — reconnect required.",
+      "schema_mismatch": "Schema mismatch — manual retry required.",
+      "age_limit": "Operation too old — please retry or discard.",
+      "integrity_check_failed": "Data integrity check failed — please discard."
+    },
+    "purge": {
+      "sign_out": "Signing out — clearing queued operations…",
+      "account_switch": "Switching account — clearing previous organization operations…"
+    }
   },
   "errors": {
     "not_found_title": "Page not found",
@@ -222,5 +250,173 @@
     "pending_count": "{count} unsaved item(s) pending",
     "pending_retry": "Retry pending items",
     "unit_conversion": "Load is recorded in kg on the server."
+  },
+  "copilot": {
+    "title": "Coach Copilot",
+    "subtitle": "Governed AI drafting for professional coaches — review before use",
+    "governance_badge": "Human-in-the-loop",
+    "prohibited_notice": "The Copilot never provides medical advice, never sends messages, and never changes programs automatically. All output is an AI-generated draft that requires explicit coach review. Medical, injury, medication, supplement, eating-disorder, or emergency topics are prohibited and blocked.",
+    "org_label": "Organization",
+    "athlete_label": "Athlete context",
+    "athlete_placeholder": "Select an authorized athlete context",
+    "capability_label": "Choose one capability (no free-form chat)",
+    "period_label": "Analysis period",
+    "period_days": "Last {days} days",
+    "notes_label": "Focus note (optional)",
+    "notes_placeholder": "e.g. focus on adherence, keep it encouraging",
+    "generation_language_notice": "Draft language",
+    "action": {
+      "run": "Generate draft",
+      "running": "Generating…",
+      "edit": "Edit draft",
+      "save_edit": "Save edits",
+      "cancel_edit": "Cancel",
+      "approve": "Approve",
+      "approve_confirm": "Approve this draft? Approval is recorded with your identity and timestamp.",
+      "reject": "Reject",
+      "confirm_reject": "Confirm reject",
+      "regenerate": "Regenerate",
+      "copy": "Copy draft",
+      "copied": "Copied",
+      "report": "Report",
+      "confirm_report": "Submit report"
+    },
+    "capability": {
+      "summarize_progress": {
+        "title": "Progress summary",
+        "description": "Summarize recent authorized sessions, loads, and adherence with sources."
+      },
+      "draft_check_in": {
+        "title": "Check-in message draft",
+        "description": "Draft a short supportive check-in. Never sent automatically."
+      },
+      "suggest_program_adjustment": {
+        "title": "Program adjustment suggestion",
+        "description": "Suggest adjustments limited to your published exercise library."
+      }
+    },
+    "draft_badge": "AI draft — review required",
+    "human_review_notice": "This is an AI-generated draft. Facts come from the cited sources only; the wording is a suggestion. Approving, copying, or using it is your professional decision.",
+    "never_sent_notice": "This message is never sent automatically. Copying it is a manual action after your review.",
+    "section": {
+      "concerns": "Points of attention",
+      "limitations": "Limitations & uncertainty",
+      "sources": "Sources the Copilot used",
+      "omissions": "Deliberately not seen"
+    },
+    "metric": {
+      "sessions_completed": "Completed sessions",
+      "sessions_missed": "Missed sessions"
+    },
+    "field": {
+      "summary": "Summary",
+      "subject": "Subject",
+      "body": "Message body",
+      "review_note": "Review note",
+      "review_note_placeholder": "Optional reason (recorded)",
+      "report_type": "Report type",
+      "report_detail": "Report details",
+      "report_detail_placeholder": "What looks wrong? (optional)"
+    },
+    "status": {
+      "draft": "Draft (unreviewed)",
+      "edited": "Edited draft",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "quarantined": "Quarantined",
+      "expired": "Expired"
+    },
+    "run_status": {
+      "queued": "Queued",
+      "running": "Running",
+      "succeeded": "Succeeded",
+      "failed": "Failed safely",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "source_type": {
+      "workout_session": "Session",
+      "set_log": "Set log",
+      "feedback_flag": "Subjective flag",
+      "program_assignment": "Program assignment",
+      "exercise": "Exercise"
+    },
+    "report_type": {
+      "unsafe": "Unsafe content",
+      "incorrect": "Incorrect facts",
+      "privacy": "Privacy concern",
+      "hallucinated_source": "Invented citation",
+      "other": "Other"
+    },
+    "change_type": {
+      "substitute": "Substitute",
+      "reduce_load": "Reduce intensity",
+      "adjust_sets": "Adjust sets",
+      "coach_note": "Coaching note"
+    },
+    "omission": {
+      "progress_photos": "progress photos",
+      "body_metrics": "body metrics",
+      "feedback_flag_details": "flag free-text details",
+      "anatomical_locations": "anatomical locations",
+      "contact_information": "contact details",
+      "other_athletes": "other athletes' data",
+      "billing_data": "billing data",
+      "credentials": "credentials"
+    },
+    "history_title": "Recent runs",
+    "history_notice": "Runs expire under the retention policy; expired context is deleted.",
+    "announce": {
+      "started": "Copilot run started",
+      "succeeded": "Draft ready for your review",
+      "failed": "The run failed safely; try again later"
+    },
+    "result": {
+      "unavailable_title": "No draft could be produced",
+      "fallback_notice": "The provider was unavailable or the output did not pass validation. Nothing was changed or sent."
+    },
+    "state": {
+      "loading": "Loading the Copilot…",
+      "empty": "No organization is available for your account.",
+      "error": "The Copilot is temporarily unavailable. Try again later.",
+      "unauthorized": "You need an active owner or coach membership to use the Copilot.",
+      "disabled_title": "The Copilot is currently disabled",
+      "disabled_body": "Your organization or the platform has turned off the AI Copilot. Ask the organization owner for the current policy."
+    },
+    "actions_group": "Draft review actions",
+    "error": {
+      "generic": "Something went wrong with the Copilot. Try again later.",
+      "provider_unavailable": "The model provider is unavailable right now. No draft was produced.",
+      "provider_timeout": "The model provider timed out. No draft was produced.",
+      "output_invalid": "The generated output failed validation and was quarantined. Nothing was shown from it.",
+      "context_too_large": "The authorized context was too large for one run; try a shorter period.",
+      "not_authorized": "You are not authorized for this Copilot operation.",
+      "error.ai_feature_disabled": "The Copilot is disabled.",
+      "error.ai_quota_exceeded": "Copilot quota reached for today. Try again tomorrow.",
+      "error.ai_prohibited_use": "That request is outside the Copilot's permitted scope.",
+      "error.rate_limit_exceeded": "Too many requests. Please slow down.",
+      "error.ai_expired": "This run expired under the retention policy."
+    }
+  },
+  "integration": {
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "reauthorizing": "Reauthorizing",
+      "limited_permission": "Limited Permission",
+      "expired": "Expired"
+    },
+    "provenance": {
+      "source": "Source",
+      "imported_at": "Imported",
+      "event_id": "Event",
+      "provider_timestamp": "Provider Timestamp"
+    },
+    "error": {
+      "authentication_failed": "Authentication failed — reconnect required.",
+      "rate_limited": "Rate limit reached — retry after 60 seconds.",
+      "provider_outage": "Provider temporarily unavailable — sync will resume automatically.",
+      "scope_denied": "Required permission denied — reconnect with updated scopes."
+    }
   }
 }
