@@ -36,6 +36,16 @@ TEST_CAPTURE_RESET_TOKENS = True
 # Phase 08: enable the deterministic local fake providers for tests only.
 # No real credentials exist anywhere in the repository.
 COMMUNICATION_FAKE_PROVIDERS_ENABLED = True
+# Deterministic, network-free Phase 10 billing test provider.
+BILLING_DEFAULT_PROVIDER = "fake"
+BILLING_ALLOW_FAKE_PROVIDER = True
+BILLING_FAKE_WEBHOOK_SECRET = "phase10-test-webhook-secret"
+BILLING_FRONTEND_BASE_URL = "https://app.test.coachos.invalid"
+BILLING_HOSTED_URL_ALLOWED_HOSTS = [
+    "payments.test.coachos.invalid",
+    "invoices.test.coachos.invalid",
+]
+BILLING_WEBHOOK_TOLERANCE_SECONDS = 300
 # Phase 11: enable the Copilot in the test environment (production default is OFF).
 # Tests override these values per-case to exercise kill-switch and budget paths.
 COPILOT_ENABLED = True

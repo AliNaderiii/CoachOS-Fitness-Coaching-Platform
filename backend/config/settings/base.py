@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     "apps.execution.apps.ExecutionConfig",
     # Phase 08 Communication and Notifications
     "apps.communication.apps.CommunicationConfig",
+    # Phase 10 Organization Billing and Coach Monetization
+    "apps.billing.apps.BillingConfig",
     # Phase 11 Governed AI Copilot
     "apps.copilot.apps.CopilotConfig",
     # Phase 12 Durable Offline and Integrations
@@ -264,6 +266,25 @@ LOGGING = {
 COMMUNICATION_FAKE_PROVIDERS_ENABLED = os.environ.get(
     "COMMUNICATION_FAKE_PROVIDERS_ENABLED", "False"
 ).lower() in ("true", "1", "yes")
+# Phase 10 billing provider boundary. The fake adapter is deterministic and
+# network-free. Non-debug environments fail closed unless explicitly configured.
+BILLING_DEFAULT_PROVIDER = os.environ.get("BILLING_DEFAULT_PROVIDER", "fake" if DEBUG else "")
+BILLING_ALLOW_FAKE_PROVIDER = DEBUG
+BILLING_FAKE_WEBHOOK_SECRET = os.environ.get(
+    "BILLING_FAKE_WEBHOOK_SECRET", "local-fake-webhook-secret-not-for-production" if DEBUG else ""
+)
+BILLING_WEBHOOK_TOLERANCE_SECONDS = int(os.environ.get("BILLING_WEBHOOK_TOLERANCE_SECONDS", "300"))
+BILLING_FRONTEND_BASE_URL = os.environ.get(
+    "BILLING_FRONTEND_BASE_URL", "http://localhost:3000" if DEBUG else ""
+)
+BILLING_HOSTED_URL_ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        "BILLING_HOSTED_URL_ALLOWED_HOSTS",
+        "payments.test.coachos.invalid,invoices.test.coachos.invalid" if DEBUG else "",
+    ).split(",")
+    if host.strip()
+]
 # -----------------------------------------------------------------------------
 # Phase 11 — Governed AI Copilot
 # -----------------------------------------------------------------------------
@@ -288,5 +309,5 @@ COPILOT_CONTEXT_RETENTION_DAYS = int(os.environ.get("COPILOT_CONTEXT_RETENTION_D
 COPILOT_MAX_ATTEMPTS = int(os.environ.get("COPILOT_MAX_ATTEMPTS", "2"))
 
 # Version and Metadata
-APP_VERSION = "0.4.0"
+APP_VERSION = "0.10.0"
 APP_NAME = "CoachOS"
