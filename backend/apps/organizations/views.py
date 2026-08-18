@@ -309,6 +309,22 @@ class AcceptInvitationView(APIView):
             # Verify role/org consistency from server-side invitation
             # (already enforced by token lookup)
 
+            # Phase 10: optional approved plan limits are enforced under the
+            # billing-account row lock. Missing limits remain unlimited, and
+            # this check never deletes or suspends existing athlete data.
+            from apps.billing.entitlements import CapacityExceeded, assert_membership_capacity
+
+            try:
+                assert_membership_capacity(organization=inv.organization, user=user, role=inv.role)
+            except CapacityExceeded as exc:
+                return Response(
+                    {
+                        "detail": "The organization plan capacity has been reached.",
+                        "message_key": f"billing.capacity.{exc.key}",
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
             membership, created = Membership.objects.get_or_create(
                 user=user,
                 organization=inv.organization,

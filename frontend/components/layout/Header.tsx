@@ -60,6 +60,12 @@ export const Header: React.FC = () => {
           >
             {t("nav.org_view")}
           </Link>
+          <Link
+            href={`/${locale}/org/billing`}
+            className="text-brand-text-muted hover:text-brand-text transition-colors"
+          >
+            {t("nav.billing")}
+          </Link>
         </nav>
 
         {/* Actions */}
