@@ -36,3 +36,6 @@ TEST_CAPTURE_RESET_TOKENS = True
 # Phase 08: enable the deterministic local fake providers for tests only.
 # No real credentials exist anywhere in the repository.
 COMMUNICATION_FAKE_PROVIDERS_ENABLED = True
+# Phase 11: enable the Copilot in the test environment (production default is OFF).
+# Tests override these values per-case to exercise kill-switch and budget paths.
+COPILOT_ENABLED = True

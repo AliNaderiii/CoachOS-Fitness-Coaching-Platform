@@ -3,7 +3,7 @@ info:
   title: CoachOS API
   description: |
     OpenAPI 3.1 contract for CoachOS B2B2C fitness coaching platform.
-    Operations marked `x-implementation-status: implemented-phase-06` are reconciled to the current Phase 06 Django/DRF routes and serializers. Operations marked `x-implementation-status: implemented-phase-07` are reconciled to the current Phase 07 athlete execution and progress routes and serializers. Other historical P0 paths remain provisional future contracts and MUST NOT be interpreted as implemented merely because they appear in this document.
+    Operations marked `x-implementation-status: implemented-phase-06` are reconciled to the current Phase 06 Django/DRF routes and serializers. Operations marked `x-implementation-status: implemented-phase-07` are reconciled to the current Phase 07 athlete execution and progress routes and serializers. Operations marked `x-implementation-status: implemented-phase-11` are reconciled to the Phase 11 governed AI Copilot routes (draft-only, human-approved, provider-neutral; no message sending and no program mutation). Other historical P0 paths remain provisional future contracts and MUST NOT be interpreted as implemented merely because they appear in this document.
     Phase 07 implements the athlete Today dashboard, workout session lifecycle, set actual logging, exercise substitution, subjective feedback/pain/fatigue flags, progress body metrics, consent-gated progress photos, and privacy consent records. Phase 07 does NOT implement durable offline sync (Phase 12), messaging/notifications (Phase 08), nutrition (Phase 09), billing/payments (Phase 10), AI (Phase 11), wearables, native apps, marketplace, or production media storage — those remain planned or deferred.
 
     **Authentication Transport Consistency — Corrected (ADR-032):**
@@ -29,7 +29,7 @@ info:
 
     **OpenAPI Validity:** YAML parses successfully, OpenAPI 3.1, all local $ref resolve, security schemes consistent with corrected auth strategy, error responses RFC7807-compatible with message_key, P0 endpoint groups align with API_CONTRACT, PRD story IDs, authorization rules, no future payment/AI/wearable as P0.
 
-  version: 1.0.2-phase06
+  version: 1.1.0-phase11
   contact:
     name: CoachOS Platform Team
     url: https://github.com/AliNaderiii/CoachOS-Fitness-Coaching-Platform
@@ -1671,6 +1671,409 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /copilot/capabilities:
+    x-implementation-status: implemented-phase-11
+    get:
+      tags: [AI Copilot]
+      summary: Discover Copilot capability allowlist and feature state
+      description: |
+        Returns the Phase 11 capability allowlist, feature-flag state (global kill switch + org override), provider adapter metadata (non-secret), policy version, and server-enforced limits. Professional roles only (active owner/coach membership). The Copilot is a drafting assistant: every output is an AI-generated draft requiring explicit human review; nothing here authorizes sending messages or mutating programs.
+      operationId: listCopilotCapabilities
+      x-required-role: Owner or Coach (active membership)
+      x-audit-event: none
+      parameters:
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Capability registry + limits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotCapabilitiesResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /copilot/runs:
+    x-implementation-status: implemented-phase-11
+    get:
+      tags: [AI Copilot]
+      summary: List authorized AI runs (history, bounded 50)
+      description: Coaches see only their own runs; owners see all runs in the organization. Retention-bounded listing; expired context is purged per policy.
+      operationId: listCopilotRuns
+      x-required-role: Owner or Coach (active membership)
+      x-audit-event: none
+      parameters:
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: capability
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authorized run list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotRunListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [AI Copilot]
+      summary: Request a governed AI Copilot run (synchronous, fail-closed)
+      description: |
+        Creates and executes an AI drafting run for one authorized athlete. Server-side policy gates evaluate feature flags, capability allowlist, prohibited-intent screening, rate/quota/budget limits, and subject authorization BEFORE retrieval and BEFORE any provider call. Idempotent via Idempotency-Key. Output is a schema-validated draft with provenance; approval is a separate human action. Never sends messages; never mutates programs.
+      operationId: createCopilotRun
+      x-required-role: Owner or Coach (active membership; coach requires active coach-athlete assignment)
+      x-audit-event: ai.run.requested
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotRunCreateRequest'
+      responses:
+        '200':
+          description: Idempotent replay of an existing run
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotRun'
+        '201':
+          description: Run executed (status indicates succeeded/failed; failed runs carry safe error codes)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotRun'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /copilot/runs/{run_id}:
+    x-implementation-status: implemented-phase-11
+    get:
+      tags: [AI Copilot]
+      summary: Get run detail with draft, sources, limitations, and inspectable context
+      description: Authorization is re-evaluated on every read; stale-after-revocation access fails closed. Expired runs return 410 under the retention policy.
+      operationId: getCopilotRun
+      x-required-role: Run owner (coach) or Owner
+      x-audit-event: ai.output.viewed
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Run detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotRun'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: Expired under retention policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /copilot/runs/{run_id}/cancel:
+    x-implementation-status: implemented-phase-11
+    post:
+      tags: [AI Copilot]
+      summary: Cancel a queued/running run
+      operationId: cancelCopilotRun
+      x-required-role: Run owner (coach) or Owner
+      x-audit-event: ai.run.cancelled
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Run cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotRun'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Run is not cancellable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /copilot/runs/{run_id}/regenerate:
+    x-implementation-status: implemented-phase-11
+    post:
+      tags: [AI Copilot]
+      summary: Regenerate a draft (creates a new linked run)
+      description: Blocked for approved drafts. The new run references the source run and reuses its authorized subject/capability.
+      operationId: regenerateCopilotRun
+      x-required-role: Run owner (coach) or Owner
+      x-audit-event: ai.run.regenerated
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: New run created and executed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotRun'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Source run state does not allow regeneration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /copilot/runs/{run_id}/report:
+    x-implementation-status: implemented-phase-11
+    post:
+      tags: [AI Copilot]
+      summary: Report unsafe/incorrect/privacy-violating/hallucinated draft output
+      operationId: reportCopilotRun
+      x-required-role: Run owner (coach) or Owner
+      x-audit-event: ai.output.reported
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotReportRequest'
+      responses:
+        '201':
+          description: Report recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotReportResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /copilot/runs/{run_id}/output:
+    x-implementation-status: implemented-phase-11
+    patch:
+      tags: [AI Copilot]
+      summary: Edit a draft output (human edit; revalidated against the schema)
+      description: Edited payloads must still satisfy the output schema and cite only authorized source ids; otherwise the edit is rejected.
+      operationId: editCopilotOutput
+      x-required-role: Run owner (coach) or Owner
+      x-audit-event: ai.output.edited
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotEditOutputRequest'
+      responses:
+        '200':
+          description: Edited draft
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotRun'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Output not in an editable state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /copilot/runs/{run_id}/output/approve:
+    x-implementation-status: implemented-phase-11
+    post:
+      tags: [AI Copilot]
+      summary: Approve a draft (explicit human approval; never automatic)
+      operationId: approveCopilotOutput
+      x-required-role: Run owner (coach) or Owner
+      x-audit-event: ai.output.approved
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotReviewNoteRequest'
+      responses:
+        '200':
+          description: Approved output
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotRun'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Output not approvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /copilot/runs/{run_id}/output/reject:
+    x-implementation-status: implemented-phase-11
+    post:
+      tags: [AI Copilot]
+      summary: Reject a draft (explicit human rejection)
+      operationId: rejectCopilotOutput
+      x-required-role: Run owner (coach) or Owner
+      x-audit-event: ai.output.rejected
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotReviewNoteRequest'
+      responses:
+        '200':
+          description: Rejected output
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotRun'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Output not rejectable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /copilot/runs/{run_id}/sources/{source_ref_id}:
+    x-implementation-status: implemented-phase-11
+    get:
+      tags: [AI Copilot]
+      summary: Open one source reference (re-authorized on open)
+      description: Returns the persisted provenance descriptor plus a safe in-app record link. Authorization is re-evaluated on every open.
+      operationId: getCopilotSource
+      x-required-role: Run owner (coach) or Owner
+      x-audit-event: ai.source.opened
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: source_ref_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: org_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Source reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotSourceReference'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3126,3 +3529,268 @@ components:
         status:
           type: string
           enum: [pending, processing, completed, failed]
+    CopilotCapabilitiesResponse:
+      type: object
+      properties:
+        feature:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            disabled_reason:
+              type: string
+        policy_version:
+          type: string
+        provider:
+          type: object
+          properties:
+            provider_slug:
+              type: string
+            provider_enabled:
+              type: boolean
+            model_identifier:
+              type: string
+        capabilities:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                enum: [summarize_progress, draft_check_in, suggest_program_adjustment]
+              output_schema:
+                type: string
+              requires_human_review:
+                type: boolean
+              enabled:
+                type: boolean
+              disabled_reason:
+                type: string
+              label:
+                type: object
+        limits:
+          type: object
+        prohibited_notice_key:
+          type: string
+
+    CopilotRunCreateRequest:
+      type: object
+      required: [capability, athlete_id, generation_language]
+      properties:
+        org_id:
+          type: string
+        capability:
+          type: string
+          enum: [summarize_progress, draft_check_in, suggest_program_adjustment]
+        athlete_id:
+          type: string
+        generation_language:
+          type: string
+          enum: [fa-IR, en-US]
+          description: Explicit. Arabic is not a supported generation language.
+        parameters:
+          type: object
+          properties:
+            period_days:
+              type: integer
+              minimum: 1
+              maximum: 30
+            notes:
+              type: string
+              maxLength: 500
+              description: Screened server-side for prohibited intent; treated as untrusted data.
+            variation:
+              type: integer
+              minimum: 0
+        idempotency_key:
+          type: string
+          maxLength: 64
+
+    CopilotRun:
+      type: object
+      properties:
+        id:
+          type: string
+        capability:
+          type: string
+        generation_language:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, succeeded, failed, cancelled, expired]
+        athlete_id:
+          type: string
+        policy_version:
+          type: string
+        provider_slug:
+          type: string
+        model_identifier:
+          type: string
+        prompt_template_id:
+          type: string
+          nullable: true
+        attempt_count:
+          type: integer
+        duration_ms:
+          type: integer
+        input_tokens_est:
+          type: integer
+        output_tokens_est:
+          type: integer
+        cost_micro_usd:
+          type: integer
+        error_code:
+          type: string
+        fallback_applied:
+          type: boolean
+        input_context_hash:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        regenerated_from_id:
+          type: string
+          nullable: true
+        context:
+          type: object
+          nullable: true
+          description: Redacted, truncated, coach-inspectable input context actually used.
+          properties:
+            payload:
+              type: object
+            limitations:
+              type: array
+              items:
+                type: string
+            omissions:
+              type: array
+              items:
+                type: string
+                description: Data categories deliberately NOT included (e.g. progress_photos, body_metrics).
+        output:
+          $ref: '#/components/schemas/CopilotOutput'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/CopilotSourceReference'
+        actions:
+          type: object
+        ai_generated:
+          type: boolean
+        requires_human_review:
+          type: boolean
+        replayed:
+          type: boolean
+
+    CopilotOutput:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: string
+        schema_name:
+          type: string
+          enum: [ai_progress_summary.v1, ai_check_in_message.v1, ai_program_adjustment.v1]
+        schema_version:
+          type: integer
+        validation_status:
+          type: string
+          enum: [valid, invalid]
+        status:
+          type: string
+          enum: [draft, edited, approved, rejected, quarantined, expired]
+        payload:
+          type: object
+          nullable: true
+          description: Schema-validated structured draft. Null for quarantined/expired outputs.
+        was_edited:
+          type: boolean
+        reviewed_by_id:
+          type: string
+          nullable: true
+        reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+        review_note:
+          type: string
+
+    CopilotSourceReference:
+      type: object
+      properties:
+        id:
+          type: string
+        run_id:
+          type: string
+        source_type:
+          type: string
+          enum: [workout_session, set_log, feedback_flag, program_assignment, exercise]
+        source_id:
+          type: string
+        descriptor:
+          type: string
+        ordinal:
+          type: integer
+        record_url:
+          type: string
+
+    CopilotRunListResponse:
+      type: object
+      properties:
+        runs:
+          type: array
+          items:
+            $ref: '#/components/schemas/CopilotRun'
+        count:
+          type: integer
+        retention_days:
+          type: integer
+
+    CopilotEditOutputRequest:
+      type: object
+      required: [payload]
+      properties:
+        payload:
+          type: object
+          description: Full edited draft payload; revalidated against the capability schema.
+
+    CopilotReviewNoteRequest:
+      type: object
+      properties:
+        note:
+          type: string
+          maxLength: 500
+
+    CopilotReportRequest:
+      type: object
+      required: [report_type]
+      properties:
+        report_type:
+          type: string
+          enum: [unsafe, incorrect, privacy, hallucinated_source, other]
+        detail:
+          type: string
+          maxLength: 1000
+
+    CopilotReportResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        run_id:
+          type: string
+        report_type:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time

@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Dumbbell, Flame, MessageSquare, TrendingUp, User } from "lucide-react";
+import { Bell, Dumbbell, Flame, MessageSquare, Sparkles, TrendingUp, User } from "lucide-react";
 import { useTranslation } from "./DirectionProvider";
 
 export const BottomNav: React.FC = () => {
@@ -30,6 +30,11 @@ export const BottomNav: React.FC = () => {
       label: t("nav.programs"),
       href: `/${locale}/coach/programs`,
       icon: Dumbbell,
+    },
+    {
+      label: t("nav.copilot"),
+      href: `/${locale}/coach/copilot`,
+      icon: Sparkles,
     },
     {
       label: t("nav.messages"),

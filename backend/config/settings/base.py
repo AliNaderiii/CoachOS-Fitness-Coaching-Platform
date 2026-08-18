@@ -55,6 +55,10 @@ INSTALLED_APPS = [
     "apps.execution.apps.ExecutionConfig",
     # Phase 08 Communication and Notifications
     "apps.communication.apps.CommunicationConfig",
+    # Phase 11 Governed AI Copilot
+    "apps.copilot.apps.CopilotConfig",
+    # Phase 12 Durable Offline and Integrations
+    "apps.integrations.apps.IntegrationsConfig",
 ]
 
 MIDDLEWARE = [
@@ -260,6 +264,28 @@ LOGGING = {
 COMMUNICATION_FAKE_PROVIDERS_ENABLED = os.environ.get(
     "COMMUNICATION_FAKE_PROVIDERS_ENABLED", "False"
 ).lower() in ("true", "1", "yes")
+# -----------------------------------------------------------------------------
+# Phase 11 — Governed AI Copilot
+# -----------------------------------------------------------------------------
+# Kill switch: the Copilot is OFF unless explicitly enabled (fail closed).
+COPILOT_ENABLED = os.environ.get("COPILOT_ENABLED", "False").lower() in ("true", "1", "yes")
+
+# Provider selection is configuration only. Only "fake-deterministic" has an
+# implementation in this branch; any other selection fails closed (no silent
+# fallback). Real provider credentials, if ever configured, are injected
+# server-side via environment only — never stored in the database, never in
+# frontend config, never committed.
+COPILOT_PROVIDER = os.environ.get("COPILOT_PROVIDER", "fake-deterministic")
+
+# Cost / quota / rate budgets (development defaults — NOT production SLOs).
+COPILOT_RATE_LIMIT_PER_MINUTE = int(os.environ.get("COPILOT_RATE_LIMIT_PER_MINUTE", "10"))
+COPILOT_DAILY_RUN_QUOTA_PER_ACTOR = int(os.environ.get("COPILOT_DAILY_RUN_QUOTA_PER_ACTOR", "20"))
+COPILOT_DAILY_RUN_QUOTA_PER_ORG = int(os.environ.get("COPILOT_DAILY_RUN_QUOTA_PER_ORG", "100"))
+COPILOT_DAILY_COST_CAP_MICRO_USD = int(
+    os.environ.get("COPILOT_DAILY_COST_CAP_MICRO_USD", "5000000")  # 5.00 USD equiv
+)
+COPILOT_CONTEXT_RETENTION_DAYS = int(os.environ.get("COPILOT_CONTEXT_RETENTION_DAYS", "30"))
+COPILOT_MAX_ATTEMPTS = int(os.environ.get("COPILOT_MAX_ATTEMPTS", "2"))
 
 # Version and Metadata
 APP_VERSION = "0.4.0"

@@ -16,4 +16,8 @@ urlpatterns = [
     path("", include("apps.execution.urls")),
     # Phase 08 Communication and Notifications
     path("", include("apps.communication.urls")),
+    # Phase 11 Governed AI Copilot
+    path("", include("apps.copilot.urls")),
+    # Phase 12 Durable Offline and Integrations
+    path("integrations/", include("apps.integrations.urls")),
 ]
