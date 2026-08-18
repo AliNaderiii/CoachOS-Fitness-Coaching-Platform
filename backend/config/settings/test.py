@@ -43,3 +43,6 @@ BILLING_HOSTED_URL_ALLOWED_HOSTS = [
     "invoices.test.coachos.invalid",
 ]
 BILLING_WEBHOOK_TOLERANCE_SECONDS = 300
+# Phase 11: enable the Copilot in the test environment (production default is OFF).
+# Tests override these values per-case to exercise kill-switch and budget paths.
+COPILOT_ENABLED = True

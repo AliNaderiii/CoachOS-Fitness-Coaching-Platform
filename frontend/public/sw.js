@@ -52,6 +52,30 @@ self.addEventListener("activate", (event) => {
 });
 
 // Fetch event: Apply routing strategies
+// Background Sync (optional — feature-detected; foreground retry remains fallback)
+self.addEventListener("sync", (event) => {
+  if (event.tag === "sync-sets") {
+    event.waitUntil(
+      (async () => {
+        try {
+          // Contract: flush queued operations; no payload logging; same auth as foreground
+          const response = await fetch("/api/v1/sync/flush", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Idempotency-Key": "sw-sync-" + Date.now() },
+            credentials: "same-origin",
+            body: JSON.stringify({ source: "background_sync" }),
+          });
+          if (response.ok) {
+            console.log("[SW] Background sync completed");
+          }
+        } catch (err) {
+          console.warn("[SW] Background sync failed — will retry in foreground:", err);
+        }
+      })()
+    );
+  }
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
